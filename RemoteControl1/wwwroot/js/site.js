@@ -87,10 +87,9 @@ let timeEntries = Array.isArray(remoteControlData.activity)
     ? remoteControlData.activity.map(normalizeActivity)
     : [];
 
-let calendarEvents = [];
+
 let manualTimeRequests = [];
-let calendarCurrentDate = new Date();
-let selectedCalendarDate = new Date().toISOString().split("T")[0];
+
 
 const currentUserId = Number(remoteControlData.currentUserId || 0);
 const currentUserName = remoteControlData.currentUserName || "";
@@ -121,9 +120,10 @@ function getRequestVerificationToken() {
 
 function closeModal(modalId) {
     const el = document.getElementById(modalId);
-    if (el) {
-        el.classList.remove("show");
-    }
+    if (!el) return;
+
+    el.classList.remove("show");
+    el.style.display = "none";
 }
 
 function showNotification(message) {
@@ -290,7 +290,7 @@ function showPage(pageId) {
         renderSalaryTable();
         renderBonusesTable();
         renderControlTab();
-        renderCalendarEvents();
+
         loadManualTimeRequests();
     }
 
@@ -301,6 +301,10 @@ function showPage(pageId) {
 
     if (pageId === "profile") {
         document.getElementById("profileInfo")?.classList.remove("hidden");
+    }
+
+    if (pageId === "calendar") {
+        initCalendarPage();
     }
 
 }
@@ -332,13 +336,13 @@ document.addEventListener("DOMContentLoaded", function () {
     renderSalaryTable();
     renderBonusesTable();
     renderControlTab();
-    renderCalendarEvents();
-    renderCalendarGrid();
+   
 
     renderWorkDayHistory();
     initProfilePage();
 
     loadWorkStatus();
+
 
     document.addEventListener("click", function (event) {
         const dropdown = document.getElementById("profileDropdown");
@@ -355,11 +359,20 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    window.onclick = function (event) {
-        if (event.target.classList && event.target.classList.contains("modal")) {
-            event.target.classList.remove("show");
-        }
-    };
+    document.addEventListener("click", function (event) {
+        const modal = event.target.closest(".modal");
+
+        if (!modal) return;
+
+        if (event.target !== modal) return;
+
+        event.stopPropagation();
+        closeModal(modal.id);
+    });
+
+
+
+
 });
 
 

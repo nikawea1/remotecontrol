@@ -1,4 +1,5 @@
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.InkML;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -48,6 +49,9 @@ namespace RemoteControl1.Pages
         public decimal CurrentUserRate { get; set; }
         public bool CurrentUserIsActive { get; set; }
 
+
+        public string CalendarEventsJson { get; set; } = "[]";
+
         public async Task<IActionResult> OnGetAsync()
         {
             var sessionUserId = HttpContext.Session.GetInt32("user_id");
@@ -72,6 +76,26 @@ namespace RemoteControl1.Pages
             CurrentUserPosition = user.Position ?? "";
             CurrentUserRate = user.HourlyRate;
             CurrentUserIsActive = user.IsActive;
+
+            List<CalendarEvent> events;
+
+            if (IsAdmin)
+            {
+                events = await _db.CalendarEvents
+                    .OrderBy(x => x.EventDate)
+                    .ToListAsync();
+            }
+            else
+            {
+                events = await _db.CalendarEvents
+                    .Where(x => x.UserId == user.Id)
+                    .OrderBy(x => x.EventDate)
+                    .ToListAsync();
+            }
+
+            CalendarEventsJson = JsonSerializer.Serialize(events);
+
+
 
             var data = await _taskService.GetPageDataAsync(user.Id);
 

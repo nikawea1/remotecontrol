@@ -16,6 +16,8 @@ namespace RemoteControl1.Data
 
         public DbSet<ManualTimeRequest> ManualTimeRequests { get; set; } = null!;
 
+        public DbSet<CalendarEvent> CalendarEvents { get; set; } = null!;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>()
@@ -94,6 +96,24 @@ namespace RemoteControl1.Data
                 .HasOne(x => x.Project)
                 .WithMany()
                 .HasForeignKey(x => x.ProjectId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CalendarEvent>()
+    .HasOne(x => x.Project)
+    .WithMany()
+    .HasForeignKey(x => x.ProjectId)
+    .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<CalendarEvent>()
+                .HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CalendarEvent>()
+                .HasOne(x => x.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(x => x.CreatedByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             base.OnModelCreating(modelBuilder);

@@ -15,8 +15,7 @@ function showAdminTab(tabName, btn) {
         productivity: "adminProductivityTab",
         salary: "adminSalaryTab",
         bonuses: "adminBonusesTab",
-        control: "adminControlTab",
-        calendar: "adminCalendarTab"
+        control: "adminControlTab"
     };
 
     const target = document.getElementById(map[tabName]);
@@ -44,7 +43,7 @@ function renderAdminSection(tabName) {
     }
 
     if (tabName === "control") renderControlTab();
-    if (tabName === "calendar") renderCalendarEvents();
+    
 }
 
 function renderAdminStats() {
@@ -358,147 +357,31 @@ function saveCalendarEvent() {
     selectedCalendarDate = date;
 
     closeModal("calendarModal");
-    renderCalendarEvents();
-    renderCalendarGrid();
     showNotification("Событие добавлено");
 }
 
-function deleteCalendarEvent(id) {
-    calendarEvents = calendarEvents.filter(x => x.id !== id);
-    renderCalendarEvents();
-    renderCalendarGrid();
-    showNotification("Событие удалено");
-}
+
 
 function prevCalendarMonth() {
     calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() - 1);
-    renderCalendarGrid();
+
 }
 
 function nextCalendarMonth() {
     calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() + 1);
-    renderCalendarGrid();
+
 }
 
 function selectCalendarDate(date) {
     selectedCalendarDate = date;
-    renderCalendarGrid();
-    renderCalendarEvents();
+
+
 }
 
-function getCalendarEventsForDate(date) {
-    return calendarEvents.filter(x => x.date === date);
-}
 
-function renderCalendarGrid() {
-    const grid = document.getElementById("calendarGrid");
-    const title = document.getElementById("calendarMonthTitle");
 
-    if (!grid || !title) return;
 
-    const year = calendarCurrentDate.getFullYear();
-    const month = calendarCurrentDate.getMonth();
 
-    const monthNames = [
-        "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
-        "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"
-    ];
-
-    title.textContent = `${monthNames[month]} ${year}`;
-
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-
-    let startWeekDay = firstDay.getDay();
-    if (startWeekDay === 0) startWeekDay = 7;
-
-    const daysInMonth = lastDay.getDate();
-
-    let html = `
-        <div class="calendar-weekday">Пн</div>
-        <div class="calendar-weekday">Вт</div>
-        <div class="calendar-weekday">Ср</div>
-        <div class="calendar-weekday">Чт</div>
-        <div class="calendar-weekday">Пт</div>
-        <div class="calendar-weekday">Сб</div>
-        <div class="calendar-weekday">Вс</div>
-    `;
-
-    for (let i = 1; i < startWeekDay; i++) {
-        html += `<div class="calendar-day empty"></div>`;
-    }
-
-    for (let day = 1; day <= daysInMonth; day++) {
-        const date = new Date(year, month, day);
-        const iso = date.toISOString().split("T")[0];
-        const eventsCount = getCalendarEventsForDate(iso).length;
-        const isToday = iso === new Date().toISOString().split("T")[0];
-        const isSelected = iso === selectedCalendarDate;
-
-        html += `
-            <div class="calendar-day ${isToday ? "today" : ""} ${isSelected ? "selected" : ""}"
-                 onclick="selectCalendarDate('${iso}')">
-                <div class="calendar-day-number">${day}</div>
-                ${eventsCount > 0 ? `<div class="calendar-day-badge">${eventsCount}</div>` : ""}
-            </div>
-        `;
-    }
-
-    grid.innerHTML = html;
-}
-
-function renderCalendarEvents() {
-    const box = document.getElementById("calendarEventsList");
-    const selectedDateText = document.getElementById("selectedCalendarDateText");
-
-    if (selectedDateText) {
-        selectedDateText.textContent = selectedCalendarDate
-            ? new Date(selectedCalendarDate + "T00:00:00").toLocaleDateString("ru-RU")
-            : "дата не выбрана";
-    }
-
-    if (!box) return;
-
-    const events = getCalendarEventsForDate(selectedCalendarDate);
-
-    if (!events.length) {
-        box.innerHTML = `
-            <div class="card" style="margin-bottom:0;">
-                <div style="color:var(--gray); margin-bottom:12px;">На выбранную дату событий пока нет</div>
-                <button class="btn btn-primary" type="button" onclick="openCalendarModal(selectedCalendarDate)">
-                    <i class="fas fa-plus"></i> Добавить событие
-                </button>
-            </div>
-        `;
-        return;
-    }
-
-    box.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-            <h4 style="margin:0;">События</h4>
-            <button class="btn btn-primary btn-sm" type="button" onclick="openCalendarModal(selectedCalendarDate)">
-                <i class="fas fa-plus"></i> Добавить
-            </button>
-        </div>
-        ${events.map(e => `
-            <div class="card" style="margin-bottom:14px;">
-                <div style="display:flex; justify-content:space-between; gap:20px; align-items:flex-start;">
-                    <div>
-                        <h4 style="margin-bottom:8px; color:var(--primary-dark);">${e.title}</h4>
-                        <div style="font-size:14px; color:var(--gray); margin-bottom:6px;">
-                            <i class="fas fa-calendar"></i> ${e.date}
-                            ${e.time ? `&nbsp;&nbsp;<i class="fas fa-clock"></i> ${e.time}` : ""}
-                        </div>
-                        <div style="font-size:14px;">${e.description || "Без описания"}</div>
-                    </div>
-                    <button class="btn btn-sm btn-danger" onclick="deleteCalendarEvent(${e.id})">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </div>
-        `).join("")}
-    `;
-}
 
 function showUserDetails(id) {
     const user = users.find(x => x.id === id);
