@@ -140,7 +140,7 @@ namespace RemoteControl1.Pages
             var form = Request.Form;
 
             int.TryParse(form["taskId"], out var taskId);
-            double.TryParse(form["hours"], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var hours);
+            decimal.TryParse(form["hours"], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var hours);
 
             var dto = new AddManualTimeDto
             {
@@ -1410,7 +1410,7 @@ namespace RemoteControl1.Pages
         private class ExportDataVm
         {
             public string UserName { get; set; } = "";
-            public double TotalHours { get; set; }
+            public decimal TotalHours { get; set; }
             public int DoneTasks { get; set; }
             public List<ExportRowVm> Rows { get; set; } = new();
         }
@@ -1420,13 +1420,13 @@ namespace RemoteControl1.Pages
             public string Date { get; set; } = "";
             public string Task { get; set; } = "";
             public string Project { get; set; } = "";
-            public double Hours { get; set; }
+            public decimal Hours { get; set; }
             public string Comment { get; set; } = "";
             public string Status { get; set; } = "";
             public string Assignee { get; set; } = "";
             public string Deadline { get; set; } = "";
         }
-
+            
 
     }
 }

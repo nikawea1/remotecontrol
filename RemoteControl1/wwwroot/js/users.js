@@ -145,22 +145,25 @@ function renderWorkloadTable() {
     if (!users.length) {
         body.innerHTML = `
             <tr>
-                <td colspan="7" style="text-align:center; color: var(--gray);">Нет данных</td>
+                <td colspan="9" style="text-align:center; color: var(--gray);">Нет данных</td>
             </tr>
         `;
         return;
     }
 
     body.innerHTML = users.map(u => {
-        const diff = u.trackedHours - u.plannedHours;
+        const diff = Number(u.trackedHours || 0) - Number(u.plannedHours || 0);
+
         return `
             <tr>
                 <td>${u.fullName}</td>
                 <td>${u.tasksInProgress}</td>
                 <td>${u.completedTasks}</td>
                 <td>${u.overdueTasks}</td>
-                <td>${u.plannedHours.toFixed(1)}</td>
-                <td>${u.trackedHours.toFixed(1)}</td>
+                <td>${Number(u.plannedHours || 0).toFixed(1)}</td>
+                <td>${Number(u.trackedHours || 0).toFixed(1)}</td>
+                <td>${Number(u.workDayHours || 0).toFixed(1)}</td>
+                <td>${Number(u.idleHours || 0).toFixed(1)}</td>
                 <td>${diff >= 0 ? "+" : ""}${diff.toFixed(1)}</td>
             </tr>
         `;
@@ -214,19 +217,25 @@ function renderSalaryTable() {
     if (!users.length) {
         body.innerHTML = `
             <tr>
-                <td colspan="4" style="text-align:center; color: var(--gray);">Нет данных</td>
+                <td colspan="6" style="text-align:center; color: var(--gray);">Нет данных</td>
             </tr>
         `;
         return;
     }
 
     body.innerHTML = users.map(u => {
-        const salary = u.salaryHours * u.hourlyRate;
+        const salaryHours = Number(u.salaryHours || 0);
+        const workDayHours = Number(u.workDayHours || 0);
+        const idleHours = Number(u.idleHours || 0);
+        const salary = salaryHours * Number(u.hourlyRate || 0);
+
         return `
             <tr>
                 <td>${u.fullName}</td>
-                <td>${u.salaryHours.toFixed(1)}</td>
-                <td>${u.hourlyRate.toLocaleString("ru-RU")}</td>
+                <td>${salaryHours.toFixed(1)}</td>
+                <td>${workDayHours.toFixed(1)}</td>
+                <td>${idleHours.toFixed(1)}</td>
+                <td>${Number(u.hourlyRate || 0).toLocaleString("ru-RU")}</td>
                 <td><strong>${salary.toLocaleString("ru-RU")}</strong></td>
             </tr>
         `;
@@ -240,21 +249,25 @@ function renderBonusesTable() {
     if (!users.length) {
         body.innerHTML = `
             <tr>
-                <td colspan="5" style="text-align:center; color: var(--gray);">Нет данных</td>
+                <td colspan="6" style="text-align:center; color: var(--gray);">Нет данных</td>
             </tr>
         `;
         return;
     }
 
     body.innerHTML = users.map(u => {
-        const diff = u.trackedHours - u.plannedHours;
-        const recommend = u.plannedHours > 0 && u.trackedHours > u.plannedHours * 1.1;
+        const planned = Number(u.plannedHours || 0);
+        const tracked = Number(u.trackedHours || 0);
+        const diff = tracked - planned;
+        const percent = planned > 0 ? (tracked / planned) * 100 : 0;
+        const recommend = planned > 0 && tracked >= planned * 1.1;
 
         return `
             <tr>
                 <td>${u.fullName}</td>
-                <td>${u.plannedHours.toFixed(1)}</td>
-                <td>${u.trackedHours.toFixed(1)}</td>
+                <td>${planned.toFixed(1)}</td>
+                <td>${tracked.toFixed(1)}</td>
+                <td>${percent.toFixed(0)}%</td>
                 <td>${diff >= 0 ? "+" : ""}${diff.toFixed(1)}</td>
                 <td>
                     <span class="badge ${recommend ? "badge-success" : "badge-info"}">
@@ -605,6 +618,11 @@ function editUser(id) {
         return;
     }
 
+    resetUserModalState();
+
+    const modal = document.getElementById("editUserModal");
+    if (!modal) return;
+
     document.getElementById("editUserId").value = user.id;
     document.getElementById("editULastName").value = extractLastName(user.fullName);
     document.getElementById("editUFirstName").value = extractFirstName(user.fullName);
@@ -617,23 +635,20 @@ function editUser(id) {
     document.getElementById("editUEmail").value = user.email || "";
     document.getElementById("editUPhone").value = user.phone || "";
     document.getElementById("editUStatus").value = user.status || "active";
-
     document.getElementById("editUWorkMode").value = user.workMode || "fixed";
     document.getElementById("editURequiredDailyHours").value = user.requiredDailyHours || 8;
-    document.getElementById("editUPlannedStartTime").value = user.plannedStartTime || "";
-    document.getElementById("editUPlannedEndTime").value = user.plannedEndTime || "";
+    document.getElementById("editUPlannedStartTime").value = user.plannedStartTime || "09:00";
+    document.getElementById("editUPlannedEndTime").value = user.plannedEndTime || "18:00";
 
     toggleWorkModeFields("editU");
 
-    const modal = document.getElementById("editUserModal");
-    if (modal) {
-        modal.classList.add("show");
-        modal.style.display = "flex";
-    }
+    modal.classList.add("show");
+    modal.style.display = "flex";
 }
 
 function resetUserModalState() {
     [
+        "userEditId",
         "uLastName",
         "uFirstName",
         "uMiddleName",
@@ -644,34 +659,14 @@ function resetUserModalState() {
         "uEmail",
         "uPhone",
         "uPlannedStartTime",
-        "uPlannedEndTime"
-    ].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = "";
-    });
-
-    const uRate = document.getElementById("uRate");
-    const uRole = document.getElementById("uRole");
-    const uStatus = document.getElementById("uStatus");
-    const uWorkMode = document.getElementById("uWorkMode");
-    const uRequiredDailyHours = document.getElementById("uRequiredDailyHours");
-    const userEditId = document.getElementById("userEditId");
-
-    if (uRate) uRate.value = 1500;
-    if (uRole) uRole.value = "employee";
-    if (uStatus) uStatus.value = "active";
-    if (uWorkMode) uWorkMode.value = "fixed";
-    if (uRequiredDailyHours) uRequiredDailyHours.value = 8;
-    if (userEditId) userEditId.value = "0";
-
-    [
+        "uPlannedEndTime",
+        "editUserId",
         "editULastName",
         "editUFirstName",
         "editUMiddleName",
         "editULogin",
         "editUPass",
         "editUPosition",
-        "editURate",
         "editUEmail",
         "editUPhone",
         "editUPlannedStartTime",
@@ -681,17 +676,28 @@ function resetUserModalState() {
         if (el) el.value = "";
     });
 
-    const editUserId = document.getElementById("editUserId");
-    const editURole = document.getElementById("editURole");
-    const editUStatus = document.getElementById("editUStatus");
-    const editUWorkMode = document.getElementById("editUWorkMode");
-    const editURequiredDailyHours = document.getElementById("editURequiredDailyHours");
+    const defaults = [
+        ["uRate", 1500],
+        ["uRole", "employee"],
+        ["uStatus", "active"],
+        ["uWorkMode", "fixed"],
+        ["uRequiredDailyHours", 8],
+        ["uPlannedStartTime", "09:00"],
+        ["uPlannedEndTime", "18:00"],
 
-    if (editUserId) editUserId.value = "0";
-    if (editURole) editURole.value = "employee";
-    if (editUStatus) editUStatus.value = "active";
-    if (editUWorkMode) editUWorkMode.value = "fixed";
-    if (editURequiredDailyHours) editURequiredDailyHours.value = 8;
+        ["editURate", 1500],
+        ["editURole", "employee"],
+        ["editUStatus", "active"],
+        ["editUWorkMode", "fixed"],
+        ["editURequiredDailyHours", 8],
+        ["editUPlannedStartTime", "09:00"],
+        ["editUPlannedEndTime", "18:00"]
+    ];
+
+    defaults.forEach(([id, value]) => {
+        const el = document.getElementById(id);
+        if (el) el.value = value;
+    });
 
     toggleWorkModeFields("u");
     toggleWorkModeFields("editU");

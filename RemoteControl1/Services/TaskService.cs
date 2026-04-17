@@ -221,7 +221,7 @@ namespace RemoteControl1.Services
                 .Select(g => new ChartItemVm
                 {
                     Label = g.Key,
-                    Value = Math.Round(g.Sum(x => x.DurationHours), 2)
+                    Value = (decimal)Math.Round(g.Sum(x => x.DurationHours), 2)
                 })
                 .OrderByDescending(x => x.Value)
                 .ToList();
@@ -247,21 +247,22 @@ namespace RemoteControl1.Services
                 Status = a.TaskItem?.Status ?? "-"
             }).ToList();
 
-            var plannedHours = Math.Round(tasks.Sum(t => t.PlannedTimeHours), 2);
+            var plannedHours = Math.Round((decimal)tasks.Sum(t => t.PlannedTimeHours), 2);
             var actualHours = totalHours;
+
 
             var doneCount = tasks.Count(t => (t.Status ?? "") == "done");
             var allCount = tasks.Count;
 
             var completionRate = allCount > 0
-                ? Math.Round((double)doneCount / allCount * 100, 0)
+                ? (int)Math.Round((double)doneCount / allCount * 100)
                 : 0;
 
-            var hoursRate = plannedHours > 0
-                ? Math.Min(100, Math.Round(actualHours / plannedHours * 100, 0))
+            var hourRate = plannedHours > 0
+                ? Math.Min(100, (int)Math.Round((double)(actualHours / plannedHours * 100m)))
                 : 0;
 
-            var efficiency = (int)Math.Round((completionRate + hoursRate) / 2.0, 0);
+            var efficiency = (int)Math.Round((completionRate + hourRate) / 2.0, 0);
 
             var bonusPercent = 0;
             var bonusReason = "Нет";
@@ -465,7 +466,7 @@ namespace RemoteControl1.Services
             var weeklyCompleted = CountCompletedWorkedTasks(weekLogs, scopedTasks);
             var monthlyCompleted = CountCompletedWorkedTasks(scopedLogs, scopedTasks);
 
-            var plannedHours = scopedTasks.Sum(t => t.PlannedTimeHours);
+            var plannedHours = (decimal)scopedTasks.Sum(t => t.PlannedTimeHours);
             var actualHours = monthlyHours;
 
             var doneCount = scopedTasks.Count(t => (t.Status ?? "") == "done");
@@ -474,8 +475,9 @@ namespace RemoteControl1.Services
                 ? (int)Math.Round((double)doneCount / allCount * 100)
                 : 0;
             var hourRate = plannedHours > 0
-                ? Math.Min(100, (int)Math.Round(actualHours / plannedHours * 100))
+                ? Math.Min(100, (int)Math.Round((double)(actualHours / plannedHours * 100m)))
                 : 0;
+
             var efficiency = (int)Math.Round((completionRate + hourRate) / 2.0);
 
             var bonusPercent = 0;
@@ -507,7 +509,6 @@ namespace RemoteControl1.Services
                     TotalHours = dailyHours,
                     CompletedTasks = dailyCompleted,
                     Overtime = dailyOvertime,
-                    Entries = dayLogs.Select(BuildReportEntryVm).ToList()
                 },
                 Weekly = new WeeklyReportVm
                 {
@@ -865,7 +866,7 @@ namespace RemoteControl1.Services
                 ActivityType = "workday",
                 StartedAtUtc = now,
                 IsActive = true,
-                DurationHours = 0,
+                DurationHours = 0m,
                 IsIdle = false,
                 PlannedHours = plannedHours,
                 TrackedHours = 0,
@@ -884,11 +885,11 @@ namespace RemoteControl1.Services
         }
 
 
-        public async Task<ServiceResult<double>> StopWorkDayAsync(int userId)
+        public async Task<ServiceResult<decimal>> StopWorkDayAsync(int userId)
         {
             var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == userId);
             if (user == null)
-                return ServiceResult<double>.Fail("Пользователь не найден");
+                return ServiceResult<decimal>.Fail("Пользователь не найден");
 
             var activeDay = await _db.ActivityLogs.FirstOrDefaultAsync(a =>
                 a.UserId == userId &&
@@ -896,7 +897,7 @@ namespace RemoteControl1.Services
                 a.IsActive);
 
             if (activeDay == null)
-                return ServiceResult<double>.Fail("Рабочий день не найден");
+                return ServiceResult<decimal>.Fail("Рабочий день не найден");
 
             var now = DateTime.UtcNow;
 
@@ -911,8 +912,7 @@ namespace RemoteControl1.Services
             {
                 timer.EndedAtUtc = now;
                 timer.IsActive = false;
-                timer.DurationHours = Math.Round(
-                    (timer.EndedAtUtc.Value - timer.StartedAtUtc).TotalHours, 2);
+                timer.DurationHours = Math.Round((decimal)(timer.EndedAtUtc.Value - timer.StartedAtUtc).TotalHours, 2);
             }
 
             await _db.SaveChangesAsync();
@@ -956,7 +956,7 @@ namespace RemoteControl1.Services
 
             activeDay.EndedAtUtc = now;
             activeDay.IsActive = false;
-            activeDay.DurationHours = Math.Round((double)totalDayHours, 2);
+            activeDay.DurationHours = totalDayHours;
 
             activeDay.PlannedHours = plannedHours;
             activeDay.TrackedHours = trackedHours;
@@ -969,7 +969,7 @@ namespace RemoteControl1.Services
 
             await _db.SaveChangesAsync();
 
-            return ServiceResult<double>.Success(activeDay.DurationHours);
+            return ServiceResult<decimal>.Success(activeDay.DurationHours);
         }
 
 
@@ -1010,7 +1010,7 @@ namespace RemoteControl1.Services
                 ActivityType = "task_timer",
                 StartedAtUtc = DateTime.UtcNow,
                 IsActive = true,
-                DurationHours = 0,
+                DurationHours = 0m,
                 Comment = dto.Comment?.Trim(),
                 IsIdle = false
             };
@@ -1021,7 +1021,7 @@ namespace RemoteControl1.Services
             return ServiceResult.Success();
         }
 
-        public async Task<ServiceResult<double>> PauseTaskTimerAsync(int userId)
+        public async Task<ServiceResult<decimal>> PauseTaskTimerAsync(int userId)
         {
             var activeTimer = await _db.ActivityLogs.FirstOrDefaultAsync(a =>
                 a.UserId == userId &&
@@ -1029,19 +1029,19 @@ namespace RemoteControl1.Services
                 a.IsActive);
 
             if (activeTimer == null)
-                return ServiceResult<double>.Fail("Активный таймер не найден");
+                return ServiceResult<decimal>.Fail("Активный таймер не найден");
 
             activeTimer.EndedAtUtc = DateTime.UtcNow;
             activeTimer.IsActive = false;
             activeTimer.DurationHours = Math.Round(
-                (activeTimer.EndedAtUtc.Value - activeTimer.StartedAtUtc).TotalHours, 2);
+    (decimal)(activeTimer.EndedAtUtc.Value - activeTimer.StartedAtUtc).TotalHours, 2);
 
             await _db.SaveChangesAsync();
 
-            return ServiceResult<double>.Success(activeTimer.DurationHours);
+            return ServiceResult<decimal>.Success(activeTimer.DurationHours);
         }
 
-        public async Task<ServiceResult<double>> StopTaskTimerAsync(int userId)
+        public async Task<ServiceResult<decimal>> StopTaskTimerAsync(int userId)
         {
             var activeTimer = await _db.ActivityLogs.FirstOrDefaultAsync(a =>
                 a.UserId == userId &&
@@ -1049,16 +1049,16 @@ namespace RemoteControl1.Services
                 a.IsActive);
 
             if (activeTimer == null)
-                return ServiceResult<double>.Fail("Активный таймер не найден");
+                return ServiceResult<decimal>.Fail("Активный таймер не найден");
 
             activeTimer.EndedAtUtc = DateTime.UtcNow;
             activeTimer.IsActive = false;
             activeTimer.DurationHours = Math.Round(
-                (activeTimer.EndedAtUtc.Value - activeTimer.StartedAtUtc).TotalHours, 2);
+    (decimal)(activeTimer.EndedAtUtc.Value - activeTimer.StartedAtUtc).TotalHours, 2);
 
             await _db.SaveChangesAsync();
 
-            return ServiceResult<double>.Success(activeTimer.DurationHours);
+            return ServiceResult<decimal>.Success(activeTimer.DurationHours);
         }
 
         public async Task<ServiceResult<ActivityVm>> AddManualTimeAsync(int userId, AddManualTimeDto dto)
@@ -1081,9 +1081,9 @@ namespace RemoteControl1.Services
                 TaskItemId = task.Id,
                 ProjectId = task.ProjectId,
                 ActivityType = "manual_time",
-                StartedAtUtc = now.AddHours(-dto.Hours),
+                StartedAtUtc = now.AddHours(-(double)dto.Hours),
                 EndedAtUtc = now,
-                DurationHours = dto.Hours,
+                DurationHours = Math.Round((decimal)dto.Hours, 2),
                 Comment = dto.Comment?.Trim(),
                 IsActive = false,
                 IsIdle = false
@@ -1171,8 +1171,8 @@ namespace RemoteControl1.Services
                     .Select(p => p.Id)
                     .ToListAsync();
 
-                query = query.Where(x => managerProjectIds.Contains(x.ProjectId))
-                             .OrderByDescending(x => x.CreatedAtUtc);
+                query = query.Where(x => x.ProjectId.HasValue && managerProjectIds.Contains(x.ProjectId.Value))
+             .OrderByDescending(x => x.CreatedAtUtc);
             }
             else if (role == "employee")
             {
@@ -1239,9 +1239,9 @@ namespace RemoteControl1.Services
                 TaskItemId = request.TaskItemId,
                 ProjectId = request.ProjectId,
                 ActivityType = "manual_time",
-                StartedAtUtc = now.AddHours(-request.Hours),
+                StartedAtUtc = now.AddHours(-(double)request.Hours),
                 EndedAtUtc = now,
-                DurationHours = request.Hours,
+                DurationHours = Math.Round((decimal)request.Hours, 2),
                 Comment = string.IsNullOrWhiteSpace(request.Comment)
                     ? "Ручное время одобрено менеджером"
                     : request.Comment,
@@ -1498,8 +1498,8 @@ namespace RemoteControl1.Services
 
             var userTasks = await _db.Tasks.Where(t => t.UserId == user.Id).ToListAsync();
             var totalHours = await _db.ActivityLogs
-                .Where(a => a.UserId == user.Id && a.ActivityType != "workday")
-                .SumAsync(a => (double?)a.DurationHours) ?? 0;
+     .Where(a => a.UserId == user.Id && a.ActivityType != "workday")
+     .SumAsync(a => (decimal?)a.DurationHours) ?? 0m;
 
             return ServiceResult<UserVm>.Success(new UserVm
             {
@@ -1519,7 +1519,7 @@ namespace RemoteControl1.Services
                     t.Deadline.Value.Date < DateTime.Today &&
                     (t.Status ?? "") != "done"),
                 TotalHours = Math.Round(totalHours, 1),
-                PlannedHours = Math.Round(userTasks.Sum(t => t.PlannedTimeHours), 1)
+                PlannedHours = Math.Round((decimal)userTasks.Sum(t => t.PlannedTimeHours), 1)
             });
         }
         private static string NormalizeRole(string? role)
@@ -1544,8 +1544,8 @@ namespace RemoteControl1.Services
 
             var userTasks = await _db.Tasks.Where(t => t.UserId == user.Id).ToListAsync();
             var totalHours = await _db.ActivityLogs
-                .Where(a => a.UserId == user.Id && a.ActivityType != "workday")
-                .SumAsync(a => (double?)a.DurationHours) ?? 0;
+    .Where(a => a.UserId == user.Id && a.ActivityType != "workday")
+    .SumAsync(a => (decimal?)a.DurationHours) ?? 0m;
 
             return ServiceResult<UserVm>.Success(new UserVm
             {
@@ -1565,7 +1565,7 @@ namespace RemoteControl1.Services
                     t.Deadline.Value.Date < DateTime.Today &&
                     (t.Status ?? "") != "done"),
                 TotalHours = Math.Round(totalHours, 1),
-                PlannedHours = Math.Round(userTasks.Sum(t => t.PlannedTimeHours), 1)
+                PlannedHours = Math.Round((decimal)userTasks.Sum(t => t.PlannedTimeHours), 1)
             });
         }
 
@@ -1762,11 +1762,11 @@ namespace RemoteControl1.Services
                 .ToList();
 
             var totalTrackedHours = Math.Round(taskLogs.Sum(a => a.DurationHours), 2);
-            var totalPlannedHours = Math.Round(userTasks.Sum(t => t.PlannedTimeHours), 2);
+            var totalPlannedHours = Math.Round((decimal)userTasks.Sum(t => t.PlannedTimeHours), 2);
 
             var workDayHours = Math.Round(workDayLogs.Sum(a => a.DurationHours), 2);
-            var trackedHours = totalTrackedHours;
-            var idleHours = Math.Round(workDayLogs.Sum(a => (double)a.IdleHours), 2);
+            var trackedHours = Math.Round(workDayLogs.Sum(a => a.TrackedHours), 2);
+            var idleHours = Math.Round(workDayLogs.Sum(a => a.IdleHours), 2);
             var salaryHours = trackedHours;
 
             return new UserVm
@@ -1793,10 +1793,10 @@ namespace RemoteControl1.Services
                 RequiredDailyHours = u.RequiredDailyHours,
                 PlannedStartTime = u.PlannedStartTime?.ToString(@"hh\:mm") ?? "",
                 PlannedEndTime = u.PlannedEndTime?.ToString(@"hh\:mm") ?? "",
-                WorkDayHours = (decimal)workDayHours,
-                TrackedHours = (decimal)trackedHours,
-                IdleHours = (decimal)idleHours,
-                SalaryHours = (decimal)salaryHours
+                WorkDayHours = workDayHours,
+                TrackedHours = trackedHours,
+                IdleHours = idleHours,
+                SalaryHours = salaryHours
             };
         }
 
@@ -1864,14 +1864,14 @@ namespace RemoteControl1.Services
             return (from, to);
         }
 
-        private static double SumHours(List<ActivityLog> logs)
+        private static decimal SumHours(List<ActivityLog> logs)
         {
             return Math.Round(logs.Sum(x => x.DurationHours), 2);
         }
 
-        private static double CalculateOvertime(List<ActivityLog> logs)
+        private static decimal CalculateOvertime(List<ActivityLog> logs)
         {
-            return Math.Round(GetOvertimeDays(logs).Sum(x => x.Value), 2);
+            return Math.Round((decimal)GetOvertimeDays(logs).Sum(x => x.Value), 2);
         }
 
         private static List<ChartItemVm> GetOvertimeDays(List<ActivityLog> logs)
@@ -1881,12 +1881,12 @@ namespace RemoteControl1.Services
                 .Select(g =>
                 {
                     var total = g.Sum(x => x.DurationHours);
-                    var overtime = Math.Max(0, total - 8);
+                    var overtime = total > 8m ? total - 8m : 0m;
 
                     return new ChartItemVm
                     {
                         Label = g.Key.ToString("dd.MM.yyyy"),
-                        Value = Math.Round(overtime, 2)
+                        Value = (decimal)Math.Round(overtime, 2)
                     };
                 })
                 .Where(x => x.Value > 0)
@@ -1896,10 +1896,10 @@ namespace RemoteControl1.Services
             return result;
         }
 
-        private static double GetMaxOvertimeDay(List<ActivityLog> logs)
+        private static decimal GetMaxOvertimeDay(List<ActivityLog> logs)
         {
             var days = GetOvertimeDays(logs);
-            return days.Count > 0 ? days.Max(x => x.Value) : 0;
+            return days.Count > 0 ? (decimal)days.Max(x => x.Value) : 0m;
         }
 
         private static int CountCompletedWorkedTasks(List<ActivityLog> logs, List<TaskItem> tasks)
@@ -1933,7 +1933,7 @@ namespace RemoteControl1.Services
                 .Select(g => new ChartItemVm
                 {
                     Label = dayNames[g.Key],
-                    Value = Math.Round(g.Sum(x => x.DurationHours), 2)
+                    Value = (decimal)Math.Round(g.Sum(x => x.DurationHours), 2)
                 })
                 .OrderBy(x => DayOrder(x.Label))
                 .ToList();
@@ -1961,7 +1961,7 @@ namespace RemoteControl1.Services
                 .Select(g => new ChartItemVm
                 {
                     Label = g.Key,
-                    Value = Math.Round(g.Sum(x => x.DurationHours), 2)
+                    Value = (decimal)Math.Round(g.Sum(x => x.DurationHours), 2)
                 })
                 .OrderByDescending(x => x.Value)
                 .ToList();
@@ -1982,7 +1982,7 @@ namespace RemoteControl1.Services
                 .Select(g => new ChartItemVm
                 {
                     Label = $"Неделя {g.Key}",
-                    Value = Math.Round(g.Sum(x => x.DurationHours), 2)
+                    Value = (decimal)Math.Round(g.Sum(x => x.DurationHours), 2)
                 })
                 .OrderBy(x => x.Label)
                 .ToList();
@@ -2132,7 +2132,7 @@ namespace RemoteControl1.Services
         public string Date { get; set; } = "";
         public string Start { get; set; } = "";
         public string End { get; set; } = "";
-        public double Hours { get; set; }
+        public decimal Hours { get; set; }
     }
     public class AdminAnalyticsVm
     {
@@ -2159,9 +2159,9 @@ namespace RemoteControl1.Services
 
     public class ReportPeriodVm
     {
-        public double TotalHours { get; set; }
+        public decimal TotalHours { get; set; }
         public int CompletedTasks { get; set; }
-        public double Overtime { get; set; }
+        public decimal Overtime { get; set; }
         public List<ReportEntryVm> Entries { get; set; } = new();
     }
 
@@ -2181,9 +2181,9 @@ namespace RemoteControl1.Services
     {
         public int Efficiency { get; set; }
         public int OverdueCount { get; set; }
-        public double Overtime { get; set; }
-        public double PlannedHours { get; set; }
-        public double ActualHours { get; set; }
+        public decimal Overtime { get; set; }
+        public decimal PlannedHours { get; set; }
+        public decimal ActualHours { get; set; }
         public int NewCount { get; set; }
         public int ProgressCount { get; set; }
         public int ReviewCount { get; set; }
@@ -2200,8 +2200,8 @@ namespace RemoteControl1.Services
 
     public class OvertimeReportVm
     {
-        public double Total { get; set; }
-        public double MaxDay { get; set; }
+        public decimal Total { get; set; }
+        public decimal MaxDay { get; set; }
         public int DaysCount { get; set; }
         public List<ChartItemVm> ByDays { get; set; } = new();
     }
@@ -2219,7 +2219,7 @@ namespace RemoteControl1.Services
         public string Date { get; set; } = "";
         public string Task { get; set; } = "";
         public string Project { get; set; } = "";
-        public double Hours { get; set; }
+        public decimal Hours { get; set; }
         public string Comment { get; set; } = "";
         public string Status { get; set; } = "";
         public string Assignee { get; set; } = "";
@@ -2238,7 +2238,7 @@ namespace RemoteControl1.Services
     public class ChartItemVm
     {
         public string Label { get; set; } = "";
-        public double Value { get; set; }
+        public decimal Value { get; set; }
     }
 
     public class TaskVm
@@ -2252,7 +2252,7 @@ namespace RemoteControl1.Services
         public string Assignee { get; set; } = "";
         public string Priority { get; set; } = "medium";
         public string Status { get; set; } = "new";
-        public double PlannedTime { get; set; }
+        public decimal PlannedTime { get; set; }
         public string Deadline { get; set; } = "";
         public string DeadlineRaw { get; set; } = "";
         public string StageName { get; set; } = "";
@@ -2280,7 +2280,7 @@ namespace RemoteControl1.Services
     {
         public string Date { get; set; } = "";
         public string Task { get; set; } = "";
-        public double Hours { get; set; }
+        public decimal Hours { get; set; }
         public string Comment { get; set; } = "";
     }
 
@@ -2292,7 +2292,7 @@ namespace RemoteControl1.Services
         public int TaskId { get; set; }
         public string TaskName { get; set; } = "";
         public string ProjectName { get; set; } = "";
-        public double Hours { get; set; }
+        public decimal Hours { get; set; }
         public string Comment { get; set; } = "";
         public string Status { get; set; } = "";
         public string CreatedAt { get; set; } = "";
@@ -2310,7 +2310,7 @@ namespace RemoteControl1.Services
         public int UserId { get; set; }
         public string Priority { get; set; } = "medium";
         public string Status { get; set; } = "new";
-        public double PlannedTime { get; set; }
+        public decimal PlannedTime { get; set; }
         public DateTime? Deadline { get; set; }
         public string? StageName { get; set; }
     }
@@ -2325,7 +2325,7 @@ namespace RemoteControl1.Services
         public int UserId { get; set; }
         public string Priority { get; set; } = "medium";
         public string Status { get; set; } = "new";
-        public double PlannedTime { get; set; }
+        public decimal PlannedTime { get; set; }
         public DateTime? Deadline { get; set; }
         public string? StageName { get; set; }
     }
@@ -2369,7 +2369,7 @@ namespace RemoteControl1.Services
     public class AddManualTimeDto
     {
         public int TaskId { get; set; }
-        public double Hours { get; set; }
+        public decimal Hours { get; set; }
         public string? Comment { get; set; }
         public string? AttachmentPath { get; set; }
         public string? AttachmentName { get; set; }
@@ -2420,8 +2420,8 @@ namespace RemoteControl1.Services
         public int TasksInProgress { get; set; }
         public int CompletedTasks { get; set; }
         public int OverdueTasks { get; set; }
-        public double TotalHours { get; set; }
-        public double PlannedHours { get; set; }
+        public decimal TotalHours { get; set; }
+        public decimal PlannedHours { get; set; }
 
 
         public string WorkMode { get; set; } = "fixed";

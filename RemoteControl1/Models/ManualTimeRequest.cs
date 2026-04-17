@@ -12,10 +12,10 @@ namespace RemoteControl1.Models
         public int TaskItemId { get; set; }
         public TaskItem? TaskItem { get; set; }
 
-        public int ProjectId { get; set; }
+        public int? ProjectId { get; set; }
         public Project? Project { get; set; }
 
-        public double Hours { get; set; }
+        public decimal Hours { get; set; }
 
         public string Comment { get; set; } = "";
 

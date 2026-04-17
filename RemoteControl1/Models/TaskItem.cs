@@ -17,7 +17,7 @@ namespace RemoteControl1.Models
 
         public string Assignee { get; set; } = "";
 
-        public double PlannedTimeHours { get; set; }
+        public decimal PlannedTimeHours { get; set; }
 
         public DateTime? Deadline { get; set; }
 

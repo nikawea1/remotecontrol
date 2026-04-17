@@ -25,7 +25,7 @@ namespace RemoteControl1.Models
 
         public DateTime? EndedAtUtc { get; set; }
 
-        public double DurationHours { get; set; }
+        public decimal DurationHours { get; set; }
             
         public string? Comment { get; set; }
 

@@ -5003,3 +5003,162 @@ textarea.form-control {
 .calendar-side-type {
     font-family: var(--font-head);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.dashboard-workday-card {
+    margin-top: 0;
+    margin-bottom: 24px;
+}
+
+.workday-panel {
+    display: grid;
+    gap: 18px;
+}
+
+.workday-panel-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+
+.workday-panel-main {
+    min-width: 0;
+    flex: 1;
+}
+
+.workday-panel-caption {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gray);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+}
+
+.workday-panel-schedule {
+    font-size: 28px;
+    line-height: 1.15;
+    font-weight: 800;
+    color: var(--primary-dark);
+    font-family: var(--font-head);
+    margin-bottom: 10px;
+}
+
+.workday-panel-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.workday-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: var(--dark);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.workday-panel-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.workday-status-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 0 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+    .workday-status-chip.success {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .workday-status-chip.muted {
+        background: #eef2f7;
+        color: #64748b;
+    }
+
+.workday-mode-text {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray);
+}
+
+.workday-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.workday-metric-card {
+    padding: 16px;
+    border-radius: 18px;
+    background: #f8fafc;
+    border: 1px solid #e8edf5;
+    min-width: 0;
+}
+
+.workday-metric-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gray);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.workday-metric-value {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--primary-dark);
+    line-height: 1.15;
+    font-family: var(--font-head);
+}
+
+@media (max-width: 992px) {
+    .workday-metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .workday-panel-schedule {
+        font-size: 22px;
+    }
+
+    .workday-panel-side {
+        align-items: flex-start;
+    }
+
+    .workday-metrics-grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -64,6 +64,10 @@ namespace RemoteControl1.Data
                 .HasMaxLength(200)
                 .HasDefaultValue("");
 
+            modelBuilder.Entity<TaskItem>()
+    .Property(t => t.PlannedTimeHours)
+    .HasPrecision(10, 2);
+
             modelBuilder.Entity<ProjectMember>()
                 .HasOne(x => x.Project)
                 .WithMany(x => x.Members)
@@ -93,10 +97,14 @@ namespace RemoteControl1.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ManualTimeRequest>()
-                .HasOne(x => x.Project)
-                .WithMany()
-                .HasForeignKey(x => x.ProjectId)
-                .OnDelete(DeleteBehavior.Restrict);
+    .HasOne(x => x.Project)
+    .WithMany()
+    .HasForeignKey(x => x.ProjectId)
+    .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<ManualTimeRequest>()
+    .Property(x => x.Hours)
+    .HasPrecision(10, 2);
 
             modelBuilder.Entity<CalendarEvent>()
          .HasOne(x => x.Project)
@@ -133,26 +141,30 @@ namespace RemoteControl1.Data
                 .Property(u => u.PlannedEndTime);
 
             modelBuilder.Entity<ActivityLog>()
-    .Property(x => x.TrackedHours)
-    .HasPrecision(5, 2);
+                .Property(x => x.DurationHours)
+                .HasPrecision(10, 2);
+
+            modelBuilder.Entity<ActivityLog>()
+                .Property(x => x.TrackedHours)
+                .HasPrecision(10, 2);
 
             modelBuilder.Entity<ActivityLog>()
                 .Property(x => x.IdleHours)
-                .HasPrecision(5, 2);
+                .HasPrecision(10, 2);
 
             modelBuilder.Entity<ActivityLog>()
                 .Property(x => x.PlannedHours)
-                .HasPrecision(5, 2);
+                .HasPrecision(10, 2);
 
             modelBuilder.Entity<ActivityLog>()
                 .Property(x => x.OvertimeHours)
-                .HasPrecision(5, 2);
+                .HasPrecision(10, 2);
 
             modelBuilder.Entity<ActivityLog>()
                 .Property(x => x.UnderworkHours)
-                .HasPrecision(5, 2);
+                .HasPrecision(10, 2);
 
-      
+
 
             base.OnModelCreating(modelBuilder);
         }

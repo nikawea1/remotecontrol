@@ -87,15 +87,7 @@
 
 
     <div class="container main-content">
-            <div class="card" id="workDayStatusCard">
-        <div class="card-header">
-            <h3 class="card-title"><i class="fas fa-business-time"></i> Рабочий день</h3>
-        </div>
-
-        <div id="workDayStatusContent">
-            <div style="color: var(--gray);">Статус рабочего дня загружается...</div>
-        </div>
-    </div>
+            
 
         <div id="dashboardPage" class="page-content">
             <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:30px;">
@@ -111,6 +103,19 @@
                     </button>
                 </div>
             </div>
+
+
+            <div class="card dashboard-workday-card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-business-time"></i> Рабочий день</h3>
+                </div>
+
+                <div id="workDayStatusContent">
+                    <div style="color: var(--gray);">Статус рабочего дня загружается...</div>
+                </div>
+            </div>
+
+
 
             <div class="stats-grid">
                 <div class="stat-card">
@@ -751,17 +756,19 @@
 
                     <div class="table-container">
                         <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Сотрудник</th>
-                                    <th>Активных задач</th>
-                                    <th>Выполнено задач</th>
-                                    <th>Просрочено задач</th>
-                                    <th>Плановые часы</th>
-                                    <th>Фактические часы</th>
-                                    <th>Отклонение</th>
-                                </tr>
-                            </thead>
+                                <thead>
+                                    <tr>
+                                        <th>Сотрудник</th>
+                                        <th>Активных задач</th>
+                                        <th>Выполнено</th>
+                                        <th>Просрочено</th>
+                                        <th>План по задачам</th>
+                                        <th>По задачам</th>
+                                        <th>Рабочий день</th>
+                                        <th>Простой</th>
+                                        <th>Отклонение</th>
+                                    </tr>
+                                </thead>
                             <tbody id="workloadTableBody"></tbody>
                         </table>
                     </div>
@@ -804,14 +811,16 @@
 
                         <div class="table-container">
                             <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Сотрудник</th>
-                                        <th>Часы</th>
-                                        <th>Ставка</th>
-                                        <th>Сумма</th>
-                                    </tr>
-                                </thead>
+                                    <thead>
+                                        <tr>
+                                            <th>Сотрудник</th>
+                                            <th>Учтённые часы</th>
+                                            <th>Рабочий день</th>
+                                            <th>Простой</th>
+                                            <th>Ставка</th>
+                                            <th>Сумма</th>
+                                        </tr>
+                                    </thead>
                                 <tbody id="salaryTableBody"></tbody>
                             </table>
                         </div>
@@ -828,15 +837,16 @@
 
                     <div class="table-container">
                         <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Сотрудник</th>
-                                    <th>План</th>
-                                    <th>Факт</th>
-                                    <th>Отклонение</th>
-                                    <th>Рекомендация</th>
-                                </tr>
-                            </thead>
+                                    <thead>
+                                        <tr>
+                                            <th>Сотрудник</th>
+                                            <th>План</th>
+                                            <th>Факт</th>
+                                            <th>% выполнения</th>
+                                            <th>Отклонение</th>
+                                            <th>Рекомендация</th>
+                                        </tr>
+                                    </thead>
                             <tbody id="bonusesTableBody"></tbody>
                         </table>
                     </div>
