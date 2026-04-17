@@ -26,7 +26,7 @@ namespace RemoteControl1.Models
         public DateTime? EndedAtUtc { get; set; }
 
         public double DurationHours { get; set; }
-
+            
         public string? Comment { get; set; }
 
         public bool IsActive { get; set; } = true;

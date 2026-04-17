@@ -56,7 +56,18 @@ function normalizeUser(user) {
         completedTasks: Number(user.completedTasks ?? user.CompletedTasks ?? 0),
         overdueTasks: Number(user.overdueTasks ?? user.OverdueTasks ?? 0),
         totalHours: Number(user.totalHours ?? user.TotalHours ?? 0),
-        plannedHours: Number(user.plannedHours ?? user.PlannedHours ?? 0)
+        plannedHours: Number(user.plannedHours ?? user.PlannedHours ?? 0),
+
+        workMode: user.workMode ?? user.WorkMode ?? "fixed",
+        requiredDailyHours: Number(user.requiredDailyHours ?? user.RequiredDailyHours ?? 8),
+        plannedStartTime: user.plannedStartTime ?? user.PlannedStartTime ?? "",
+        plannedEndTime: user.plannedEndTime ?? user.PlannedEndTime ?? "",
+
+
+        workDayHours: Number(user.workDayHours ?? user.WorkDayHours ?? 0),
+        trackedHours: Number(user.trackedHours ?? user.TrackedHours ?? 0),
+        idleHours: Number(user.idleHours ?? user.IdleHours ?? 0),
+        salaryHours: Number(user.salaryHours ?? user.SalaryHours ?? 0),
     };
 }
 

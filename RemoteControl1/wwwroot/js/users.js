@@ -152,7 +152,7 @@ function renderWorkloadTable() {
     }
 
     body.innerHTML = users.map(u => {
-        const diff = u.totalHours - u.plannedHours;
+        const diff = u.trackedHours - u.plannedHours;
         return `
             <tr>
                 <td>${u.fullName}</td>
@@ -160,7 +160,7 @@ function renderWorkloadTable() {
                 <td>${u.completedTasks}</td>
                 <td>${u.overdueTasks}</td>
                 <td>${u.plannedHours.toFixed(1)}</td>
-                <td>${u.totalHours.toFixed(1)}</td>
+                <td>${u.trackedHours.toFixed(1)}</td>
                 <td>${diff >= 0 ? "+" : ""}${diff.toFixed(1)}</td>
             </tr>
         `;
@@ -184,23 +184,20 @@ function renderProductivityTable() {
         let stateText = "Норма";
         let badge = "badge-info";
 
-        if (u.tasksInProgress >= 5 || u.totalHours > u.plannedHours * 1.1) {
+        if (u.tasksInProgress >= 5 || u.trackedHours > u.plannedHours * 1.1) {
             stateText = "Перегружен";
             badge = "badge-danger";
-        } else if (u.totalHours < u.plannedHours * 0.6 && u.plannedHours > 0) {
+        } else if (u.trackedHours < u.plannedHours * 0.6 && u.plannedHours > 0) {
             stateText = "Недогружен";
             badge = "badge-warning";
-        } else {
-            stateText = "Норма";
-            badge = "badge-success";
         }
 
-        const index = u.completedTasks * 10 + u.totalHours;
+        const index = u.completedTasks * 10 + Number(u.trackedHours || 0);
 
         return `
             <tr>
                 <td>${u.fullName}</td>
-                <td>${u.totalHours.toFixed(1)}</td>
+                <td>${u.trackedHours.toFixed(1)}</td>
                 <td>${u.tasksInProgress}</td>
                 <td>${u.completedTasks}</td>
                 <td>${index.toFixed(1)}</td>
@@ -224,11 +221,11 @@ function renderSalaryTable() {
     }
 
     body.innerHTML = users.map(u => {
-        const salary = u.totalHours * u.hourlyRate;
+        const salary = u.salaryHours * u.hourlyRate;
         return `
             <tr>
                 <td>${u.fullName}</td>
-                <td>${u.totalHours.toFixed(1)}</td>
+                <td>${u.salaryHours.toFixed(1)}</td>
                 <td>${u.hourlyRate.toLocaleString("ru-RU")}</td>
                 <td><strong>${salary.toLocaleString("ru-RU")}</strong></td>
             </tr>
@@ -250,14 +247,14 @@ function renderBonusesTable() {
     }
 
     body.innerHTML = users.map(u => {
-        const diff = u.totalHours - u.plannedHours;
-        const recommend = u.plannedHours > 0 && u.totalHours > u.plannedHours * 1.1;
+        const diff = u.trackedHours - u.plannedHours;
+        const recommend = u.plannedHours > 0 && u.trackedHours > u.plannedHours * 1.1;
 
         return `
             <tr>
                 <td>${u.fullName}</td>
                 <td>${u.plannedHours.toFixed(1)}</td>
-                <td>${u.totalHours.toFixed(1)}</td>
+                <td>${u.trackedHours.toFixed(1)}</td>
                 <td>${diff >= 0 ? "+" : ""}${diff.toFixed(1)}</td>
                 <td>
                     <span class="badge ${recommend ? "badge-success" : "badge-info"}">
@@ -270,9 +267,9 @@ function renderBonusesTable() {
 }
 
 function renderControlTab() {
-    const overloaded = users.filter(u => u.tasksInProgress >= 5 || (u.plannedHours > 0 && u.totalHours > u.plannedHours * 1.1));
-    const underloaded = users.filter(u => u.plannedHours > 0 && u.totalHours < u.plannedHours * 0.6);
-    const noActivity = users.filter(u => u.totalHours <= 0);
+    const overloaded = users.filter(u => u.tasksInProgress >= 5 || (u.plannedHours > 0 && u.trackedHours > u.plannedHours * 1.1));
+    const underloaded = users.filter(u => u.plannedHours > 0 && u.trackedHours < u.plannedHours * 0.6);
+    const noActivity = users.filter(u => u.trackedHours <= 0);
 
     const set = (id, value) => {
         const el = document.getElementById(id);
@@ -301,7 +298,7 @@ function renderControlTab() {
         html += `
             <div class="card" style="margin-bottom:16px;">
                 <h4 style="margin-bottom:12px; color:var(--warning);">Недогружены</h4>
-                ${underloaded.map(x => `<div style="margin-bottom:8px;">${x.fullName} — часов: ${x.totalHours.toFixed(1)} / ${x.plannedHours.toFixed(1)}</div>`).join("")}
+                ${underloaded.map(x => `<div style="margin-bottom:8px;">${x.fullName} — часов по задачам: ${x.trackedHours.toFixed(1)} / ${x.plannedHours.toFixed(1)}</div>`).join("")}
             </div>
         `;
     }
@@ -453,8 +450,8 @@ function showUserDetails(id) {
             </div>
             <div class="stat-card">
                 <div class="stat-info">
-                    <div class="stat-value">${user.totalHours.toFixed(1)}</div>
-                    <div class="stat-label">Отработано часов</div>
+                    <div class="stat-value">${Number(user.trackedHours || 0).toFixed(1)}</div>
+                    <div class="stat-label">Часов по задачам</div>
                 </div>
             </div>
         </div>
@@ -476,7 +473,19 @@ function openUserModal() {
     if (editId) editId.value = "0";
     if (saveBtn) saveBtn.innerHTML = '<i class="fas fa-save"></i> Сохранить';
 
-    ["uLastName", "uFirstName", "uMiddleName", "uLogin", "uPass", "uPass2", "uPosition", "uEmail", "uPhone"].forEach(id => {
+    [
+        "uLastName",
+        "uFirstName",
+        "uMiddleName",
+        "uLogin",
+        "uPass",
+        "uPass2",
+        "uPosition",
+        "uEmail",
+        "uPhone",
+        "uPlannedStartTime",
+        "uPlannedEndTime"
+    ].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = "";
     });
@@ -484,7 +493,19 @@ function openUserModal() {
     if (rate) rate.value = 1500;
     if (role) role.value = "employee";
     if (status) status.value = "active";
-    if (modal) modal.classList.add("show");
+
+    const workMode = document.getElementById("uWorkMode");
+    const requiredDailyHours = document.getElementById("uRequiredDailyHours");
+
+    if (workMode) workMode.value = "fixed";
+    if (requiredDailyHours) requiredDailyHours.value = 8;
+
+    toggleWorkModeFields("u");
+
+    if (modal) {
+        modal.classList.add("show");
+        modal.style.display = "flex";
+    }
 }
 
 async function saveUser() {
@@ -570,6 +591,7 @@ async function saveUser() {
         renderControlTab();
 
         closeModal("userModal");
+        resetUserModalState();
         showNotification(editId === 0 ? "Сотрудник добавлен" : "Сотрудник обновлён");
     } catch {
         showNotification("Ошибка сети/сервера");
@@ -596,8 +618,85 @@ function editUser(id) {
     document.getElementById("editUPhone").value = user.phone || "";
     document.getElementById("editUStatus").value = user.status || "active";
 
-    document.getElementById("editUserModal")?.classList.add("show");
+    document.getElementById("editUWorkMode").value = user.workMode || "fixed";
+    document.getElementById("editURequiredDailyHours").value = user.requiredDailyHours || 8;
+    document.getElementById("editUPlannedStartTime").value = user.plannedStartTime || "";
+    document.getElementById("editUPlannedEndTime").value = user.plannedEndTime || "";
+
+    toggleWorkModeFields("editU");
+
+    const modal = document.getElementById("editUserModal");
+    if (modal) {
+        modal.classList.add("show");
+        modal.style.display = "flex";
+    }
 }
+
+function resetUserModalState() {
+    [
+        "uLastName",
+        "uFirstName",
+        "uMiddleName",
+        "uLogin",
+        "uPass",
+        "uPass2",
+        "uPosition",
+        "uEmail",
+        "uPhone",
+        "uPlannedStartTime",
+        "uPlannedEndTime"
+    ].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = "";
+    });
+
+    const uRate = document.getElementById("uRate");
+    const uRole = document.getElementById("uRole");
+    const uStatus = document.getElementById("uStatus");
+    const uWorkMode = document.getElementById("uWorkMode");
+    const uRequiredDailyHours = document.getElementById("uRequiredDailyHours");
+    const userEditId = document.getElementById("userEditId");
+
+    if (uRate) uRate.value = 1500;
+    if (uRole) uRole.value = "employee";
+    if (uStatus) uStatus.value = "active";
+    if (uWorkMode) uWorkMode.value = "fixed";
+    if (uRequiredDailyHours) uRequiredDailyHours.value = 8;
+    if (userEditId) userEditId.value = "0";
+
+    [
+        "editULastName",
+        "editUFirstName",
+        "editUMiddleName",
+        "editULogin",
+        "editUPass",
+        "editUPosition",
+        "editURate",
+        "editUEmail",
+        "editUPhone",
+        "editUPlannedStartTime",
+        "editUPlannedEndTime"
+    ].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = "";
+    });
+
+    const editUserId = document.getElementById("editUserId");
+    const editURole = document.getElementById("editURole");
+    const editUStatus = document.getElementById("editUStatus");
+    const editUWorkMode = document.getElementById("editUWorkMode");
+    const editURequiredDailyHours = document.getElementById("editURequiredDailyHours");
+
+    if (editUserId) editUserId.value = "0";
+    if (editURole) editURole.value = "employee";
+    if (editUStatus) editUStatus.value = "active";
+    if (editUWorkMode) editUWorkMode.value = "fixed";
+    if (editURequiredDailyHours) editURequiredDailyHours.value = 8;
+
+    toggleWorkModeFields("u");
+    toggleWorkModeFields("editU");
+}
+
 
 async function saveUserChanges() {
     const dto = {
@@ -647,6 +746,8 @@ async function saveUserChanges() {
         }
 
         closeModal("editUserModal");
+        resetUserModalState();
+
         renderAdminStats();
         renderUsersTable();
         renderWorkloadTable();
@@ -719,12 +820,12 @@ function resetUserPassword(id) {
 
 function exportAdminSalaryCsv() {
     const rows = [
-        ["ФИО", "Часы", "Ставка", "Сумма"],
+        ["ФИО", "Оплачиваемые часы", "Ставка", "Сумма"],
         ...users.map(u => [
             u.fullName,
-            u.totalHours.toFixed(1),
+            u.salaryHours.toFixed(1),
             String(u.hourlyRate),
-            String(u.totalHours * u.hourlyRate)
+            String(u.salaryHours * u.hourlyRate)
         ])
     ];
 

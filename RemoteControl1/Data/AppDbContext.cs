@@ -132,14 +132,27 @@ namespace RemoteControl1.Data
             modelBuilder.Entity<User>()
                 .Property(u => u.PlannedEndTime);
 
-            modelBuilder.Entity<ActivityLog>(entity =>
-            {
-                entity.Property(e => e.TrackedHours).HasPrecision(5, 2);
-                entity.Property(e => e.IdleHours).HasPrecision(5, 2);
-                entity.Property(e => e.PlannedHours).HasPrecision(5, 2);
-                entity.Property(e => e.OvertimeHours).HasPrecision(5, 2);
-                entity.Property(e => e.UnderworkHours).HasPrecision(5, 2);
-            });
+            modelBuilder.Entity<ActivityLog>()
+    .Property(x => x.TrackedHours)
+    .HasPrecision(5, 2);
+
+            modelBuilder.Entity<ActivityLog>()
+                .Property(x => x.IdleHours)
+                .HasPrecision(5, 2);
+
+            modelBuilder.Entity<ActivityLog>()
+                .Property(x => x.PlannedHours)
+                .HasPrecision(5, 2);
+
+            modelBuilder.Entity<ActivityLog>()
+                .Property(x => x.OvertimeHours)
+                .HasPrecision(5, 2);
+
+            modelBuilder.Entity<ActivityLog>()
+                .Property(x => x.UnderworkHours)
+                .HasPrecision(5, 2);
+
+      
 
             base.OnModelCreating(modelBuilder);
         }

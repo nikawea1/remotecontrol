@@ -55,9 +55,11 @@ namespace RemoteControl1.Models
 
 
         public string WorkMode { get; set; } = "fixed"; // fixed / flexible
-        public decimal RequiredDailyHours { get; set; } = 8;
+        public decimal RequiredDailyHours { get; set; } = 8m;
 
         public TimeSpan? PlannedStartTime { get; set; }
         public TimeSpan? PlannedEndTime { get; set; }
+
+
     }
 }
