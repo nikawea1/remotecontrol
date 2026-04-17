@@ -17,6 +17,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
    
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Ramabhadra&display=swap" rel="stylesheet">
+
 </head>
 
 <body>
@@ -1444,16 +1451,47 @@
         </div>
     </div>
 
-    <div class="bottom-tracker" id="bottomTracker">
-        <div class="bottom-tracker-time" id="bottomTimer">00:00:00</div>
-        <div class="bottom-tracker-controls">
-            <button class="btn btn-success bottom-tracker-btn" onclick="startTracking()" id="bottomStartBtn" title="Старт"><i class="fas fa-play"></i></button>
-            <button class="btn btn-warning bottom-tracker-btn" onclick="pauseTracking()" id="bottomPauseBtn" title="Пауза"><i class="fas fa-pause"></i></button>
-            <button class="btn btn-danger bottom-tracker-btn" onclick="stopTracking()" id="bottomStopBtn" title="Стоп"><i class="fas fa-stop"></i></button>
-        </div>
-        <div class="bottom-tracker-status" id="bottomStatus">
-            <span class="status-dot stopped" id="statusDot"></span>
-            <span id="statusText">Остановлен</span>
+    <div class="bottom-tracker-shell collapsed" id="bottomTrackerShell">
+        <button class="bottom-tracker-toggle" type="button" onclick="toggleBottomTracker()" id="bottomTrackerToggle" title="Развернуть таймер">
+            <i class="fas fa-chevron-up" id="bottomTrackerToggleIcon"></i>
+        </button>
+
+        <div class="bottom-tracker-card" id="bottomTracker">
+            <div class="bottom-tracker-top">
+                <div class="bottom-tracker-state" id="bottomTrackerStateBox">
+                    <span class="status-dot stopped" id="statusDot"></span>
+                    <span id="statusText">Не активен</span>
+                </div>
+            </div>
+
+            <div class="bottom-tracker-main-row">
+                <div class="bottom-tracker-time-wrap">
+                    <div class="bottom-tracker-time" id="bottomTimer">00:00:00</div>
+                </div>
+
+                <div class="bottom-tracker-actions-collapsed" id="bottomTrackerCollapsedActions">
+                    <button class="bottom-main-action" type="button" onclick="handleBottomMainAction()" id="bottomMainActionBtn">
+                        <i class="fas fa-play" id="bottomMainActionIcon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bottom-tracker-actions-expanded" id="bottomTrackerExpandedActions">
+                <button class="btn bottom-control-btn start" type="button" onclick="startTracking()" id="bottomStartBtn">
+                    <i class="fas fa-play"></i>
+                    <span>Старт</span>
+                </button>
+
+                <button class="btn bottom-control-btn pause" type="button" onclick="pauseTracking()" id="bottomPauseBtn">
+                    <i class="fas fa-pause"></i>
+                    <span>Пауза</span>
+                </button>
+
+                <button class="btn bottom-control-btn stop" type="button" onclick="stopTracking()" id="bottomStopBtn">
+                    <i class="fas fa-stop"></i>
+                    <span>Стоп</span>
+                </button>
+            </div>
         </div>
     </div>
 
