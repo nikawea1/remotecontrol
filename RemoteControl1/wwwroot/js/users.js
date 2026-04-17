@@ -502,7 +502,11 @@ async function saveUser() {
         role: document.getElementById("uRole")?.value || "employee",
         email: document.getElementById("uEmail")?.value.trim() || "",
         phone: document.getElementById("uPhone")?.value.trim() || "",
-        status: document.getElementById("uStatus")?.value || "active"
+        status: document.getElementById("uStatus")?.value || "active",
+        workMode: document.getElementById("uWorkMode")?.value || "fixed",
+        requiredDailyHours: Number(document.getElementById("uRequiredDailyHours")?.value || 8),
+        plannedStartTime: document.getElementById("uPlannedStartTime")?.value || "",
+        plannedEndTime: document.getElementById("uPlannedEndTime")?.value || ""
     };
 
     const pass2 = document.getElementById("uPass2")?.value || "";
@@ -608,7 +612,11 @@ async function saveUserChanges() {
         role: document.getElementById("editURole")?.value || "employee",
         email: document.getElementById("editUEmail")?.value.trim() || "",
         phone: document.getElementById("editUPhone")?.value.trim() || "",
-        status: document.getElementById("editUStatus")?.value || "active"
+        status: document.getElementById("editUStatus")?.value || "active",
+        workMode: document.getElementById("editUWorkMode")?.value || "fixed",
+        requiredDailyHours: Number(document.getElementById("editURequiredDailyHours")?.value || 8),
+        plannedStartTime: document.getElementById("editUPlannedStartTime")?.value || "",
+        plannedEndTime: document.getElementById("editUPlannedEndTime")?.value || ""
     };
 
     if (!dto.lastName || !dto.firstName || !dto.login || !dto.position) {
@@ -652,6 +660,21 @@ async function saveUserChanges() {
         showNotification("Ошибка сети/сервера");
     }
 }
+
+
+function toggleWorkModeFields(prefix) {
+    const mode = document.getElementById(`${prefix}WorkMode`)?.value || "fixed";
+    const box = document.getElementById(`${prefix}FixedWorkFields`);
+    if (!box) return;
+
+    if (mode === "fixed") {
+        box.classList.remove("hidden");
+    } else {
+        box.classList.add("hidden");
+    }
+}
+
+
 
 async function toggleUserStatus(id) {
     try {

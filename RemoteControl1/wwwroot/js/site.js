@@ -343,6 +343,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     loadWorkStatus();
 
+    loadWorkDayStatusInfo();
 
     document.addEventListener("click", function (event) {
         const dropdown = document.getElementById("profileDropdown");
@@ -892,5 +893,62 @@ function changeStatus(el, status) {
     `;
 
     menu.classList.add("hidden");
+}
+
+
+async function loadWorkDayStatusInfo() {
+    const box = document.getElementById("workDayStatusContent");
+    if (!box) return;
+
+    try {
+        const res = await fetch("/MainPage?handler=WorkDayStatus");
+        const data = await res.json();
+
+        if (!res.ok || !data.ok || !data.status) {
+            box.innerHTML = `<div style="color: var(--gray);">Не удалось загрузить статус рабочего дня</div>`;
+            return;
+        }
+
+        const s = data.status;
+
+        if (!s.isWorking) {
+            box.innerHTML = `
+                <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom:0;">
+                    <div class="project-stat">
+                        <div class="stat-label">Режим</div>
+                        <div class="project-name">${s.workMode === "fixed" ? "Фиксированный" : "Гибкий"}</div>
+                    </div>
+                    <div class="project-stat">
+                        <div class="stat-label">Норма</div>
+                        <div class="project-name">${Number(s.requiredDailyHours || 0).toFixed(1)} ч</div>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        box.innerHTML = `
+            <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom:0;">
+                <div class="project-stat">
+                    <div class="stat-label">Начат в</div>
+                    <div class="project-name">${s.startedAt || "-"}</div>
+                </div>
+                <div class="project-stat">
+                    <div class="stat-label">Идет</div>
+                    <div class="project-name">${Number(s.currentHours || 0).toFixed(2)} ч</div>
+                </div>
+                <div class="project-stat">
+                    <div class="stat-label">По задачам</div>
+                    <div class="project-name">${Number(s.trackedHours || 0).toFixed(2)} ч</div>
+                </div>
+                <div class="project-stat">
+                    <div class="stat-label">Неучтено</div>
+                    <div class="project-name">${Number(s.idleHours || 0).toFixed(2)} ч</div>
+                </div>
+            </div>
+        `;
+    } catch {
+        box.innerHTML = `<div style="color: var(--gray);">Ошибка загрузки</div>`;
+    }
 }
 

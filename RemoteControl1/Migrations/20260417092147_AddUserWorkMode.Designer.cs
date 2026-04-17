@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RemoteControl1.Data;
 
@@ -11,9 +12,11 @@ using RemoteControl1.Data;
 namespace RemoteControl1.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260417092147_AddUserWorkMode")]
+    partial class AddUserWorkMode
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -43,23 +46,11 @@ namespace RemoteControl1.Migrations
                     b.Property<DateTime?>("EndedAtUtc")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal>("IdleHours")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("decimal(5,2)");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsIdle")
                         .HasColumnType("bit");
-
-                    b.Property<decimal>("OvertimeHours")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("decimal(5,2)");
-
-                    b.Property<decimal>("PlannedHours")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("decimal(5,2)");
 
                     b.Property<int?>("ProjectId")
                         .HasColumnType("int");
@@ -69,14 +60,6 @@ namespace RemoteControl1.Migrations
 
                     b.Property<int?>("TaskItemId")
                         .HasColumnType("int");
-
-                    b.Property<decimal>("TrackedHours")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("decimal(5,2)");
-
-                    b.Property<decimal>("UnderworkHours")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("decimal(5,2)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");

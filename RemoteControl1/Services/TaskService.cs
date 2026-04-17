@@ -861,6 +861,7 @@ namespace RemoteControl1.Services
                 return ServiceResult.Fail("Сначала завершите активный таймер");
 
             var now = DateTime.UtcNow;
+            var plannedHours = user.RequiredDailyHours > 0 ? user.RequiredDailyHours : 8;
 
             var log = new ActivityLog
             {
@@ -869,7 +870,12 @@ namespace RemoteControl1.Services
                 StartedAtUtc = now,
                 IsActive = true,
                 DurationHours = 0,
-                IsIdle = false
+                IsIdle = false,
+                PlannedHours = plannedHours,
+                TrackedHours = 0,
+                IdleHours = 0,
+                OvertimeHours = 0,
+                UnderworkHours = 0
             };
 
             user.IsWorking = true;
@@ -904,6 +910,22 @@ namespace RemoteControl1.Services
                 .ToListAsync();
 
             var now = DateTime.UtcNow;
+            var trackedHours = await _db.ActivityLogs
+    .Where(a =>
+        a.UserId == userId &&
+        a.ActivityType == "task_timer" &&
+        !a.IsActive &&
+        a.StartedAtUtc >= activeDay.StartedAtUtc &&
+        (a.EndedAtUtc ?? now) <= now)
+    .SumAsync(a => (decimal?)a.DurationHours) ?? 0m;
+
+            var totalDayHours = (decimal)Math.Round((now - activeDay.StartedAtUtc).TotalHours, 2);
+            var idleHours = totalDayHours - trackedHours;
+            if (idleHours < 0) idleHours = 0;
+
+            var plannedHours = activeDay.PlannedHours > 0 ? activeDay.PlannedHours : 8m;
+            var overtimeHours = totalDayHours > plannedHours ? totalDayHours - plannedHours : 0m;
+            var underworkHours = totalDayHours < plannedHours ? plannedHours - totalDayHours : 0m;
 
             foreach (var timer in activeTimers)
             {
@@ -912,6 +934,14 @@ namespace RemoteControl1.Services
                 timer.DurationHours = Math.Round(
                     (timer.EndedAtUtc.Value - timer.StartedAtUtc).TotalHours, 2);
             }
+
+
+            activeDay.TrackedHours = trackedHours;
+            activeDay.IdleHours = idleHours;
+            activeDay.OvertimeHours = overtimeHours;
+            activeDay.UnderworkHours = underworkHours;
+            activeDay.DurationHours = (double)totalDayHours;
+
 
             activeDay.EndedAtUtc = now;
             activeDay.IsActive = false;
@@ -1288,6 +1318,43 @@ namespace RemoteControl1.Services
                     return ServiceResult<UserVm>.Fail("Email уже существует");
             }
 
+
+            var workMode = (dto.WorkMode ?? "fixed").Trim().ToLower();
+            if (workMode != "fixed" && workMode != "flexible")
+                workMode = "fixed";
+
+            TimeSpan? plannedStartTime = null;
+            TimeSpan? plannedEndTime = null;
+
+            if (workMode == "fixed")
+            {
+                if (dto.RequiredDailyHours <= 0)
+                    return ServiceResult<UserVm>.Fail("Для фиксированного графика укажите норму часов");
+
+                if (!string.IsNullOrWhiteSpace(dto.PlannedStartTime))
+                {
+                    if (!TimeSpan.TryParse(dto.PlannedStartTime, out var start))
+                        return ServiceResult<UserVm>.Fail("Некорректное время начала рабочего дня");
+                    plannedStartTime = start;
+                }
+
+                if (!string.IsNullOrWhiteSpace(dto.PlannedEndTime))
+                {
+                    if (!TimeSpan.TryParse(dto.PlannedEndTime, out var end))
+                        return ServiceResult<UserVm>.Fail("Некорректное время окончания рабочего дня");
+                    plannedEndTime = end;
+                }
+
+                if (plannedStartTime.HasValue && plannedEndTime.HasValue && plannedEndTime <= plannedStartTime)
+                    return ServiceResult<UserVm>.Fail("Время окончания должно быть позже времени начала");
+            }
+            else
+            {
+                if (dto.RequiredDailyHours < 0)
+                    return ServiceResult<UserVm>.Fail("Норма часов не может быть отрицательной");
+            }
+
+
             var user = new User
             {
                 LastName = dto.LastName.Trim(),
@@ -1300,7 +1367,12 @@ namespace RemoteControl1.Services
                 Role = NormalizeRole(dto.Role),
                 HourlyRate = dto.Rate,
                 Phone = dto.Phone?.Trim(),
-                IsActive = dto.Status != "blocked"
+                IsActive = dto.Status != "blocked",
+
+                WorkMode = workMode,
+                RequiredDailyHours = dto.RequiredDailyHours,
+                PlannedStartTime = plannedStartTime,
+                PlannedEndTime = plannedEndTime,
             };
 
             _db.Users.Add(user);
@@ -1351,6 +1423,43 @@ namespace RemoteControl1.Services
                     return ServiceResult<UserVm>.Fail("Email уже существует");
             }
 
+
+            var workMode = (dto.WorkMode ?? "fixed").Trim().ToLower();
+            if (workMode != "fixed" && workMode != "flexible")
+                workMode = "fixed";
+
+            TimeSpan? plannedStartTime = null;
+            TimeSpan? plannedEndTime = null;
+
+            if (workMode == "fixed")
+            {
+                if (dto.RequiredDailyHours <= 0)
+                    return ServiceResult<UserVm>.Fail("Для фиксированного графика укажите норму часов");
+
+                if (!string.IsNullOrWhiteSpace(dto.PlannedStartTime))
+                {
+                    if (!TimeSpan.TryParse(dto.PlannedStartTime, out var start))
+                        return ServiceResult<UserVm>.Fail("Некорректное время начала рабочего дня");
+                    plannedStartTime = start;
+                }
+
+                if (!string.IsNullOrWhiteSpace(dto.PlannedEndTime))
+                {
+                    if (!TimeSpan.TryParse(dto.PlannedEndTime, out var end))
+                        return ServiceResult<UserVm>.Fail("Некорректное время окончания рабочего дня");
+                    plannedEndTime = end;
+                }
+
+                if (plannedStartTime.HasValue && plannedEndTime.HasValue && plannedEndTime <= plannedStartTime)
+                    return ServiceResult<UserVm>.Fail("Время окончания должно быть позже времени начала");
+            }
+            else
+            {
+                if (dto.RequiredDailyHours < 0)
+                    return ServiceResult<UserVm>.Fail("Норма часов не может быть отрицательной");
+            }
+
+
             user.LastName = dto.LastName.Trim();
             user.FirstName = dto.FirstName.Trim();
             user.MiddleName = dto.MiddleName?.Trim();
@@ -1361,6 +1470,10 @@ namespace RemoteControl1.Services
             user.HourlyRate = dto.Rate;
             user.Phone = dto.Phone?.Trim();
             user.IsActive = dto.Status != "blocked";
+            user.WorkMode = workMode;
+            user.RequiredDailyHours = dto.RequiredDailyHours;
+            user.PlannedStartTime = plannedStartTime;
+            user.PlannedEndTime = plannedEndTime;
 
             if (!string.IsNullOrWhiteSpace(dto.Password))
                 user.PasswordHash = HashPassword(dto.Password.Trim());
@@ -1869,7 +1982,80 @@ namespace RemoteControl1.Services
                 sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(value))
             );
         }
+
+
+
+
+        public async Task<object?> GetCurrentWorkDayStatusAsync(int userId)
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == userId);
+            if (user == null) return null;
+
+            var activeDay = await _db.ActivityLogs
+                .FirstOrDefaultAsync(a =>
+                    a.UserId == userId &&
+                    a.ActivityType == "workday" &&
+                    a.IsActive);
+
+            if (activeDay == null)
+            {
+                return new
+                {
+                    isWorking = false,
+                    workMode = user.WorkMode,
+                    requiredDailyHours = user.RequiredDailyHours,
+                    plannedStartTime = user.PlannedStartTime?.ToString(@"hh\:mm"),
+                    plannedEndTime = user.PlannedEndTime?.ToString(@"hh\:mm")
+                };
+            }
+
+            var now = DateTime.UtcNow;
+            var currentDayHours = Math.Round((decimal)(now - activeDay.StartedAtUtc).TotalHours, 2);
+
+
+            var trackedHours = await _db.ActivityLogs
+                .Where(a =>
+                    a.UserId == userId &&
+                    a.ActivityType == "task_timer" &&
+                    (
+                        (a.IsActive && a.StartedAtUtc >= activeDay.StartedAtUtc) ||
+                        (!a.IsActive && a.StartedAtUtc >= activeDay.StartedAtUtc)
+                    ))
+                .ToListAsync();
+
+            decimal tracked = 0m;
+
+            foreach (var item in trackedHours)
+            {
+                if (item.IsActive)
+                    tracked += (decimal)(now - item.StartedAtUtc).TotalHours;
+                else
+                    tracked += (decimal)item.DurationHours;
+            }
+
+            tracked = Math.Round(tracked, 2);
+            var idle = currentDayHours - tracked;
+            if (idle < 0) idle = 0;
+
+            return new
+            {
+                isWorking = true,
+                startedAt = activeDay.StartedAtUtc.ToLocalTime().ToString("HH:mm"),
+                currentHours = currentDayHours,
+                trackedHours = tracked,
+                idleHours = idle,
+                workMode = user.WorkMode,
+                requiredDailyHours = user.RequiredDailyHours,
+                plannedStartTime = user.PlannedStartTime?.ToString(@"hh\:mm"),
+                plannedEndTime = user.PlannedEndTime?.ToString(@"hh\:mm")
+            };
+        }
+
+
+
     }
+
+
 
     public class PageDataResult
     {
@@ -2190,6 +2376,12 @@ namespace RemoteControl1.Services
         public string? Email { get; set; }
         public string? Phone { get; set; }
         public string Status { get; set; } = "active";
+
+
+        public string WorkMode { get; set; } = "fixed";
+        public decimal RequiredDailyHours { get; set; } = 8;
+        public string? PlannedStartTime { get; set; }
+        public string? PlannedEndTime { get; set; }
     }
 
     public class UpdateUserDto
@@ -2206,10 +2398,19 @@ namespace RemoteControl1.Services
         public string? Email { get; set; }
         public string? Phone { get; set; }
         public string Status { get; set; } = "active";
+
+
+        public string WorkMode { get; set; } = "fixed";
+        public decimal RequiredDailyHours { get; set; } = 8;
+        public string? PlannedStartTime { get; set; }
+        public string? PlannedEndTime { get; set; }
     }
 
     public class ToggleUserStatusDto
     {
         public int Id { get; set; }
     }
+
+
+
 }

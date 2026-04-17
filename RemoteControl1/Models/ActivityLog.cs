@@ -32,5 +32,18 @@ namespace RemoteControl1.Models
         public bool IsActive { get; set; } = true;
 
         public bool IsIdle { get; set; } = false;
+
+
+
+
+
+        public decimal TrackedHours { get; set; }
+        public decimal IdleHours { get; set; }
+        public decimal PlannedHours { get; set; }
+        public decimal OvertimeHours { get; set; }
+        public decimal UnderworkHours { get; set; }
+
+
+
     }
 }

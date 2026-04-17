@@ -1395,6 +1395,18 @@ namespace RemoteControl1.Pages
             return JsonSerializer.Serialize(clean);
         }
 
+
+        public async Task<JsonResult> OnGetWorkDayStatusAsync()
+        {
+            var userId = await GetCurrentUserIdAsync();
+            if (userId == null)
+                return new JsonResult(new { ok = false, error = "Пользователь не найден" });
+
+            var data = await _taskService.GetCurrentWorkDayStatusAsync(userId.Value);
+            return new JsonResult(new { ok = true, status = data });
+        }
+
+
         private class ExportDataVm
         {
             public string UserName { get; set; } = "";

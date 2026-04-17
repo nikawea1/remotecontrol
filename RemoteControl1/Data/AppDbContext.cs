@@ -99,10 +99,10 @@ namespace RemoteControl1.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<CalendarEvent>()
-    .HasOne(x => x.Project)
-    .WithMany()
-    .HasForeignKey(x => x.ProjectId)
-    .OnDelete(DeleteBehavior.SetNull);
+         .HasOne(x => x.Project)
+          .WithMany()
+          .HasForeignKey(x => x.ProjectId)
+         .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<CalendarEvent>()
                 .HasOne(x => x.User)
@@ -115,6 +115,31 @@ namespace RemoteControl1.Data
                 .WithMany()
                 .HasForeignKey(x => x.CreatedByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.WorkMode)
+                .HasMaxLength(20)
+                .HasDefaultValue("fixed");
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.RequiredDailyHours)
+                .HasPrecision(5, 2);
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.PlannedStartTime);
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.PlannedEndTime);
+
+            modelBuilder.Entity<ActivityLog>(entity =>
+            {
+                entity.Property(e => e.TrackedHours).HasPrecision(5, 2);
+                entity.Property(e => e.IdleHours).HasPrecision(5, 2);
+                entity.Property(e => e.PlannedHours).HasPrecision(5, 2);
+                entity.Property(e => e.OvertimeHours).HasPrecision(5, 2);
+                entity.Property(e => e.UnderworkHours).HasPrecision(5, 2);
+            });
 
             base.OnModelCreating(modelBuilder);
         }
