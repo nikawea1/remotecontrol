@@ -1,36 +1,5 @@
 ﻿
 //reports.js
-function showReport(reportId, el) {
-    initReportsPage();
-
-    document.querySelectorAll(".report-card").forEach(card => card.classList.add("hidden"));
-
-    const target = document.getElementById(reportId + "Report");
-    if (target) {
-        target.classList.remove("hidden");
-    }
-
-    document.querySelectorAll(".reports-menu-link").forEach(link => link.classList.remove("active"));
-
-    if (el) {
-        el.classList.add("active");
-    } else {
-        const first = document.querySelector(".reports-menu-link");
-        if (first) {
-            first.classList.add("active");
-        }
-    }
-}
-
-function updateReports() {
-    renderReports();
-    showNotification("Отчет обновлен");
-}
-
-function filterReports() {
-    renderReports();
-}
-
 function getExportQuery() {
     const dateFrom = document.getElementById("reportDateFrom")?.value || "";
     const dateTo = document.getElementById("reportDateTo")?.value || "";
@@ -76,9 +45,8 @@ function exportReport(type) {
     }
 }
 
-function initReportsPage() {
-    fillReportFilters();
-    renderReports();
+function exportReportsCsv() {
+    exportReport("csv");
 }
 
 function fillReportFilters() {
@@ -110,11 +78,104 @@ function fillReportFilters() {
     }
 }
 
-function renderReports() {
+function getActiveReportId() {
+    const activeLink = document.querySelector(".reports-menu-link.active");
+    if (!activeLink) return "daily";
+
+    const clickText = activeLink.getAttribute("onclick") || "";
+
+    if (clickText.includes("showReport('daily'")) return "daily";
+    if (clickText.includes("showReport('weekly'")) return "weekly";
+    if (clickText.includes("showReport('monthly'")) return "monthly";
+    if (clickText.includes("showReport('performance'")) return "performance";
+    if (clickText.includes("showReport('overdue'")) return "overdue";
+    if (clickText.includes("showReport('overtime'")) return "overtime";
+    if (clickText.includes("showReport('bonus'")) return "bonus";
+
+    return "daily";
+}
+
+function showReport(reportId, el) {
+    document.querySelectorAll(".report-card").forEach(card => card.classList.add("hidden"));
+
+    const target = document.getElementById(reportId + "Report");
+    if (target) {
+        target.classList.remove("hidden");
+    }
+
+    document.querySelectorAll(".reports-menu-link").forEach(link => link.classList.remove("active"));
+
+    if (el) {
+        el.classList.add("active");
+    } else {
+        const first = document.querySelector(".reports-menu-link");
+        if (first) {
+            first.classList.add("active");
+        }
+    }
+}
+
+async function loadReportsFromServer() {
+    const dateFrom = document.getElementById("reportDateFrom")?.value || "";
+    const dateTo = document.getElementById("reportDateTo")?.value || "";
+    const projectId = document.getElementById("reportProjectFilter")?.value || "all";
+    const employeeId = document.getElementById("employeeFilter")?.value || "all";
+
+    const params = new URLSearchParams();
+
+    if (dateFrom) params.append("dateFrom", dateFrom);
+    if (dateTo) params.append("dateTo", dateTo);
+    if (projectId !== "all") params.append("projectId", projectId);
+    if (employeeId !== "all") params.append("employeeId", employeeId);
+
+    const url = `/MainPage?handler=ReportsData${params.toString() ? "&" + params.toString() : ""}`.replace("?&", "?");
+
+    const res = await fetch(url, {
+        headers: {
+            "RequestVerificationToken": getRequestVerificationToken()
+        }
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.ok) {
+        throw new Error(data?.error || "Не удалось загрузить отчёты");
+    }
+
+    return data.data;
+}
+
+async function updateReports() {
+    try {
+        const data = await loadReportsFromServer();
+        renderReports(data);
+        showNotification("Отчет обновлен");
+    } catch (e) {
+        console.error(e);
+
+        const box = document.getElementById("reportsContent");
+        if (box) {
+            box.innerHTML = `<div class="card"><div style="color:var(--danger);">Не удалось загрузить отчёты</div></div>`;
+        }
+
+        showNotification("Не удалось загрузить отчет");
+    }
+}
+
+function filterReports() {
+    updateReports();
+}
+
+function initReportsPage() {
+    fillReportFilters();
+    updateReports();
+}
+
+function renderReports(data) {
     const box = document.getElementById("reportsContent");
     if (!box) return;
 
-    const data = buildReportsData();
+    const activeId = getActiveReportId();
 
     box.innerHTML = `
         <div id="dailyReport" class="report-card">
@@ -157,7 +218,7 @@ function renderReports() {
                         </tr>
                     </thead>
                     <tbody>
-                        ${renderEntryRows(data.daily.entries)}
+                        ${renderEntryRows(data.daily.entries || [])}
                     </tbody>
                 </table>
             </div>
@@ -196,14 +257,14 @@ function renderReports() {
                 <div class="chart-box">
                     <div class="chart-title">Активность по дням</div>
                     <div class="bar-chart">
-                        ${renderBars(data.weekly.byDays)}
+                        ${renderBars(data.weekly.byDays || [])}
                     </div>
                 </div>
 
                 <div class="chart-box">
                     <div class="chart-title">Распределение по проектам</div>
                     <div class="bar-chart">
-                        ${renderBars(data.weekly.byProjects)}
+                        ${renderBars(data.weekly.byProjects || [])}
                     </div>
                 </div>
             </div>
@@ -242,14 +303,14 @@ function renderReports() {
                 <div class="chart-box">
                     <div class="chart-title">Часы по проектам</div>
                     <div class="bar-chart">
-                        ${renderBars(data.monthly.byProjects)}
+                        ${renderBars(data.monthly.byProjects || [])}
                     </div>
                 </div>
 
                 <div class="chart-box">
                     <div class="chart-title">Часы по неделям</div>
                     <div class="bar-chart">
-                        ${renderBars(data.monthly.byWeeks)}
+                        ${renderBars(data.monthly.byWeeks || [])}
                     </div>
                 </div>
             </div>
@@ -299,10 +360,10 @@ function renderReports() {
                     <div class="chart-title">Задачи по статусам</div>
                     <div class="bar-chart">
                         ${renderBars([
-        { label: "Новые", value: data.performance.statuses.newCount },
-        { label: "В работе", value: data.performance.statuses.progressCount },
-        { label: "На проверке", value: data.performance.statuses.reviewCount },
-        { label: "Завершены", value: data.performance.statuses.doneCount }
+        { label: "Новые", value: data.performance.newCount },
+        { label: "В работе", value: data.performance.progressCount },
+        { label: "На проверке", value: data.performance.reviewCount },
+        { label: "Завершены", value: data.performance.doneCount }
     ])}
                     </div>
                 </div>
@@ -324,7 +385,7 @@ function renderReports() {
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fas fa-clock"></i></div>
                     <div class="stat-info">
-                        <div class="stat-value">${data.overdue.avgDelay}</div>
+                        <div class="stat-value">${data.overdue.averageDelay}</div>
                         <div class="stat-label">Средняя просрочка, дней</div>
                     </div>
                 </div>
@@ -350,7 +411,7 @@ function renderReports() {
                         </tr>
                     </thead>
                     <tbody>
-                        ${renderOverdueRows(data.overdue.items)}
+                        ${renderOverdueRows(data.overdue.items || [])}
                     </tbody>
                 </table>
             </div>
@@ -388,7 +449,7 @@ function renderReports() {
             <div class="chart-box">
                 <div class="chart-title">Переработка по дням</div>
                 <div class="bar-chart">
-                    ${renderBars(data.overtime.byDays)}
+                    ${renderBars(data.overtime.byDays || [])}
                 </div>
             </div>
         </div>
@@ -436,372 +497,7 @@ function renderReports() {
         </div>
     `;
 
-    const activeLink = document.querySelector(".reports-menu-link.active");
-    let activeId = "daily";
-
-    if (activeLink) {
-        const clickText = activeLink.getAttribute("onclick") || "";
-
-        if (clickText.includes("showReport('daily'")) activeId = "daily";
-        else if (clickText.includes("showReport('weekly'")) activeId = "weekly";
-        else if (clickText.includes("showReport('monthly'")) activeId = "monthly";
-        else if (clickText.includes("showReport('performance'")) activeId = "performance";
-        else if (clickText.includes("showReport('overdue'")) activeId = "overdue";
-        else if (clickText.includes("showReport('overtime'")) activeId = "overtime";
-        else if (clickText.includes("showReport('bonus'")) activeId = "bonus";
-    }
-
-    document.querySelectorAll(".report-card").forEach(card => card.classList.add("hidden"));
-
-    const activeCard = document.getElementById(activeId + "Report");
-    if (activeCard) {
-        activeCard.classList.remove("hidden");
-    }
-}
-
-function buildReportsData() {
-    const range = getReportDateRange();
-    const entries = getFilteredEntries(range.from, range.to);
-    const dayEntries = getEntriesForDay(range.to);
-    const weekEntries = getEntriesForLastDays(range.to, 7);
-    const monthEntries = entries;
-
-    const scopedTasks = getFilteredTasks();
-    const overdueItems = getOverdueTasks(scopedTasks);
-
-    const selectedUser = getSelectedUser();
-    const hourlyRate = selectedUser ? Number(selectedUser.hourlyRate || 0) : 0;
-
-    const dailyHours = sumHours(dayEntries);
-    const weeklyHours = sumHours(weekEntries);
-    const monthlyHours = sumHours(monthEntries);
-
-    const dailyOvertime = calculateOvertime(dayEntries);
-    const weeklyOvertime = calculateOvertime(weekEntries);
-    const monthlyOvertime = calculateOvertime(monthEntries);
-
-    const monthlyCompleted = countCompletedWorkedTasks(monthEntries);
-    const weeklyCompleted = countCompletedWorkedTasks(weekEntries);
-    const dailyCompleted = countCompletedWorkedTasks(dayEntries);
-
-    const plannedHours = scopedTasks.reduce((sum, t) => sum + Number(t.plannedTime || 0), 0);
-    const actualHours = monthlyHours;
-
-    const doneCount = scopedTasks.filter(t => t.status === "done").length;
-    const allCount = scopedTasks.length;
-    const completionRate = allCount > 0 ? Math.round((doneCount / allCount) * 100) : 0;
-    const hourRate = plannedHours > 0 ? Math.min(100, Math.round((actualHours / plannedHours) * 100)) : 0;
-    const efficiency = Math.round((completionRate + hourRate) / 2);
-
-    let bonusPercent = 0;
-    let bonusReason = "Нет";
-
-    if (efficiency >= 85 && overdueItems.length === 0) {
-        bonusPercent = 15;
-        bonusReason = "Высокая эффективность";
-    } else if (efficiency >= 70) {
-        bonusPercent = 10;
-        bonusReason = "Хорошие показатели";
-    } else if (efficiency >= 50) {
-        bonusPercent = 5;
-        bonusReason = "Базовый бонус";
-    }
-
-    const bonusAmount = Math.round(actualHours * hourlyRate * bonusPercent / 100);
-
-    return {
-        daily: {
-            totalHours: dailyHours,
-            completedTasks: dailyCompleted,
-            overtime: dailyOvertime,
-            entries: mapEntriesWithTask(dayEntries)
-        },
-        weekly: {
-            totalHours: weeklyHours,
-            completedTasks: weeklyCompleted,
-            overtime: weeklyOvertime,
-            byDays: groupEntriesByDays(weekEntries),
-            byProjects: groupEntriesByProjects(weekEntries)
-        },
-        monthly: {
-            totalHours: monthlyHours,
-            completedTasks: monthlyCompleted,
-            overtime: monthlyOvertime,
-            byProjects: groupEntriesByProjects(monthEntries),
-            byWeeks: groupEntriesByWeeks(monthEntries, range.from)
-        },
-        performance: {
-            efficiency: efficiency,
-            overdueCount: overdueItems.length,
-            overtime: monthlyOvertime,
-            plannedHours: plannedHours,
-            actualHours: actualHours,
-            statuses: {
-                newCount: scopedTasks.filter(t => t.status === "new").length,
-                progressCount: scopedTasks.filter(t => t.status === "progress").length,
-                reviewCount: scopedTasks.filter(t => t.status === "review").length,
-                doneCount: scopedTasks.filter(t => t.status === "done").length
-            }
-        },
-        overdue: {
-            count: overdueItems.length,
-            avgDelay: overdueItems.length
-                ? Math.round(overdueItems.reduce((sum, x) => sum + x.delayDays, 0) / overdueItems.length)
-                : 0,
-            assignees: new Set(overdueItems.map(x => x.assignee || "")).size,
-            items: overdueItems
-        },
-        overtime: {
-            total: monthlyOvertime,
-            maxDay: getMaxOvertimeDay(monthEntries),
-            daysCount: getOvertimeDays(monthEntries).length,
-            byDays: getOvertimeDays(monthEntries)
-        },
-        bonus: {
-            percent: bonusPercent,
-            amount: bonusAmount,
-            reason: bonusReason
-        }
-    };
-}
-
-function getReportDateRange() {
-    const fromInput = document.getElementById("reportDateFrom")?.value;
-    const toInput = document.getElementById("reportDateTo")?.value;
-
-    let from = fromInput ? new Date(fromInput + "T00:00:00") : new Date();
-    let to = toInput ? new Date(toInput + "T23:59:59") : new Date();
-
-    if (from > to) {
-        const temp = from;
-        from = to;
-        to = temp;
-    }
-
-    return { from, to };
-}
-
-function parseEntryDate(value) {
-    if (!value) return null;
-
-    if (value.includes(".")) {
-        const parts = value.split(".");
-        if (parts.length === 3) {
-            return new Date(parts[2], Number(parts[1]) - 1, parts[0], 12, 0, 0);
-        }
-    }
-
-    const date = new Date(value);
-    return isNaN(date.getTime()) ? null : date;
-}
-
-function sameDay(a, b) {
-    return a.getFullYear() === b.getFullYear()
-        && a.getMonth() === b.getMonth()
-        && a.getDate() === b.getDate();
-}
-
-function isInRange(date, from, to) {
-    return date >= from && date <= to;
-}
-
-function getSelectedUser() {
-    const value = document.getElementById("employeeFilter")?.value || "all";
-    if (value === "all") return null;
-    return users.find(u => String(u.id) === String(value)) || null;
-}
-
-function getFilteredTasks() {
-    const selectedUser = getSelectedUser();
-    const projectFilter = document.getElementById("reportProjectFilter")?.value || "all";
-
-    return tasks.filter(t => {
-        const projectMatch = projectFilter === "all" || String(t.projectId) === String(projectFilter);
-
-        let userMatch = true;
-        if (selectedUser) {
-            const assignee = (t.assignee || "").toLowerCase();
-            userMatch =
-                assignee.includes((selectedUser.fullName || "").toLowerCase()) ||
-                assignee.includes((selectedUser.login || "").toLowerCase()) ||
-                assignee.includes((selectedUser.email || "").toLowerCase());
-        }
-
-        return projectMatch && userMatch;
-    });
-}
-
-function getFilteredEntries(from, to) {
-    const taskMap = getFilteredTasks();
-
-    return timeEntries.filter(entry => {
-        const entryDate = parseEntryDate(entry.date);
-        if (!entryDate || !isInRange(entryDate, from, to)) {
-            return false;
-        }
-
-        const task = tasks.find(t => (t.name || "").trim().toLowerCase() === (entry.task || "").trim().toLowerCase());
-        if (!task) {
-            return true;
-        }
-
-        return taskMap.some(x => Number(x.id) === Number(task.id));
-    });
-}
-
-function getEntriesForDay(day) {
-    const start = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 0, 0, 0);
-    const end = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 23, 59, 59);
-    return getFilteredEntries(start, end);
-}
-
-function getEntriesForLastDays(day, days) {
-    const start = new Date(day);
-    start.setDate(start.getDate() - (days - 1));
-    start.setHours(0, 0, 0, 0);
-
-    const end = new Date(day);
-    end.setHours(23, 59, 59, 999);
-
-    return getFilteredEntries(start, end);
-}
-
-function sumHours(entries) {
-    return round2(entries.reduce((sum, x) => sum + Number(x.hours || 0), 0));
-}
-
-function round2(value) {
-    return Math.round(Number(value || 0) * 100) / 100;
-}
-
-function calculateOvertime(entries) {
-    return round2(
-        getOvertimeDays(entries).reduce((sum, x) => sum + x.value, 0)
-    );
-}
-
-function getOvertimeDays(entries) {
-    const map = new Map();
-
-    entries.forEach(entry => {
-        const d = parseEntryDate(entry.date);
-        if (!d) return;
-
-        const key = d.toISOString().slice(0, 10);
-        map.set(key, (map.get(key) || 0) + Number(entry.hours || 0));
-    });
-
-    return [...map.entries()]
-        .map(([key, value]) => ({
-            label: formatIsoDate(key),
-            value: round2(Math.max(0, value - 8))
-        }))
-        .filter(x => x.value > 0)
-        .sort((a, b) => a.label.localeCompare(b.label));
-}
-
-function getMaxOvertimeDay(entries) {
-    const days = getOvertimeDays(entries);
-    if (!days.length) return 0;
-    return Math.max(...days.map(x => x.value));
-}
-
-function countCompletedWorkedTasks(entries) {
-    const names = [...new Set(entries.map(x => (x.task || "").trim().toLowerCase()).filter(Boolean))];
-
-    return tasks.filter(t =>
-        t.status === "done" &&
-        names.includes((t.name || "").trim().toLowerCase())
-    ).length;
-}
-
-function mapEntriesWithTask(entries) {
-    return entries.map(entry => {
-        const task = tasks.find(t => (t.name || "").trim().toLowerCase() === (entry.task || "").trim().toLowerCase());
-
-        return {
-            task: entry.task || "Без задачи",
-            project: task?.project || "Без проекта",
-            hours: Number(entry.hours || 0),
-            status: task?.status || "done"
-        };
-    });
-}
-
-function groupEntriesByDays(entries) {
-    const dayNames = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
-    const map = new Map();
-
-    entries.forEach(entry => {
-        const d = parseEntryDate(entry.date);
-        if (!d) return;
-
-        const label = dayNames[d.getDay()];
-        map.set(label, round2((map.get(label) || 0) + Number(entry.hours || 0)));
-    });
-
-    const order = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
-
-    return order
-        .map(label => ({ label, value: map.get(label) || 0 }))
-        .filter(x => x.value > 0);
-}
-
-function groupEntriesByProjects(entries) {
-    const map = new Map();
-
-    entries.forEach(entry => {
-        const task = tasks.find(t => (t.name || "").trim().toLowerCase() === (entry.task || "").trim().toLowerCase());
-        const projectName = task?.project || "Без проекта";
-
-        map.set(projectName, round2((map.get(projectName) || 0) + Number(entry.hours || 0)));
-    });
-
-    return [...map.entries()]
-        .map(([label, value]) => ({ label, value }))
-        .sort((a, b) => b.value - a.value);
-}
-
-function groupEntriesByWeeks(entries, rangeStart) {
-    const start = new Date(rangeStart);
-    start.setHours(0, 0, 0, 0);
-
-    const map = new Map();
-
-    entries.forEach(entry => {
-        const d = parseEntryDate(entry.date);
-        if (!d) return;
-
-        const diffDays = Math.floor((d - start) / (1000 * 60 * 60 * 24));
-        const weekIndex = Math.floor(Math.max(diffDays, 0) / 7) + 1;
-        const key = "Неделя " + weekIndex;
-
-        map.set(key, round2((map.get(key) || 0) + Number(entry.hours || 0)));
-    });
-
-    return [...map.entries()].map(([label, value]) => ({ label, value }));
-}
-
-function getOverdueTasks(taskList) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    return taskList
-        .filter(t => t.deadlineRaw && t.status !== "done")
-        .map(t => {
-            const d = new Date(t.deadlineRaw + "T00:00:00");
-            const diff = Math.floor((today - d) / (1000 * 60 * 60 * 24));
-
-            return {
-                name: t.name || "",
-                project: t.project || "",
-                assignee: t.assignee || "",
-                deadline: t.deadline || "",
-                delayDays: diff > 0 ? diff : 0
-            };
-        })
-        .filter(x => x.delayDays > 0)
-        .sort((a, b) => b.delayDays - a.delayDays);
+    showReport(activeId);
 }
 
 function renderEntryRows(items) {
@@ -870,16 +566,11 @@ function formatHours(value) {
 }
 
 function formatHoursValue(value) {
-    return round2(value).toFixed(1).replace(".0", "");
+    return Number(value || 0).toFixed(1).replace(".0", "");
 }
 
 function formatMoney(value) {
     return Number(value || 0).toLocaleString("ru-RU");
-}
-
-function formatIsoDate(iso) {
-    const d = new Date(iso + "T00:00:00");
-    return d.toLocaleDateString("ru-RU");
 }
 
 function escapeHtml(value) {
@@ -890,34 +581,4 @@ function escapeHtml(value) {
         .replace(/"/g, "&quot;");
 }
 
-function exportReportsCsv() {
-    const data = buildReportsData();
 
-    const rows = [
-        ["Тип", "Показатель", "Значение"],
-        ["Ежедневный", "Часы", formatHoursValue(data.daily.totalHours)],
-        ["Ежедневный", "Задач завершено", data.daily.completedTasks],
-        ["Ежедневный", "Переработка", formatHoursValue(data.daily.overtime)],
-        ["Недельный", "Часы", formatHoursValue(data.weekly.totalHours)],
-        ["Недельный", "Задач завершено", data.weekly.completedTasks],
-        ["Недельный", "Переработка", formatHoursValue(data.weekly.overtime)],
-        ["Месячный", "Часы", formatHoursValue(data.monthly.totalHours)],
-        ["Месячный", "Задач завершено", data.monthly.completedTasks],
-        ["Месячный", "Переработка", formatHoursValue(data.monthly.overtime)],
-        ["Продуктивность", "Эффективность", data.performance.efficiency + "%"],
-        ["Продуктивность", "Просрочено", data.performance.overdueCount],
-        ["Бонус", "Процент", data.bonus.percent + "%"],
-        ["Бонус", "Сумма", formatMoney(data.bonus.amount)]
-    ];
-
-    const csv = rows.map(r => r.join(";")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "reports.csv";
-    a.click();
-
-    URL.revokeObjectURL(url);
-}

@@ -63,11 +63,16 @@ function normalizeUser(user) {
         plannedStartTime: user.plannedStartTime ?? user.PlannedStartTime ?? "",
         plannedEndTime: user.plannedEndTime ?? user.PlannedEndTime ?? "",
 
-
         workDayHours: Number(user.workDayHours ?? user.WorkDayHours ?? 0),
         trackedHours: Number(user.trackedHours ?? user.TrackedHours ?? 0),
         idleHours: Number(user.idleHours ?? user.IdleHours ?? 0),
         salaryHours: Number(user.salaryHours ?? user.SalaryHours ?? 0),
+
+        workloadDiff: Number(user.workloadDiff ?? user.WorkloadDiff ?? 0),
+        completionPercent: Number(user.completionPercent ?? user.CompletionPercent ?? 0),
+        productivityState: user.productivityState ?? user.ProductivityState ?? "normal",
+        bonusPercent: Number(user.bonusPercent ?? user.BonusPercent ?? 0),
+        bonusAmount: Number(user.bonusAmount ?? user.BonusAmount ?? 0)
     };
 }
 
@@ -352,9 +357,9 @@ document.addEventListener("DOMContentLoaded", function () {
     renderWorkDayHistory();
     initProfilePage();
 
-    loadWorkStatus();
+   
 
-    loadWorkDayStatusInfo();
+    loadWorkDayStatus();
 
     document.addEventListener("click", function (event) {
         const dropdown = document.getElementById("profileDropdown");
@@ -748,31 +753,7 @@ async function changePassword() {
     }
 }
 
-async function loadWorkStatus() {
-    try {
-        const res = await fetch("/MainPage?handler=WorkStatus");
-        const data = await res.json();
 
-        if (!res.ok || !data.ok) {
-            return;
-        }
-
-        isWorkDayStarted = !!data.isWorking;
-
-        const startBtn = document.getElementById("startDayBtn");
-        const stopBtn = document.getElementById("stopDayBtn");
-
-        if (isWorkDayStarted) {
-            if (startBtn) startBtn.classList.add("hidden");
-            if (stopBtn) stopBtn.classList.remove("hidden");
-        } else {
-            if (startBtn) startBtn.classList.remove("hidden");
-            if (stopBtn) stopBtn.classList.add("hidden");
-        }
-    } catch {
-        console.log("Не удалось загрузить статус рабочего дня");
-    }
-}
 
 
 async function saveProfile() {
@@ -907,90 +888,4 @@ function changeStatus(el, status) {
 }
 
 
-async function loadWorkDayStatusInfo() {
-    const box = document.getElementById("workDayStatusContent");
-    if (!box) return;
-
-    try {
-        const res = await fetch("/MainPage?handler=WorkDayStatus");
-        const data = await res.json();
-
-        if (!res.ok || !data.ok || !data.status) {
-            box.innerHTML = `<div style="color: var(--gray);">Не удалось загрузить статус рабочего дня</div>`;
-            return;
-        }
-
-        const s = data.status;
-
-        const isFlexible = s.workMode === "flexible";
-        const scheduleText =
-            s.plannedStartTime && s.plannedEndTime
-                ? `${s.plannedStartTime} — ${s.plannedEndTime}`
-                : (isFlexible ? "Свободный график" : "Не задано");
-
-        const modeText = isFlexible ? "Гибкий" : "Фиксированный";
-
-        const startedAtText = s.startedAt || "—";
-        const requiredText = Number(s.requiredDailyHours || 0).toFixed(1);
-        const currentText = Number(s.currentHours || 0).toFixed(2);
-        const trackedText = Number(s.trackedHours || 0).toFixed(2);
-        const idleText = Number(s.idleHours || 0).toFixed(2);
-        const remainingText = Number(s.remainingHours || 0).toFixed(2);
-
-        box.innerHTML = `
-            <div class="workday-panel">
-                <div class="workday-panel-top">
-                    <div class="workday-panel-main">
-                        <div class="workday-panel-row">
-                            <div class="workday-panel-caption">Расписание</div>
-                            <div class="workday-panel-schedule">${scheduleText}</div>
-                        </div>
-
-                        <div class="workday-panel-meta">
-                            <span class="workday-meta-item">
-                                <i class="fas fa-hourglass-half"></i>
-                                Норма: ${requiredText} ч
-                            </span>
-                            <span class="workday-meta-item">
-                                <i class="fas fa-clock"></i>
-                                Начало: ${startedAtText}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="workday-panel-side">
-                        <span class="workday-status-chip ${s.isWorking ? "success" : "muted"}">
-                            ${s.isWorking ? "Рабочий день активен" : "День не начат"}
-                        </span>
-                        <span class="workday-mode-text">${modeText}</span>
-                    </div>
-                </div>
-
-                <div class="workday-metrics-grid">
-                    <div class="workday-metric-card">
-                        <div class="workday-metric-label">В рабочем дне</div>
-                        <div class="workday-metric-value">${currentText} ч</div>
-                    </div>
-
-                    <div class="workday-metric-card">
-                        <div class="workday-metric-label">По задачам</div>
-                        <div class="workday-metric-value">${trackedText} ч</div>
-                    </div>
-
-                    <div class="workday-metric-card">
-                        <div class="workday-metric-label">Простой</div>
-                        <div class="workday-metric-value">${idleText} ч</div>
-                    </div>
-
-                    <div class="workday-metric-card">
-                        <div class="workday-metric-label">Осталось до нормы</div>
-                        <div class="workday-metric-value">${remainingText} ч</div>
-                    </div>
-                </div>
-            </div>
-        `;
-    } catch {
-        box.innerHTML = `<div style="color: var(--gray);">Ошибка загрузки</div>`;
-    }
-}
 

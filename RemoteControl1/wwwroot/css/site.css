@@ -5018,147 +5018,189 @@ textarea.form-control {
 
 
 
+
+
+
+
 .dashboard-workday-card {
-    margin-top: 0;
     margin-bottom: 24px;
 }
 
-.workday-panel {
-    display: grid;
-    gap: 18px;
-}
-
-.workday-panel-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 18px;
-    flex-wrap: wrap;
-}
-
-.workday-panel-main {
-    min-width: 0;
-    flex: 1;
-}
-
-.workday-panel-caption {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--gray);
-    text-transform: uppercase;
-    margin-bottom: 6px;
-    letter-spacing: 0.3px;
-}
-
-.workday-panel-schedule {
-    font-size: 28px;
-    line-height: 1.15;
-    font-weight: 800;
-    color: var(--primary-dark);
-    font-family: var(--font-head);
-    margin-bottom: 10px;
-}
-
-.workday-panel-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.workday-meta-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    min-height: 34px;
-    padding: 0 12px;
-    border-radius: 999px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    color: var(--dark);
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.workday-panel-side {
+.workday-status-grid {
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
-    gap: 8px;
+    gap: 18px;
 }
 
-.workday-status-chip {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 34px;
-    padding: 0 14px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 700;
+.workday-main-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: stretch;
 }
 
-    .workday-status-chip.success {
-        background: #e8f5e9;
-        color: #2e7d32;
-    }
+.workday-schedule-block,
+.workday-state-block {
+    flex: 1;
+    min-width: 260px;
+    background: #f8f9fc;
+    border: 1px solid #e4e8f2;
+    border-radius: 16px;
+    padding: 18px 20px;
+}
 
-    .workday-status-chip.muted {
-        background: #eef2f7;
-        color: #64748b;
-    }
-
-.workday-mode-text {
+.workday-label {
     font-size: 12px;
-    font-weight: 600;
+    color: var(--gray);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.workday-schedule-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--dark);
+    line-height: 1.2;
+}
+
+.workday-mode-note {
+    margin-top: 6px;
+    font-size: 13px;
     color: var(--gray);
 }
+
+.workday-state-value {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+    .workday-state-value.is-working {
+        color: #1f8b4c;
+    }
+
+    .workday-state-value.is-stopped {
+        color: #9a3d3d;
+    }
 
 .workday-metrics-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 14px;
 }
 
-.workday-metric-card {
-    padding: 16px;
-    border-radius: 18px;
-    background: #f8fafc;
-    border: 1px solid #e8edf5;
-    min-width: 0;
+.workday-metric {
+    background: #fff;
+    border: 1px solid #e4e8f2;
+    border-radius: 14px;
+    padding: 14px 16px;
 }
 
-.workday-metric-label {
+.workday-metric-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--dark);
+}
+
+
+.dashboard-workday-card {
+    margin-bottom: 24px;
+}
+
+.workday-status-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.workday-main-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.workday-schedule-block,
+.workday-state-block {
+    flex: 1;
+    min-width: 260px;
+    background: #f8fafc;
+    border: 1px solid #e8edf5;
+    border-radius: 18px;
+    padding: 18px 20px;
+}
+
+.workday-label {
     font-size: 12px;
     font-weight: 700;
     color: var(--gray);
     text-transform: uppercase;
-    margin-bottom: 6px;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+}
+
+.workday-schedule-value {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--primary-dark);
+    line-height: 1.1;
+}
+
+.workday-mode-note {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--gray);
+}
+
+.workday-state-value {
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+    .workday-state-value.is-working {
+        color: var(--success);
+    }
+
+    .workday-state-value.is-stopped {
+        color: var(--danger);
+    }
+
+.workday-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+}
+
+.workday-metric {
+    background: #fff;
+    border: 1px solid #e8edf5;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
 }
 
 .workday-metric-value {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 800;
-    color: var(--primary-dark);
-    line-height: 1.15;
-    font-family: var(--font-head);
-}
-
-@media (max-width: 992px) {
-    .workday-metrics-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+    color: var(--dark);
+    line-height: 1.1;
 }
 
 @media (max-width: 768px) {
-    .workday-panel-schedule {
-        font-size: 22px;
+    .workday-schedule-value {
+        font-size: 24px;
     }
 
-    .workday-panel-side {
-        align-items: flex-start;
+    .workday-state-value {
+        font-size: 18px;
     }
 
-    .workday-metrics-grid {
-        grid-template-columns: 1fr;
+    .workday-metric-value {
+        font-size: 20px;
     }
 }
+

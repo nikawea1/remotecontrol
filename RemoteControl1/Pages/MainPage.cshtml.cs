@@ -898,6 +898,32 @@ namespace RemoteControl1.Pages
                 data = result.Data
             });
         }
+
+
+        public async Task<JsonResult> OnGetReportsDataAsync(string? dateFrom, string? dateTo, int? projectId, int? employeeId)
+        {
+            var currentUserId = await GetCurrentUserIdAsync();
+            if (currentUserId == null)
+                return new JsonResult(new { ok = false, error = "Пользователь не найден" });
+
+            var data = await _taskService.GetReportsDataAsync(
+                currentUserId.Value,
+                GetCurrentRole(),
+                CurrentUserIsAdmin(),
+                dateFrom,
+                dateTo,
+                projectId,
+                employeeId
+            );
+
+            return new JsonResult(new
+            {
+                ok = true,
+                data
+            });
+        }
+
+
         public async Task<IActionResult> OnGetExportPdfAsync(string? dateFrom, string? dateTo, int? projectId)
         {
             var userId = await GetCurrentUserIdAsync();
@@ -1016,7 +1042,9 @@ namespace RemoteControl1.Pages
             var query = _db.ActivityLogs
                 .Include(a => a.TaskItem)
                     .ThenInclude(t => t!.Project)
-                .Where(a => a.UserId == targetUserId && a.ActivityType != "workday");
+                .Where(a =>
+    a.UserId == targetUserId &&
+    (a.ActivityType == "task_timer" || a.ActivityType == "manual_time"));
 
             if (CurrentUserIsManager())
             {
@@ -1207,19 +1235,8 @@ namespace RemoteControl1.Pages
             return HttpContext.Session.GetInt32("user_id") ?? 0;
         }
 
-        public JsonResult OnGetWorkStatus()
-        {
-            var userId = GetCurrentUserId();
+       
 
-            var user = _db.Users.FirstOrDefault(x => x.Id == userId);
-
-            return new JsonResult(new
-            {
-                ok = true,
-                isWorking = user?.IsWorking ?? false,
-                workStartUtc = user?.WorkStartUtc
-            });
-        }
         public class SaveProfileContactNoteDto
         {
             public string? ContactNote { get; set; }

@@ -151,23 +151,19 @@ function renderWorkloadTable() {
         return;
     }
 
-    body.innerHTML = users.map(u => {
-        const diff = Number(u.trackedHours || 0) - Number(u.plannedHours || 0);
-
-        return `
-            <tr>
-                <td>${u.fullName}</td>
-                <td>${u.tasksInProgress}</td>
-                <td>${u.completedTasks}</td>
-                <td>${u.overdueTasks}</td>
-                <td>${Number(u.plannedHours || 0).toFixed(1)}</td>
-                <td>${Number(u.trackedHours || 0).toFixed(1)}</td>
-                <td>${Number(u.workDayHours || 0).toFixed(1)}</td>
-                <td>${Number(u.idleHours || 0).toFixed(1)}</td>
-                <td>${diff >= 0 ? "+" : ""}${diff.toFixed(1)}</td>
-            </tr>
-        `;
-    }).join("");
+    body.innerHTML = users.map(u => `
+        <tr>
+            <td>${u.fullName}</td>
+            <td>${u.tasksInProgress}</td>
+            <td>${u.completedTasks}</td>
+            <td>${u.overdueTasks}</td>
+            <td>${Number(u.plannedHours || 0).toFixed(1)}</td>
+            <td>${Number(u.trackedHours || 0).toFixed(1)}</td>
+            <td>${Number(u.workDayHours || 0).toFixed(1)}</td>
+            <td>${Number(u.idleHours || 0).toFixed(1)}</td>
+            <td>${Number(u.workloadDiff || 0) >= 0 ? "+" : ""}${Number(u.workloadDiff || 0).toFixed(1)}</td>
+        </tr>
+    `).join("");
 }
 
 function renderProductivityTable() {
@@ -187,23 +183,23 @@ function renderProductivityTable() {
         let stateText = "Норма";
         let badge = "badge-info";
 
-        if (u.tasksInProgress >= 5 || u.trackedHours > u.plannedHours * 1.1) {
+        if (u.productivityState === "overloaded") {
             stateText = "Перегружен";
             badge = "badge-danger";
-        } else if (u.trackedHours < u.plannedHours * 0.6 && u.plannedHours > 0) {
+        } else if (u.productivityState === "underloaded") {
             stateText = "Недогружен";
             badge = "badge-warning";
         }
 
-        const index = u.completedTasks * 10 + Number(u.trackedHours || 0);
+        const index = Number(u.completionPercent || 0);
 
         return `
             <tr>
                 <td>${u.fullName}</td>
-                <td>${u.trackedHours.toFixed(1)}</td>
+                <td>${Number(u.trackedHours || 0).toFixed(1)}</td>
                 <td>${u.tasksInProgress}</td>
                 <td>${u.completedTasks}</td>
-                <td>${index.toFixed(1)}</td>
+                <td>${index.toFixed(0)}%</td>
                 <td><span class="badge ${badge}">${stateText}</span></td>
             </tr>
         `;
@@ -227,7 +223,8 @@ function renderSalaryTable() {
         const salaryHours = Number(u.salaryHours || 0);
         const workDayHours = Number(u.workDayHours || 0);
         const idleHours = Number(u.idleHours || 0);
-        const salary = salaryHours * Number(u.hourlyRate || 0);
+        const rate = Number(u.hourlyRate || 0);
+        const salary = salaryHours * rate;
 
         return `
             <tr>
@@ -235,7 +232,7 @@ function renderSalaryTable() {
                 <td>${salaryHours.toFixed(1)}</td>
                 <td>${workDayHours.toFixed(1)}</td>
                 <td>${idleHours.toFixed(1)}</td>
-                <td>${Number(u.hourlyRate || 0).toLocaleString("ru-RU")}</td>
+                <td>${rate.toLocaleString("ru-RU")}</td>
                 <td><strong>${salary.toLocaleString("ru-RU")}</strong></td>
             </tr>
         `;
@@ -258,9 +255,10 @@ function renderBonusesTable() {
     body.innerHTML = users.map(u => {
         const planned = Number(u.plannedHours || 0);
         const tracked = Number(u.trackedHours || 0);
-        const diff = tracked - planned;
-        const percent = planned > 0 ? (tracked / planned) * 100 : 0;
-        const recommend = planned > 0 && tracked >= planned * 1.1;
+        const diff = Number(u.workloadDiff || 0);
+        const percent = Number(u.completionPercent || 0);
+        const bonusPercent = Number(u.bonusPercent || 0);
+        const bonusAmount = Number(u.bonusAmount || 0);
 
         return `
             <tr>
@@ -270,19 +268,25 @@ function renderBonusesTable() {
                 <td>${percent.toFixed(0)}%</td>
                 <td>${diff >= 0 ? "+" : ""}${diff.toFixed(1)}</td>
                 <td>
-                    <span class="badge ${recommend ? "badge-success" : "badge-info"}">
-                        ${recommend ? "Рекомендуется бонус" : "Без бонуса"}
-                    </span>
-                </td>
+    <div style="display:flex; flex-direction:column; gap:6px; align-items:center;">
+        <span class="badge ${bonusPercent > 0 ? "badge-success" : "badge-info"}">
+            ${bonusPercent > 0 ? `Бонус ${bonusPercent}%` : "Без бонуса"}
+        </span>
+        <span style="font-size:12px; color:var(--gray);">
+            ${bonusAmount > 0 ? `${bonusAmount.toLocaleString("ru-RU")} руб.` : "0 руб."}
+        </span>
+    </div>
+</td>
             </tr>
         `;
     }).join("");
 }
 
 function renderControlTab() {
-    const overloaded = users.filter(u => u.tasksInProgress >= 5 || (u.plannedHours > 0 && u.trackedHours > u.plannedHours * 1.1));
-    const underloaded = users.filter(u => u.plannedHours > 0 && u.trackedHours < u.plannedHours * 0.6);
-    const noActivity = users.filter(u => u.trackedHours <= 0);
+    const overloaded = users.filter(u => u.productivityState === "overloaded");
+    const underloaded = users.filter(u => u.productivityState === "underloaded");
+    const noActivity = users.filter(u => Number(u.trackedHours || 0) <= 0);
+    const highIdle = users.filter(u => Number(u.idleHours || 0) >= 2);
 
     const set = (id, value) => {
         const el = document.getElementById(id);
@@ -292,6 +296,7 @@ function renderControlTab() {
     set("controlOverloaded", overloaded.length);
     set("controlUnderloaded", underloaded.length);
     set("controlNoActivity", noActivity.length);
+    set("controlHighIdle", highIdle.length);
 
     const controlList = document.getElementById("controlList");
     if (!controlList) return;
@@ -302,7 +307,7 @@ function renderControlTab() {
         html += `
             <div class="card" style="margin-bottom:16px;">
                 <h4 style="margin-bottom:12px; color:var(--danger);">Перегружены</h4>
-                ${overloaded.map(x => `<div style="margin-bottom:8px;">${x.fullName} — активных задач: ${x.tasksInProgress}</div>`).join("")}
+                ${overloaded.map(x => `<div style="margin-bottom:8px;">${x.fullName} — активных задач: ${x.tasksInProgress}, часов по задачам: ${Number(x.trackedHours || 0).toFixed(1)}</div>`).join("")}
             </div>
         `;
     }
@@ -311,9 +316,18 @@ function renderControlTab() {
         html += `
             <div class="card" style="margin-bottom:16px;">
                 <h4 style="margin-bottom:12px; color:var(--warning);">Недогружены</h4>
-                ${underloaded.map(x => `<div style="margin-bottom:8px;">${x.fullName} — часов по задачам: ${x.trackedHours.toFixed(1)} / ${x.plannedHours.toFixed(1)}</div>`).join("")}
+                ${underloaded.map(x => `<div style="margin-bottom:8px;">${x.fullName} — часов по задачам: ${Number(x.trackedHours || 0).toFixed(1)} / ${Number(x.plannedHours || 0).toFixed(1)}</div>`).join("")}
             </div>
         `;
+    }
+
+    if (highIdle.length) {
+        html += `
+        <div class="card" style="margin-bottom:16px;">
+            <h4 style="margin-bottom:12px; color:var(--warning);">Высокий простой</h4>
+            ${highIdle.map(x => `<div style="margin-bottom:8px;">${x.fullName} — простой: ${Number(x.idleHours || 0).toFixed(1)} ч</div>`).join("")}
+        </div>
+    `;
     }
 
     if (noActivity.length) {

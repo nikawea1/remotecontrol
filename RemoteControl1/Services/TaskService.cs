@@ -169,9 +169,24 @@ namespace RemoteControl1.Services
                 to = toDate.Date.AddDays(1).AddTicks(-1);
 
             var logsQuery = _db.ActivityLogs
-                .Include(a => a.TaskItem)
-                    .ThenInclude(t => t!.Project)
-                .Where(a => a.UserId == userId && a.ActivityType != "workday");
+         .Include(a => a.TaskItem)
+             .ThenInclude(t => t!.Project)
+         .Where(a =>
+         a.UserId == userId &&
+         (a.ActivityType == "task_timer" || a.ActivityType == "manual_time"));
+
+            var workDaysQuery = _db.ActivityLogs
+    .Where(a =>
+        a.UserId == userId &&
+        a.ActivityType == "workday" &&
+        !a.IsActive);
+
+
+            if (from.HasValue)
+                workDaysQuery = workDaysQuery.Where(a => (a.EndedAtUtc ?? a.StartedAtUtc) >= from.Value);
+
+            if (to.HasValue)
+                workDaysQuery = workDaysQuery.Where(a => (a.EndedAtUtc ?? a.StartedAtUtc) <= to.Value);
 
             if (from.HasValue)
                 logsQuery = logsQuery.Where(a => (a.EndedAtUtc ?? a.StartedAtUtc) >= from.Value);
@@ -186,6 +201,16 @@ namespace RemoteControl1.Services
                 .OrderByDescending(a => a.EndedAtUtc ?? a.StartedAtUtc)
                 .ToListAsync();
 
+            var workDays = await workDaysQuery
+    .OrderByDescending(a => a.EndedAtUtc ?? a.StartedAtUtc)
+    .ToListAsync();
+
+            var trackedHours = Math.Round(logs.Sum(x => x.DurationHours), 2);
+            var workDayHours = Math.Round(workDays.Sum(x => x.DurationHours), 2);
+            var idleHours = Math.Round(workDays.Sum(x => x.IdleHours), 2);
+            var overtimeHours = Math.Round(workDays.Sum(x => x.OvertimeHours), 2);
+            var totalHours = trackedHours;
+
             var tasksQuery = _db.Tasks
                 .Include(t => t.Project)
                 .Where(t => t.UserId == userId);
@@ -195,7 +220,7 @@ namespace RemoteControl1.Services
 
             var tasks = await tasksQuery.ToListAsync();
 
-            var totalHours = Math.Round(logs.Sum(x => x.DurationHours), 2);
+            
 
             var completedTasks = tasks.Count(t => (t.Status ?? "") == "done");
 
@@ -248,7 +273,7 @@ namespace RemoteControl1.Services
             }).ToList();
 
             var plannedHours = Math.Round((decimal)tasks.Sum(t => t.PlannedTimeHours), 2);
-            var actualHours = totalHours;
+            var actualHours = trackedHours;
 
 
             var doneCount = tasks.Count(t => (t.Status ?? "") == "done");
@@ -283,7 +308,7 @@ namespace RemoteControl1.Services
                 bonusReason = "Базовый бонус";
             }
 
-            var bonusAmount = Math.Round((decimal)actualHours * user.HourlyRate * bonusPercent / 100, 2);
+            var bonusAmount = Math.Round(actualHours * user.HourlyRate * bonusPercent / 100m, 2);
 
             var result = new ReportDataVm
             {
@@ -291,7 +316,7 @@ namespace RemoteControl1.Services
                     .Where(x => !string.IsNullOrWhiteSpace(x))),
                 TotalHours = (decimal)totalHours,
                 CompletedTasks = completedTasks,
-                OvertimeHours = Math.Max(0m, (decimal)totalHours - (decimal)plannedHours),
+                OvertimeHours = overtimeHours,
                 PlannedHours = (decimal)plannedHours,
                 ActualHours = (decimal)actualHours,
                 Efficiency = efficiency,
@@ -358,20 +383,26 @@ namespace RemoteControl1.Services
                 .ToListAsync();
 
             var allLogs = await _db.ActivityLogs
-                .Include(a => a.TaskItem)
-                    .ThenInclude(t => t!.Project)
-                .Where(a => a.ActivityType != "workday")
+    .Include(a => a.TaskItem)
+        .ThenInclude(t => t!.Project)
+    .Where(a => a.ActivityType == "task_timer" || a.ActivityType == "manual_time")
+    .ToListAsync();
+
+            var allWorkDays = await _db.ActivityLogs
+                .Where(a => a.ActivityType == "workday" && !a.IsActive)
                 .ToListAsync();
 
             var range = BuildDateRange(dateFrom, dateTo);
 
             IEnumerable<TaskItem> tasksQuery = allTasks;
             IEnumerable<ActivityLog> logsQuery = allLogs;
+            IEnumerable<ActivityLog> workDaysQuery = allWorkDays;
 
             if (!isAdmin && currentRole == "employee")
             {
                 tasksQuery = tasksQuery.Where(t => t.UserId == currentUserId);
                 logsQuery = logsQuery.Where(a => a.UserId == currentUserId);
+                workDaysQuery = workDaysQuery.Where(a => a.UserId == currentUserId);
             }
             else if (!isAdmin && currentRole == "manager")
             {
@@ -381,8 +412,15 @@ namespace RemoteControl1.Services
                     .Distinct()
                     .ToList();
 
+                var managerUserIds = await _db.ProjectMembers
+    .Where(x => managerProjectIds.Contains(x.ProjectId))
+    .Select(x => x.UserId)
+    .Distinct()
+    .ToListAsync();
+
                 tasksQuery = tasksQuery.Where(t => managerProjectIds.Contains(t.ProjectId));
-                logsQuery = logsQuery.Where(a => a.ProjectId.HasValue && managerProjectIds.Contains(a.ProjectId.Value));
+                logsQuery = logsQuery.Where(a => managerUserIds.Contains(a.UserId));
+                workDaysQuery = workDaysQuery.Where(a => managerUserIds.Contains(a.UserId));
             }
 
             if (employeeId.HasValue)
@@ -391,6 +429,7 @@ namespace RemoteControl1.Services
                 {
                     tasksQuery = tasksQuery.Where(t => t.UserId == employeeId.Value);
                     logsQuery = logsQuery.Where(a => a.UserId == employeeId.Value);
+                    workDaysQuery = workDaysQuery.Where(a => a.UserId == employeeId.Value);
                 }
                 else if (currentRole == "manager")
                 {
@@ -410,11 +449,13 @@ namespace RemoteControl1.Services
                     {
                         tasksQuery = tasksQuery.Where(t => t.UserId == employeeId.Value);
                         logsQuery = logsQuery.Where(a => a.UserId == employeeId.Value);
+                        workDaysQuery = workDaysQuery.Where(a => a.UserId == employeeId.Value);
                     }
                     else
                     {
                         tasksQuery = Enumerable.Empty<TaskItem>();
                         logsQuery = Enumerable.Empty<ActivityLog>();
+                        workDaysQuery = Enumerable.Empty<ActivityLog>();
                     }
                 }
             }
@@ -431,8 +472,19 @@ namespace RemoteControl1.Services
                 return d >= range.From && d <= range.To;
             });
 
+            workDaysQuery = workDaysQuery.Where(a =>
+            {
+                var d = a.EndedAtUtc ?? a.StartedAtUtc;
+                return d >= range.From && d <= range.To;
+            });
+
             var scopedTasks = tasksQuery.ToList();
+
             var scopedLogs = logsQuery
+                .OrderByDescending(a => a.EndedAtUtc ?? a.StartedAtUtc)
+                .ToList();
+
+            var scopedWorkDays = workDaysQuery
                 .OrderByDescending(a => a.EndedAtUtc ?? a.StartedAtUtc)
                 .ToList();
 
@@ -454,20 +506,38 @@ namespace RemoteControl1.Services
                 ? allUsers.FirstOrDefault(x => x.Id == employeeId.Value)
                 : currentUser;
 
+            var dayWorkDays = scopedWorkDays
+    .Where(a => SameDay((a.EndedAtUtc ?? a.StartedAtUtc).ToLocalTime(), range.To.ToLocalTime()))
+    .ToList();
+
+            var weekWorkDays = scopedWorkDays
+                .Where(a =>
+                {
+                    var d = (a.EndedAtUtc ?? a.StartedAtUtc).ToLocalTime().Date;
+                    return d >= weekStart && d <= range.To.Date;
+                })
+                .ToList();
+
             var dailyHours = SumHours(dayLogs);
             var weeklyHours = SumHours(weekLogs);
             var monthlyHours = SumHours(scopedLogs);
 
-            var dailyOvertime = CalculateOvertime(dayLogs);
-            var weeklyOvertime = CalculateOvertime(weekLogs);
-            var monthlyOvertime = CalculateOvertime(scopedLogs);
+            var dailyWorkDayHours = SumHours(dayWorkDays);
+            var weeklyWorkDayHours = SumHours(weekWorkDays);
+            var monthlyWorkDayHours = SumHours(scopedWorkDays);
+
+            var dailyOvertime = Math.Round(dayWorkDays.Sum(x => x.OvertimeHours), 2);
+            var weeklyOvertime = Math.Round(weekWorkDays.Sum(x => x.OvertimeHours), 2);
+            var monthlyOvertime = Math.Round(scopedWorkDays.Sum(x => x.OvertimeHours), 2);
 
             var dailyCompleted = CountCompletedWorkedTasks(dayLogs, scopedTasks);
             var weeklyCompleted = CountCompletedWorkedTasks(weekLogs, scopedTasks);
             var monthlyCompleted = CountCompletedWorkedTasks(scopedLogs, scopedTasks);
 
-            var plannedHours = (decimal)scopedTasks.Sum(t => t.PlannedTimeHours);
+            var plannedHours = Math.Round((decimal)scopedTasks.Sum(t => t.PlannedTimeHours), 2);
             var actualHours = monthlyHours;
+            var idleHours = Math.Round(scopedWorkDays.Sum(x => x.IdleHours), 2);
+            var salaryHours = monthlyHours;
 
             var doneCount = scopedTasks.Count(t => (t.Status ?? "") == "done");
             var allCount = scopedTasks.Count;
@@ -500,7 +570,7 @@ namespace RemoteControl1.Services
             }
 
             var rate = selectedUser?.HourlyRate ?? 0;
-            var bonusAmount = Math.Round((decimal)actualHours * rate * bonusPercent / 100m, 0);
+            var bonusAmount = Math.Round(actualHours * rate * bonusPercent / 100m, 2);
 
             return new ReportsVm
             {
@@ -509,6 +579,7 @@ namespace RemoteControl1.Services
                     TotalHours = dailyHours,
                     CompletedTasks = dailyCompleted,
                     Overtime = dailyOvertime,
+                    Entries = dayLogs.Select(BuildReportEntryVm).ToList()
                 },
                 Weekly = new WeeklyReportVm
                 {
@@ -556,9 +627,9 @@ namespace RemoteControl1.Services
                 Overtime = new OvertimeReportVm
                 {
                     Total = monthlyOvertime,
-                    MaxDay = GetMaxOvertimeDay(scopedLogs),
-                    DaysCount = GetOvertimeDays(scopedLogs).Count,
-                    ByDays = GetOvertimeDays(scopedLogs)
+                    MaxDay = GetMaxOvertimeDay(scopedWorkDays),
+                    DaysCount = GetOvertimeDays(scopedWorkDays).Count,
+                    ByDays = GetOvertimeDays(scopedWorkDays)
                 },
                 Bonus = new BonusReportVm
                 {
@@ -938,7 +1009,7 @@ namespace RemoteControl1.Services
 
             var totalDayHours = Math.Round((decimal)(now - activeDay.StartedAtUtc).TotalHours, 2);
 
-            var idleHours = totalDayHours - trackedHours;
+            var idleHours = Math.Round(totalDayHours - trackedHours, 2);
             if (idleHours < 0)
                 idleHours = 0;
 
@@ -1498,8 +1569,10 @@ namespace RemoteControl1.Services
 
             var userTasks = await _db.Tasks.Where(t => t.UserId == user.Id).ToListAsync();
             var totalHours = await _db.ActivityLogs
-     .Where(a => a.UserId == user.Id && a.ActivityType != "workday")
-     .SumAsync(a => (decimal?)a.DurationHours) ?? 0m;
+    .Where(a =>
+        a.UserId == user.Id &&
+        (a.ActivityType == "task_timer" || a.ActivityType == "manual_time"))
+    .SumAsync(a => (decimal?)a.DurationHours) ?? 0m;
 
             return ServiceResult<UserVm>.Success(new UserVm
             {
@@ -1544,7 +1617,9 @@ namespace RemoteControl1.Services
 
             var userTasks = await _db.Tasks.Where(t => t.UserId == user.Id).ToListAsync();
             var totalHours = await _db.ActivityLogs
-    .Where(a => a.UserId == user.Id && a.ActivityType != "workday")
+    .Where(a =>
+        a.UserId == user.Id &&
+        (a.ActivityType == "task_timer" || a.ActivityType == "manual_time"))
     .SumAsync(a => (decimal?)a.DurationHours) ?? 0m;
 
             return ServiceResult<UserVm>.Success(new UserVm
@@ -1754,7 +1829,7 @@ namespace RemoteControl1.Services
             var userLogs = allActivities.Where(a => a.UserId == u.Id).ToList();
 
             var workDayLogs = userLogs
-                .Where(a => a.ActivityType == "workday")
+                .Where(a => a.ActivityType == "workday" && !a.IsActive)
                 .ToList();
 
             var taskLogs = userLogs
@@ -1764,10 +1839,50 @@ namespace RemoteControl1.Services
             var totalTrackedHours = Math.Round(taskLogs.Sum(a => a.DurationHours), 2);
             var totalPlannedHours = Math.Round((decimal)userTasks.Sum(t => t.PlannedTimeHours), 2);
 
-            var workDayHours = Math.Round(workDayLogs.Sum(a => a.DurationHours), 2);
-            var trackedHours = Math.Round(workDayLogs.Sum(a => a.TrackedHours), 2);
+            var workDayHours = Math.Round(workDayLogs.Sum(x => x.DurationHours), 2);
+            var trackedHoursFromWorkDays = Math.Round(workDayLogs.Sum(a => a.TrackedHours), 2);
             var idleHours = Math.Round(workDayLogs.Sum(a => a.IdleHours), 2);
+
+            var trackedHours = trackedHoursFromWorkDays > 0
+                ? trackedHoursFromWorkDays
+                : totalTrackedHours;
+
             var salaryHours = trackedHours;
+
+            var completedTasks = userTasks.Count(t => (t.Status ?? "") == "done");
+            var activeTasks = userTasks.Count(t => (t.Status ?? "") == "progress");
+            var overdueTasks = userTasks.Count(t =>
+                t.Deadline.HasValue &&
+                t.Deadline.Value.Date < DateTime.Today &&
+                (t.Status ?? "") != "done");
+
+            decimal completionPercent = 0m;
+            if (totalPlannedHours > 0)
+            {
+                completionPercent = Math.Round((trackedHours / totalPlannedHours) * 100m, 0);
+                if (completionPercent > 999m)
+                    completionPercent = 999m;
+            }
+
+            string productivityState;
+            if (totalPlannedHours > 0 && trackedHours < totalPlannedHours * 0.6m)
+                productivityState = "underloaded";
+            else if (activeTasks >= 5 || (totalPlannedHours > 0 && trackedHours > totalPlannedHours * 1.1m))
+                productivityState = "overloaded";
+            else
+                productivityState = "normal";
+
+            decimal workloadDiff = Math.Round(trackedHours - totalPlannedHours, 2);
+
+            int bonusPercent = 0;
+            if (totalPlannedHours > 0 && trackedHours >= totalPlannedHours * 1.1m && overdueTasks == 0)
+                bonusPercent = 15;
+            else if (totalPlannedHours > 0 && trackedHours >= totalPlannedHours && overdueTasks == 0)
+                bonusPercent = 10;
+            else if (totalPlannedHours > 0 && trackedHours >= totalPlannedHours * 0.8m)
+                bonusPercent = 5;
+
+            decimal bonusAmount = Math.Round(salaryHours * u.HourlyRate * bonusPercent / 100m, 2);
 
             return new UserVm
             {
@@ -1780,12 +1895,11 @@ namespace RemoteControl1.Services
                 Status = u.IsActive ? "active" : "blocked",
                 Email = u.Email ?? "",
                 Phone = u.Phone ?? "",
-                TasksInProgress = userTasks.Count(t => (t.Status ?? "") == "progress"),
-                CompletedTasks = userTasks.Count(t => (t.Status ?? "") == "done"),
-                OverdueTasks = userTasks.Count(t =>
-                    t.Deadline.HasValue &&
-                    t.Deadline.Value.Date < DateTime.Today &&
-                    (t.Status ?? "") != "done"),
+
+                TasksInProgress = activeTasks,
+                CompletedTasks = completedTasks,
+                OverdueTasks = overdueTasks,
+
                 PlannedHours = totalPlannedHours,
                 TotalHours = totalTrackedHours,
 
@@ -1793,10 +1907,17 @@ namespace RemoteControl1.Services
                 RequiredDailyHours = u.RequiredDailyHours,
                 PlannedStartTime = u.PlannedStartTime?.ToString(@"hh\:mm") ?? "",
                 PlannedEndTime = u.PlannedEndTime?.ToString(@"hh\:mm") ?? "",
+
                 WorkDayHours = workDayHours,
                 TrackedHours = trackedHours,
                 IdleHours = idleHours,
-                SalaryHours = salaryHours
+                SalaryHours = salaryHours,
+
+                WorkloadDiff = workloadDiff,
+                CompletionPercent = completionPercent,
+                ProductivityState = productivityState,
+                BonusPercent = bonusPercent,
+                BonusAmount = bonusAmount
             };
         }
 
@@ -1876,24 +1997,16 @@ namespace RemoteControl1.Services
 
         private static List<ChartItemVm> GetOvertimeDays(List<ActivityLog> logs)
         {
-            var result = logs
+            return logs
                 .GroupBy(x => (x.EndedAtUtc ?? x.StartedAtUtc).ToLocalTime().Date)
-                .Select(g =>
+                .Select(g => new ChartItemVm
                 {
-                    var total = g.Sum(x => x.DurationHours);
-                    var overtime = total > 8m ? total - 8m : 0m;
-
-                    return new ChartItemVm
-                    {
-                        Label = g.Key.ToString("dd.MM.yyyy"),
-                        Value = (decimal)Math.Round(overtime, 2)
-                    };
+                    Label = g.Key.ToString("dd.MM.yyyy"),
+                    Value = Math.Round(g.Sum(x => x.OvertimeHours > 0 ? x.OvertimeHours : 0m), 2)
                 })
                 .Where(x => x.Value > 0)
                 .OrderBy(x => x.Label)
                 .ToList();
-
-            return result;
         }
 
         private static decimal GetMaxOvertimeDay(List<ActivityLog> logs)
@@ -2049,6 +2162,7 @@ namespace RemoteControl1.Services
                     requiredDailyHours = user.RequiredDailyHours,
                     plannedStartTime = user.PlannedStartTime?.ToString(@"hh\:mm"),
                     plannedEndTime = user.PlannedEndTime?.ToString(@"hh\:mm"),
+                    idleTimeoutMinutes = user.IdleTimeoutMinutes > 0 ? user.IdleTimeoutMinutes : 3,
                     startedAt = "",
                     currentHours = 0m,
                     trackedHours = 0m,
@@ -2108,7 +2222,8 @@ namespace RemoteControl1.Services
                 workMode = user.WorkMode,
                 requiredDailyHours = requiredDailyHours,
                 plannedStartTime = user.PlannedStartTime?.ToString(@"hh\:mm"),
-                plannedEndTime = user.PlannedEndTime?.ToString(@"hh\:mm")
+                plannedEndTime = user.PlannedEndTime?.ToString(@"hh\:mm"),
+                idleTimeoutMinutes = user.IdleTimeoutMinutes > 0 ? user.IdleTimeoutMinutes : 3
             };
         }
 
@@ -2432,6 +2547,14 @@ namespace RemoteControl1.Services
         public decimal TrackedHours { get; set; }
         public decimal IdleHours { get; set; }
         public decimal SalaryHours { get; set; }
+
+        public decimal WorkloadDiff { get; set; }
+        public decimal CompletionPercent { get; set; }
+        public string ProductivityState { get; set; } = "normal";
+        public int BonusPercent { get; set; }
+        public decimal BonusAmount { get; set; }
+
+
     }
 
     public class AddUserDto

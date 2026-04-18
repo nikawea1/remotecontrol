@@ -2,6 +2,12 @@
 
 let bottomTrackerExpanded = false;
 
+let workDayStatusInterval = null;
+let idleTimeoutMinutes = 3;
+let idleTimerHandle = null;
+let idleListenersBound = false;
+let idlePauseInProgress = false;
+
 
 
 function formatTimerValue(totalSeconds) {
@@ -124,14 +130,7 @@ function toggleBottomTracker() {
     shell.classList.toggle("collapsed", !bottomTrackerExpanded);
 }
 
-function handleBottomMainAction() {
-    if (isTracking) {
-        stopTracking();
-        return;
-    }
 
-    startTracking();
-}
 
 function updateTimer() {
     if (!isPaused && isTracking) {
@@ -199,6 +198,8 @@ async function startTracking() {
         highlightBottomTracker();
         showNotification(`Трекер запущен: ${task.name}`);
         await startScreenshotCapture();
+
+        resetIdleTimer();
     } catch {
         showNotification("Ошибка сети/сервера");
     }
@@ -249,6 +250,8 @@ async function pauseTracking() {
         updateBottomTrackerUI();
         stopScreenshotCapture();
 
+        resetIdleTimer();
+
         showNotification(`Таймер на паузе.\nУчтено: ${entry.hours} ч`);
     } catch {
         showNotification("Ошибка сети/сервера");
@@ -277,6 +280,8 @@ async function stopTracking() {
 
         stopScreenshotCapture();
         releaseScreenAccess();
+
+        resetIdleTimer();
         showNotification("Таймер остановлен");
         return;
     }
@@ -327,6 +332,8 @@ async function stopTracking() {
         stopScreenshotCapture();
         releaseScreenAccess();
 
+        resetIdleTimer();
+
         showNotification(`Сессия завершена.\nОтработано: ${entry.hours} ч`);
     } catch {
         showNotification("Ошибка сети/сервера");
@@ -358,6 +365,9 @@ async function startTracker() {
         if (stopBtn) stopBtn.classList.remove("hidden");
 
         showNotification("Рабочий день начат");
+        await loadWorkDayStatus();
+
+        resetIdleTimer();
     } catch {
         showNotification("Ошибка сети/сервера");
     }
@@ -405,6 +415,9 @@ async function stopTracker() {
         stopScreenshotCapture();
         releaseScreenAccess();
 
+        await loadWorkDayStatus();
+
+        resetIdleTimer();
         showNotification(`Рабочий день завершен.\nОтработано: ${data.hours} ч`);
     } catch {
         showNotification("Ошибка сети/сервера");
@@ -475,9 +488,210 @@ function highlightBottomTracker() {
     }, 1600);
 }
 
+
+
+
+async function loadWorkDayStatus() {
+    try {
+        const res = await fetch("/MainPage?handler=WorkDayStatus", {
+            method: "GET",
+            headers: {
+                "RequestVerificationToken": getRequestVerificationToken()
+            }
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.ok || !data.status) {
+            renderWorkDayStatusEmpty("Не удалось загрузить статус рабочего дня");
+            return;
+        }
+
+        applyWorkDayStatus(data.status);
+    } catch {
+        renderWorkDayStatusEmpty("Ошибка загрузки статуса рабочего дня");
+    }
+}
+
+function applyWorkDayStatus(status) {
+    isWorkDayStarted = !!status.isWorking;
+
+    idleTimeoutMinutes = Number(status.idleTimeoutMinutes || 3);
+    updateIdleWatcherState();
+
+    const startBtn = document.getElementById("startDayBtn");
+    const stopBtn = document.getElementById("stopDayBtn");
+
+    if (startBtn) {
+        startBtn.classList.toggle("hidden", isWorkDayStarted);
+    }
+
+    if (stopBtn) {
+        stopBtn.classList.toggle("hidden", !isWorkDayStarted);
+    }
+
+    renderWorkDayStatus(status);
+}
+
+function renderWorkDayStatusEmpty(text) {
+    const box = document.getElementById("workDayStatusContent");
+    if (!box) return;
+
+    box.innerHTML = `<div style="color: var(--gray);">${text}</div>`;
+}
+
+function renderWorkDayStatus(status) {
+    const box = document.getElementById("workDayStatusContent");
+    if (!box || !status) return;
+
+    const isFixed = (status.workMode || "fixed") === "fixed";
+    const scheduleText = isFixed
+        ? `${status.plannedStartTime || "--:--"} — ${status.plannedEndTime || "--:--"}`
+        : "Гибкий график";
+
+    const modeText = isFixed ? "Фиксированный" : "Гибкий";
+
+    box.innerHTML = `
+        <div class="workday-status-grid">
+            <div class="workday-main-line">
+                <div class="workday-schedule-block">
+                    <div class="workday-label">Расписание</div>
+                    <div class="workday-schedule-value">${scheduleText}</div>
+                    <div class="workday-mode-note">${modeText}</div>
+                </div>
+
+                <div class="workday-state-block">
+                    <div class="workday-label">Статус</div>
+                    <div class="workday-state-value ${status.isWorking ? "is-working" : "is-stopped"}">
+                        ${status.isWorking ? "Рабочий день начат" : "Рабочий день не начат"}
+                    </div>
+                </div>
+            </div>
+
+            <div class="workday-metrics-grid">
+                <div class="workday-metric">
+                    <div class="workday-label">Начало</div>
+                    <div class="workday-metric-value">${status.startedAt || "--:--"}</div>
+                </div>
+
+                <div class="workday-metric">
+                    <div class="workday-label">Норма</div>
+                    <div class="workday-metric-value">${Number(status.requiredDailyHours || 0).toFixed(1)} ч</div>
+                </div>
+
+                <div class="workday-metric">
+                    <div class="workday-label">Сейчас</div>
+                    <div class="workday-metric-value">${Number(status.currentHours || 0).toFixed(1)} ч</div>
+                </div>
+
+                <div class="workday-metric">
+                    <div class="workday-label">По задачам</div>
+                    <div class="workday-metric-value">${Number(status.trackedHours || 0).toFixed(1)} ч</div>
+                </div>
+
+                <div class="workday-metric">
+                    <div class="workday-label">Простой</div>
+                    <div class="workday-metric-value">${Number(status.idleHours || 0).toFixed(1)} ч</div>
+                </div>
+
+                <div class="workday-metric">
+                    <div class="workday-label">Осталось</div>
+                    <div class="workday-metric-value">${Number(status.remainingHours || 0).toFixed(1)} ч</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function bindIdleListeners() {
+    if (idleListenersBound) return;
+
+    const events = ["mousemove", "mousedown", "keydown", "scroll", "touchstart", "click"];
+
+    events.forEach(eventName => {
+        document.addEventListener(eventName, handleUserActivity, true);
+    });
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    idleListenersBound = true;
+}
+
+function handleUserActivity() {
+    if (!isWorkDayStarted) return;
+    resetIdleTimer();
+}
+
+function handleVisibilityChange() {
+    if (!isWorkDayStarted) return;
+
+    if (document.hidden) {
+        resetIdleTimer();
+        return;
+    }
+
+    resetIdleTimer();
+}
+
+function clearIdleTimer() {
+    if (idleTimerHandle) {
+        clearTimeout(idleTimerHandle);
+        idleTimerHandle = null;
+    }
+}
+
+function resetIdleTimer() {
+    clearIdleTimer();
+
+    if (!isWorkDayStarted) return;
+
+    const timeoutMs = Math.max(1, idleTimeoutMinutes) * 60 * 1000;
+
+    idleTimerHandle = setTimeout(async () => {
+        if (!isWorkDayStarted) return;
+        if (!isTracking) return;
+        if (idlePauseInProgress) return;
+
+        idlePauseInProgress = true;
+
+        try {
+            await pauseTracking();
+            await loadWorkDayStatus();
+            showNotification("Таймер поставлен на паузу из-за бездействия");
+        } finally {
+            idlePauseInProgress = false;
+        }
+    }, timeoutMs);
+}
+
+function updateIdleWatcherState() {
+    bindIdleListeners();
+
+    if (!isWorkDayStarted) {
+        clearIdleTimer();
+        return;
+    }
+
+    resetIdleTimer();
+}
+
+
+function startWorkDayStatusPolling() {
+    if (workDayStatusInterval) {
+        clearInterval(workDayStatusInterval);
+    }
+
+    workDayStatusInterval = setInterval(() => {
+        loadWorkDayStatus();
+    }, 15000);
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     updateTimerDisplay();
     updateBottomTrackerUI();
+    bindIdleListeners();
+    loadWorkDayStatus();
+    startWorkDayStatusPolling();
 });
 
 
