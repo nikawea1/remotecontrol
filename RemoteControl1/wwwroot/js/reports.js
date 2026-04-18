@@ -96,14 +96,20 @@ function getActiveReportId() {
 }
 
 function showReport(reportId, el) {
-    document.querySelectorAll(".report-card").forEach(card => card.classList.add("hidden"));
+    const cards = document.querySelectorAll("#reportsContent .report-card");
+
+    cards.forEach(card => {
+        card.classList.add("hidden");
+    });
 
     const target = document.getElementById(reportId + "Report");
     if (target) {
         target.classList.remove("hidden");
     }
 
-    document.querySelectorAll(".reports-menu-link").forEach(link => link.classList.remove("active"));
+    document.querySelectorAll(".reports-menu-link").forEach(link => {
+        link.classList.remove("active");
+    });
 
     if (el) {
         el.classList.add("active");
@@ -113,7 +119,11 @@ function showReport(reportId, el) {
             first.classList.add("active");
         }
     }
+
+    return false;
 }
+
+
 
 async function loadReportsFromServer() {
     const dateFrom = document.getElementById("reportDateFrom")?.value || "";
@@ -149,7 +159,7 @@ async function updateReports() {
     try {
         const data = await loadReportsFromServer();
         renderReports(data);
-        showNotification("Отчет обновлен");
+        //showNotification("Отчет обновлен");
     } catch (e) {
         console.error(e);
 

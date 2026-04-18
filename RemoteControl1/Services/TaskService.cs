@@ -1,4 +1,4 @@
-﻿using DocumentFormat.OpenXml.Spreadsheet;
+﻿//using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.EntityFrameworkCore;
 using RemoteControl1.Data;
 using RemoteControl1.Models;
@@ -72,12 +72,18 @@ namespace RemoteControl1.Services
                     .OrderByDescending(t => t.Id)
                     .ToListAsync();
 
+                var visibleUserIds = await _db.ProjectMembers
+    .Where(x => projectIds.Contains(x.ProjectId))
+    .Select(x => x.UserId)
+    .Distinct()
+    .ToListAsync();
+
                 visibleUsers = allUsers
-               .Where(u =>
-                   u.IsActive &&
-                   (u.Role == "employee" || u.Role == "manager") &&
-                   u.Role != "admin")
-               .ToList();
+                    .Where(u =>
+                        visibleUserIds.Contains(u.Id) &&
+                        u.IsActive &&
+                        u.Role != "admin")
+                    .ToList();
             }
             else
             {
@@ -107,17 +113,17 @@ namespace RemoteControl1.Services
             }
 
             var activities = await _db.ActivityLogs
-                .Include(a => a.TaskItem)
-                .Where(a =>
-                    a.ActivityType != "workday" &&
-                    (
-                        isAdmin ||
-                        (isManager && a.ProjectId.HasValue && projectIds.Contains(a.ProjectId.Value)) ||
-                        (!isAdmin && !isManager && a.UserId == userId)
-                    ))
-                .OrderByDescending(a => a.Id)
-                .Take(20)
-                .ToListAsync();
+    .Include(a => a.TaskItem)
+    .Where(a =>
+        (a.ActivityType == "task_timer" || a.ActivityType == "manual_time") &&
+        (
+            isAdmin ||
+            (isManager && a.ProjectId.HasValue && projectIds.Contains(a.ProjectId.Value)) ||
+            (!isAdmin && !isManager && a.UserId == userId)
+        ))
+    .OrderByDescending(a => a.Id)
+    .Take(20)
+    .ToListAsync();
 
             var allTasks = await _db.Tasks.ToListAsync();
             var allActivities = await _db.ActivityLogs.ToListAsync();
@@ -332,15 +338,61 @@ namespace RemoteControl1.Services
 
             return ServiceResult<ReportDataVm>.Success(result);
         }
-        public async Task<AdminAnalyticsVm> GetAdminAnalyticsAsync()
+        public async Task<AdminAnalyticsVm> GetAdminAnalyticsAsync(int currentUserId, string currentUserRole)
         {
-            var users = await _db.Users
-                .OrderBy(u => u.LastName)
-                .ThenBy(u => u.FirstName)
-                .ToListAsync();
+            var role = (currentUserRole ?? "").ToLower();
 
-            var allTasks = await _db.Tasks.ToListAsync();
-            var allActivities = await _db.ActivityLogs.ToListAsync();
+            List<User> users;
+            List<TaskItem> allTasks;
+            List<ActivityLog> allActivities;
+
+            if (role == "admin")
+            {
+                users = await _db.Users
+                    .OrderBy(u => u.LastName)
+                    .ThenBy(u => u.FirstName)
+                    .ToListAsync();
+
+                allTasks = await _db.Tasks.ToListAsync();
+                allActivities = await _db.ActivityLogs.ToListAsync();
+            }
+            else if (role == "manager")
+            {
+                var managerProjectIds = await _db.Projects
+                    .Where(p => p.ManagerId == currentUserId)
+                    .Select(p => p.Id)
+                    .ToListAsync();
+
+                var visibleUserIds = await _db.ProjectMembers
+                    .Where(x => managerProjectIds.Contains(x.ProjectId))
+                    .Select(x => x.UserId)
+                    .Distinct()
+                    .ToListAsync();
+
+                users = await _db.Users
+                    .Where(u => visibleUserIds.Contains(u.Id) && u.Role != "admin")
+                    .OrderBy(u => u.LastName)
+                    .ThenBy(u => u.FirstName)
+                    .ToListAsync();
+
+                allTasks = await _db.Tasks
+                    .Where(t => managerProjectIds.Contains(t.ProjectId))
+                    .ToListAsync();
+
+                allActivities = await _db.ActivityLogs
+                    .Where(a =>
+                        (a.ActivityType == "workday" && visibleUserIds.Contains(a.UserId)) ||
+                        (
+                            (a.ActivityType == "task_timer" || a.ActivityType == "manual_time") &&
+                            a.ProjectId.HasValue &&
+                            managerProjectIds.Contains(a.ProjectId.Value)
+                        ))
+                    .ToListAsync();
+            }
+            else
+            {
+                return new AdminAnalyticsVm();
+            }
 
             var userItems = users
                 .Select(u => BuildUserVm(u, allTasks, allActivities))
@@ -356,25 +408,24 @@ namespace RemoteControl1.Services
                     ? Math.Round(userItems.Average(x => (double)x.HourlyRate), 0)
                     : 0,
                 OverloadedCount = userItems.Count(x =>
-                 x.TasksInProgress >= 5 ||
-                 (x.PlannedHours > 0 && x.TrackedHours > (decimal)x.PlannedHours * 1.1m)),
+                    x.TasksInProgress >= 5 ||
+                    (x.PlannedHours > 0 && x.TrackedHours > x.PlannedHours * 1.1m)),
                 UnderloadedCount = userItems.Count(x =>
-                    x.PlannedHours > 0 && x.TrackedHours < (decimal)x.PlannedHours * 0.6m),
+                    x.PlannedHours > 0 && x.TrackedHours < x.PlannedHours * 0.6m),
                 NoActivityCount = userItems.Count(x => x.TrackedHours <= 0)
             };
         }
 
         public async Task<ReportsVm> GetReportsDataAsync(
-            int currentUserId,
-            string currentUserRole,
-            bool isAdmin,
-            string? dateFrom,
-            string? dateTo,
-            int? projectId,
-            int? employeeId)
+     int currentUserId,
+     string currentUserRole,
+     bool isAdmin,
+     string? dateFrom,
+     string? dateTo,
+     int? projectId,
+     int? employeeId)
         {
             var currentRole = (currentUserRole ?? "").ToLower();
-
             var currentUser = await _db.Users.FirstOrDefaultAsync(x => x.Id == currentUserId);
 
             var allUsers = await _db.Users.ToListAsync();
@@ -383,10 +434,10 @@ namespace RemoteControl1.Services
                 .ToListAsync();
 
             var allLogs = await _db.ActivityLogs
-    .Include(a => a.TaskItem)
-        .ThenInclude(t => t!.Project)
-    .Where(a => a.ActivityType == "task_timer" || a.ActivityType == "manual_time")
-    .ToListAsync();
+                .Include(a => a.TaskItem)
+                    .ThenInclude(t => t!.Project)
+                .Where(a => a.ActivityType == "task_timer" || a.ActivityType == "manual_time")
+                .ToListAsync();
 
             var allWorkDays = await _db.ActivityLogs
                 .Where(a => a.ActivityType == "workday" && !a.IsActive)
@@ -398,6 +449,9 @@ namespace RemoteControl1.Services
             IEnumerable<ActivityLog> logsQuery = allLogs;
             IEnumerable<ActivityLog> workDaysQuery = allWorkDays;
 
+            List<int> managerProjectIds = new();
+            List<int> managerUserIds = new();
+
             if (!isAdmin && currentRole == "employee")
             {
                 tasksQuery = tasksQuery.Where(t => t.UserId == currentUserId);
@@ -406,20 +460,24 @@ namespace RemoteControl1.Services
             }
             else if (!isAdmin && currentRole == "manager")
             {
-                var managerProjectIds = allTasks
-                    .Where(t => t.Project != null && t.Project.ManagerId == currentUserId)
-                    .Select(t => t.ProjectId)
+                managerProjectIds = await _db.Projects
+                    .Where(p => p.ManagerId == currentUserId)
+                    .Select(p => p.Id)
                     .Distinct()
-                    .ToList();
+                    .ToListAsync();
 
-                var managerUserIds = await _db.ProjectMembers
-    .Where(x => managerProjectIds.Contains(x.ProjectId))
-    .Select(x => x.UserId)
-    .Distinct()
-    .ToListAsync();
+                managerUserIds = await _db.ProjectMembers
+                    .Where(x => managerProjectIds.Contains(x.ProjectId))
+                    .Select(x => x.UserId)
+                    .Distinct()
+                    .ToListAsync();
 
                 tasksQuery = tasksQuery.Where(t => managerProjectIds.Contains(t.ProjectId));
-                logsQuery = logsQuery.Where(a => managerUserIds.Contains(a.UserId));
+
+                logsQuery = logsQuery.Where(a =>
+                    a.ProjectId.HasValue &&
+                    managerProjectIds.Contains(a.ProjectId.Value));
+
                 workDaysQuery = workDaysQuery.Where(a => managerUserIds.Contains(a.UserId));
             }
 
@@ -433,19 +491,7 @@ namespace RemoteControl1.Services
                 }
                 else if (currentRole == "manager")
                 {
-                    var managerProjectIds = allTasks
-                        .Where(t => t.Project != null && t.Project.ManagerId == currentUserId)
-                        .Select(t => t.ProjectId)
-                        .Distinct()
-                        .ToList();
-
-                    var allowedUserIds = await _db.ProjectMembers
-    .Where(x => managerProjectIds.Contains(x.ProjectId))
-    .Select(x => x.UserId)
-    .Distinct()
-    .ToListAsync();
-
-                    if (allowedUserIds.Contains(employeeId.Value))
+                    if (managerUserIds.Contains(employeeId.Value))
                     {
                         tasksQuery = tasksQuery.Where(t => t.UserId == employeeId.Value);
                         logsQuery = logsQuery.Where(a => a.UserId == employeeId.Value);
@@ -493,6 +539,7 @@ namespace RemoteControl1.Services
                 .ToList();
 
             var weekStart = range.To.Date.AddDays(-6);
+
             var weekLogs = scopedLogs
                 .Where(a =>
                 {
@@ -502,13 +549,14 @@ namespace RemoteControl1.Services
                 .ToList();
 
             var overdueItems = BuildOverdueItems(scopedTasks);
+
             var selectedUser = employeeId.HasValue
                 ? allUsers.FirstOrDefault(x => x.Id == employeeId.Value)
                 : currentUser;
 
             var dayWorkDays = scopedWorkDays
-    .Where(a => SameDay((a.EndedAtUtc ?? a.StartedAtUtc).ToLocalTime(), range.To.ToLocalTime()))
-    .ToList();
+                .Where(a => SameDay((a.EndedAtUtc ?? a.StartedAtUtc).ToLocalTime(), range.To.ToLocalTime()))
+                .ToList();
 
             var weekWorkDays = scopedWorkDays
                 .Where(a =>
@@ -522,10 +570,6 @@ namespace RemoteControl1.Services
             var weeklyHours = SumHours(weekLogs);
             var monthlyHours = SumHours(scopedLogs);
 
-            var dailyWorkDayHours = SumHours(dayWorkDays);
-            var weeklyWorkDayHours = SumHours(weekWorkDays);
-            var monthlyWorkDayHours = SumHours(scopedWorkDays);
-
             var dailyOvertime = Math.Round(dayWorkDays.Sum(x => x.OvertimeHours), 2);
             var weeklyOvertime = Math.Round(weekWorkDays.Sum(x => x.OvertimeHours), 2);
             var monthlyOvertime = Math.Round(scopedWorkDays.Sum(x => x.OvertimeHours), 2);
@@ -536,14 +580,14 @@ namespace RemoteControl1.Services
 
             var plannedHours = Math.Round((decimal)scopedTasks.Sum(t => t.PlannedTimeHours), 2);
             var actualHours = monthlyHours;
-            var idleHours = Math.Round(scopedWorkDays.Sum(x => x.IdleHours), 2);
-            var salaryHours = monthlyHours;
 
             var doneCount = scopedTasks.Count(t => (t.Status ?? "") == "done");
             var allCount = scopedTasks.Count;
+
             var completionRate = allCount > 0
                 ? (int)Math.Round((double)doneCount / allCount * 100)
                 : 0;
+
             var hourRate = plannedHours > 0
                 ? Math.Min(100, (int)Math.Round((double)(actualHours / plannedHours * 100m)))
                 : 0;
@@ -1465,23 +1509,10 @@ namespace RemoteControl1.Services
             _db.Users.Add(user);
             await _db.SaveChangesAsync();
 
-            return ServiceResult<UserVm>.Success(new UserVm
-            {
-                Id = user.Id,
-                FullName = BuildFullName(user.LastName, user.FirstName, user.MiddleName),
-                Login = user.Login ?? "",
-                Email = user.Email ?? "",
-                Position = user.Position ?? "",
-                Role = user.Role ?? "employee",
-                HourlyRate = user.HourlyRate,
-                Status = user.IsActive ? "active" : "blocked",
-                Phone = user.Phone ?? "",
-                TasksInProgress = 0,
-                CompletedTasks = 0,
-                OverdueTasks = 0,
-                TotalHours = 0,
-                PlannedHours = 0
-            });
+            var allTasks = await _db.Tasks.ToListAsync();
+            var allActivities = await _db.ActivityLogs.ToListAsync();
+
+            return ServiceResult<UserVm>.Success(BuildUserVm(user, allTasks, allActivities));
         }
 
         public async Task<ServiceResult<UserVm>> UpdateUserAsync(UpdateUserDto dto)
@@ -1567,33 +1598,10 @@ namespace RemoteControl1.Services
 
             await _db.SaveChangesAsync();
 
-            var userTasks = await _db.Tasks.Where(t => t.UserId == user.Id).ToListAsync();
-            var totalHours = await _db.ActivityLogs
-    .Where(a =>
-        a.UserId == user.Id &&
-        (a.ActivityType == "task_timer" || a.ActivityType == "manual_time"))
-    .SumAsync(a => (decimal?)a.DurationHours) ?? 0m;
+            var allTasks = await _db.Tasks.ToListAsync();
+            var allActivities = await _db.ActivityLogs.ToListAsync();
 
-            return ServiceResult<UserVm>.Success(new UserVm
-            {
-                Id = user.Id,
-                FullName = BuildFullName(user.LastName, user.FirstName, user.MiddleName),
-                Login = user.Login ?? "",
-                Email = user.Email ?? "",
-                Position = user.Position ?? "",
-                Role = user.Role ?? "employee",
-                HourlyRate = user.HourlyRate,
-                Status = user.IsActive ? "active" : "blocked",
-                Phone = user.Phone ?? "",
-                TasksInProgress = userTasks.Count(t => (t.Status ?? "") == "progress"),
-                CompletedTasks = userTasks.Count(t => (t.Status ?? "") == "done"),
-                OverdueTasks = userTasks.Count(t =>
-                    t.Deadline.HasValue &&
-                    t.Deadline.Value.Date < DateTime.Today &&
-                    (t.Status ?? "") != "done"),
-                TotalHours = Math.Round(totalHours, 1),
-                PlannedHours = Math.Round((decimal)userTasks.Sum(t => t.PlannedTimeHours), 1)
-            });
+            return ServiceResult<UserVm>.Success(BuildUserVm(user, allTasks, allActivities));
         }
         private static string NormalizeRole(string? role)
         {
@@ -1615,33 +1623,10 @@ namespace RemoteControl1.Services
             user.IsActive = !user.IsActive;
             await _db.SaveChangesAsync();
 
-            var userTasks = await _db.Tasks.Where(t => t.UserId == user.Id).ToListAsync();
-            var totalHours = await _db.ActivityLogs
-    .Where(a =>
-        a.UserId == user.Id &&
-        (a.ActivityType == "task_timer" || a.ActivityType == "manual_time"))
-    .SumAsync(a => (decimal?)a.DurationHours) ?? 0m;
+            var allTasks = await _db.Tasks.ToListAsync();
+            var allActivities = await _db.ActivityLogs.ToListAsync();
 
-            return ServiceResult<UserVm>.Success(new UserVm
-            {
-                Id = user.Id,
-                FullName = BuildFullName(user.LastName, user.FirstName, user.MiddleName),
-                Login = user.Login ?? "",
-                Email = user.Email ?? "",
-                Position = user.Position ?? "",
-                Role = user.Role ?? "employee",
-                HourlyRate = user.HourlyRate,
-                Status = user.IsActive ? "active" : "blocked",
-                Phone = user.Phone ?? "",
-                TasksInProgress = userTasks.Count(t => (t.Status ?? "") == "progress"),
-                CompletedTasks = userTasks.Count(t => (t.Status ?? "") == "done"),
-                OverdueTasks = userTasks.Count(t =>
-                    t.Deadline.HasValue &&
-                    t.Deadline.Value.Date < DateTime.Today &&
-                    (t.Status ?? "") != "done"),
-                TotalHours = Math.Round(totalHours, 1),
-                PlannedHours = Math.Round((decimal)userTasks.Sum(t => t.PlannedTimeHours), 1)
-            });
+            return ServiceResult<UserVm>.Success(BuildUserVm(user, allTasks, allActivities));
         }
 
         private static string GetActivityComment(string? activityType)

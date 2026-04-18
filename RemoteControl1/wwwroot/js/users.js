@@ -31,19 +31,36 @@ function showAdminTab(tabName, btn) {
 }
 
 function renderAdminSection(tabName) {
-    renderUsersTable();
     renderAdminStats();
 
-    if (tabName === "workload") renderWorkloadTable();
-    if (tabName === "productivity") renderProductivityTable();
-
-    if (currentUserRole === "admin") {
-        if (tabName === "salary") renderSalaryTable();
-        if (tabName === "bonuses") renderBonusesTable();
+    if (tabName === "employees") {
+        renderUsersTable();
+        return;
     }
 
-    if (tabName === "control") renderControlTab();
-    
+    if (tabName === "workload") {
+        renderWorkloadTable();
+        return;
+    }
+
+    if (tabName === "productivity") {
+        renderProductivityTable();
+        return;
+    }
+
+    if (currentUserRole === "admin" && tabName === "salary") {
+        renderSalaryTable();
+        return;
+    }
+
+    if (currentUserRole === "admin" && tabName === "bonuses") {
+        renderBonusesTable();
+        return;
+    }
+
+    if (tabName === "control") {
+        renderControlTab();
+    }
 }
 
 function renderAdminStats() {
@@ -52,7 +69,7 @@ function renderAdminStats() {
     const managers = users.filter(x => x.role === "manager").length;
     const admins = users.filter(x => x.role === "admin").length;
     const avgRate = total > 0
-        ? Math.round(users.reduce((sum, x) => sum + x.hourlyRate, 0) / total)
+        ? Math.round(users.reduce((sum, x) => sum + Number(x.hourlyRate || 0), 0) / total)
         : 0;
 
     const set = (id, value) => {
@@ -115,7 +132,7 @@ function renderUsersTable() {
             <td>${getRoleBadge(u.role)}</td>
             <td>${Number(u.hourlyRate || 0).toLocaleString("ru-RU")} руб.</td>
             <td>${u.tasksInProgress}</td>
-            <td>${Number(u.totalHours || 0).toFixed(1)}</td>
+            <td>${Number(u.trackedHours || 0).toFixed(1)}</td>
             <td>${getUserStatusBadge(u.status)}</td>
             <td>
                 <div class="table-actions">
@@ -452,15 +469,39 @@ function showUserDetails(id) {
         </div>
 
         <div class="form-row">
-            <div class="form-group">
-                <label class="form-label">Ставка</label>
-                <input class="form-control" value="${user.hourlyRate}" readonly>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Статус</label>
-                <input class="form-control" value="${user.status === "active" ? "Активен" : "Заблокирован"}" readonly>
-            </div>
-        </div>
+    <div class="form-group">
+        <label class="form-label">Ставка</label>
+        <input class="form-control" value="${user.hourlyRate}" readonly>
+    </div>
+    <div class="form-group">
+        <label class="form-label">Статус</label>
+        <input class="form-control" value="${user.status === "active" ? "Активен" : "Заблокирован"}" readonly>
+    </div>
+</div>
+
+<div class="form-row">
+    <div class="form-group">
+        <label class="form-label">Вид работы</label>
+        <input class="form-control" value="${user.workMode === "fixed" ? "Фиксированный" : "Гибкий"}" readonly>
+    </div>
+    <div class="form-group">
+        <label class="form-label">Норма часов</label>
+        <input class="form-control" value="${Number(user.requiredDailyHours || 0).toFixed(1)}" readonly>
+    </div>
+</div>
+
+${user.workMode === "fixed" ? `
+<div class="form-row">
+    <div class="form-group">
+        <label class="form-label">Начало</label>
+        <input class="form-control" value="${user.plannedStartTime || "-"}" readonly>
+    </div>
+    <div class="form-group">
+        <label class="form-label">Конец</label>
+        <input class="form-control" value="${user.plannedEndTime || "-"}" readonly>
+    </div>
+</div>
+` : ``}
 
         <div class="stats-grid" style="margin-top:14px; margin-bottom:0;">
             <div class="stat-card">
@@ -527,6 +568,13 @@ function openUserModal() {
     if (workMode) workMode.value = "fixed";
     if (requiredDailyHours) requiredDailyHours.value = 8;
 
+
+    const plannedStart = document.getElementById("uPlannedStartTime");
+    const plannedEnd = document.getElementById("uPlannedEndTime");
+
+    if (plannedStart) plannedStart.value = "09:00";
+    if (plannedEnd) plannedEnd.value = "18:00";
+
     toggleWorkModeFields("u");
 
     if (modal) {
@@ -556,6 +604,11 @@ async function saveUser() {
         plannedStartTime: document.getElementById("uPlannedStartTime")?.value || "",
         plannedEndTime: document.getElementById("uPlannedEndTime")?.value || ""
     };
+
+    if (dto.workMode === "flexible") {
+        dto.plannedStartTime = "";
+        dto.plannedEndTime = "";
+    }
 
     const pass2 = document.getElementById("uPass2")?.value || "";
 
@@ -737,6 +790,11 @@ async function saveUserChanges() {
         plannedStartTime: document.getElementById("editUPlannedStartTime")?.value || "",
         plannedEndTime: document.getElementById("editUPlannedEndTime")?.value || ""
     };
+
+    if (dto.workMode === "flexible") {
+        dto.plannedStartTime = "";
+        dto.plannedEndTime = "";
+    }
 
     if (!dto.lastName || !dto.firstName || !dto.login || !dto.position) {
         showNotification("Заполните обязательные поля");

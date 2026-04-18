@@ -485,39 +485,39 @@
                 <div class="reports-sidebar">
                     <ul class="reports-menu">
                         <li class="reports-menu-item">
-                            <a class="reports-menu-link active" onclick="showReport('daily', this)">
+                            <button type="button" class="reports-menu-link active" onclick="return showReport('daily', this)">
                                 <i class="fas fa-calendar-day"></i> Ежедневный отчет
-                            </a>
+                            </button>
                         </li>
                         <li class="reports-menu-item">
-                            <a class="reports-menu-link" onclick="showReport('weekly', this)">
+                            <button type="button" class="reports-menu-link" onclick="return showReport('weekly', this)">
                                 <i class="fas fa-calendar-week"></i> Недельный отчет
-                            </a>
+                            </button>
                         </li>
                         <li class="reports-menu-item">
-                            <a class="reports-menu-link" onclick="showReport('monthly', this)">
+                            <button type="button" class="reports-menu-link" onclick="return showReport('monthly', this)">
                                 <i class="fas fa-calendar-alt"></i> Месячный отчет
-                            </a>
+                            </button>
                         </li>
                         <li class="reports-menu-item">
-                            <a class="reports-menu-link" onclick="showReport('performance', this)">
+                            <button type="button" class="reports-menu-link" onclick="return showReport('performance', this)">
                                 <i class="fas fa-chart-line"></i> Продуктивность
-                            </a>
+                            </button>
                         </li>
                         <li class="reports-menu-item">
-                            <a class="reports-menu-link" onclick="showReport('overdue', this)">
+                            <button type="button" class="reports-menu-link" onclick="return showReport('overdue', this)">
                                 <i class="fas fa-exclamation-triangle"></i> Просроченные задачи
-                            </a>
+                            </button>
                         </li>
                         <li class="reports-menu-item">
-                            <a class="reports-menu-link" onclick="showReport('overtime', this)">
+                            <button type="button" class="reports-menu-link" onclick="return showReport('overtime', this)">
                                 <i class="fas fa-clock"></i> Переработки
-                            </a>
+                            </button>
                         </li>
                         <li class="reports-menu-item">
-                            <a class="reports-menu-link" onclick="showReport('bonus', this)">
+                            <button type="button" class="reports-menu-link" onclick="return showReport('bonus', this)">
                                 <i class="fas fa-gift"></i> Система бонусов
-                            </a>
+                            </button>
                         </li>
                     </ul>
                 </div>
@@ -731,7 +731,7 @@
                             <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th>Email</th>
+                                    <th>Сотрудник</th>
                                     <th>Логин</th>
                                     <th>Должность</th>
                                     <th>Роль</th>
@@ -853,38 +853,38 @@
                 </div>
             </div>}
 
-            <div id="adminControlTab" class="admin-tab-content hidden">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                        <div class="stat-info">
-                            <div class="stat-value" id="controlOverloaded">0</div>
-                            <div class="stat-label">Перегружены</div>
+                <div id="adminControlTab" class="admin-tab-content hidden">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="controlOverloaded">0</div>
+                                <div class="stat-label">Перегружены</div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-hourglass-half"></i></div>
-                        <div class="stat-info">
-                            <div class="stat-value" id="controlUnderloaded">0</div>
-                            <div class="stat-label">Недогружены</div>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-hourglass-half"></i></div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="controlUnderloaded">0</div>
+                                <div class="stat-label">Недогружены</div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-user-clock"></i></div>
-                        <div class="stat-info">
-                            <div class="stat-value" id="controlNoActivity">0</div>
-                            <div class="stat-label">Без активности</div>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-user-clock"></i></div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="controlNoActivity">0</div>
+                                <div class="stat-label">Без активности</div>
+                            </div>
                         </div>
-                    </div>
-                </div>
 
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-hourglass-start"></i></div>
-                        <div class="stat-info">
-                            <div class="stat-value" id="controlHighIdle">0</div>
-                            <div class="stat-label">Высокий простой</div>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-hourglass-start"></i></div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="controlHighIdle">0</div>
+                                <div class="stat-label">Высокий простой</div>
+                            </div>
                         </div>
                     </div>
 

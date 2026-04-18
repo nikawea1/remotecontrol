@@ -205,7 +205,9 @@ async function startTracking() {
     }
 }
 
-async function pauseTracking() {
+async function pauseTracking(options = {}) {
+    const silent = !!options.silent;
+
     if (!isTracking || isPaused) {
         return;
     }
@@ -221,7 +223,9 @@ async function pauseTracking() {
         const data = await res.json();
 
         if (!res.ok || !data.ok) {
-            showNotification(data?.error || "Не удалось поставить таймер на паузу");
+            if (!silent) {
+                showNotification(data?.error || "Не удалось поставить таймер на паузу");
+            }
             return;
         }
 
@@ -252,9 +256,13 @@ async function pauseTracking() {
 
         resetIdleTimer();
 
-        showNotification(`Таймер на паузе.\nУчтено: ${entry.hours} ч`);
+        if (!silent) {
+            showNotification(`Таймер на паузе.\nУчтено: ${entry.hours} ч`);
+        }
     } catch {
-        showNotification("Ошибка сети/сервера");
+        if (!silent) {
+            showNotification("Ошибка сети/сервера");
+        }
     }
 }
 
@@ -655,7 +663,7 @@ function resetIdleTimer() {
         idlePauseInProgress = true;
 
         try {
-            await pauseTracking();
+            await pauseTracking({ silent: true });
             await loadWorkDayStatus();
             showNotification("Таймер поставлен на паузу из-за бездействия");
         } finally {
