@@ -1,4 +1,155 @@
 ﻿@page
 @model RemoteControl1.Pages.TrackerModel
 @{
+    ViewData["Title"] = "Трекер";
+}
+
+<div id="trackerPage" class="container main-content page-content">
+    <div class="page-content">
+        <div class="page-header-row">
+            <h1 class="page-title">
+                <i class="fas fa-stopwatch"></i>
+                Трекер времени
+            </h1>
+        </div>
+
+        <div class="tracker-box">
+            <h2 style="margin-bottom: 10px;">Текущая сессия</h2>
+
+            <div class="form-group" style="max-width: 320px; margin: 0 auto;">
+                <select class="form-control" id="currentTaskFull">
+                    <option value="">Выберите задачу</option>
+                </select>
+            </div>
+
+            <div class="timer" id="timerFull">00:00:00</div>
+
+            <div class="tracker-actions-row">
+                <button class="btn tracker-btn tracker-btn-success" onclick="startTracking()">
+                    <i class="fas fa-play"></i> Старт
+                </button>
+                <button class="btn tracker-btn tracker-btn-warning" onclick="pauseTracking()">
+                    <i class="fas fa-pause"></i> Пауза
+                </button>
+                <button class="btn tracker-btn tracker-btn-danger" onclick="stopTracking()">
+                    <i class="fas fa-stop"></i> Стоп
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Настройки трекера</h3>
+            </div>
+
+            <div class="settings-grid">
+                <div class="setting-item">
+                    <label class="form-label">Интервал снимков экрана</label>
+                    <input type="range"
+                           id="screenInterval"
+                           min="5"
+                           max="60"
+                           value="10"
+                           step="5"
+                           style="width: 100%;"
+                           oninput="updateRangeValue(this, 'screenIntervalValue')">
+                    <div style="display:flex; justify-content: space-between; margin-top:5px;">
+                        <span style="font-size:12px;">5 сек</span>
+                        <span class="range-value" id="screenIntervalValue">10 сек</span>
+                        <span style="font-size:12px;">60 сек</span>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <label class="form-label">Интервал снимков веб-камеры</label>
+                    <input type="range"
+                           id="webcamInterval"
+                           min="5"
+                           max="60"
+                           value="10"
+                           step="5"
+                           style="width: 100%;"
+                           oninput="updateRangeValue(this, 'webcamIntervalValue')">
+                    <div style="display:flex; justify-content: space-between; margin-top:5px;">
+                        <span style="font-size:12px;">5 сек</span>
+                        <span class="range-value" id="webcamIntervalValue">10 сек</span>
+                        <span style="font-size:12px;">60 сек</span>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <label class="form-label">Таймаут простоя</label>
+                    <input type="range"
+                           id="idleTimeout"
+                           min="1"
+                           max="10"
+                           value="3"
+                           step="1"
+                           style="width: 100%;"
+                           oninput="updateRangeValue(this, 'timeoutIntervalValue')">
+                    <div style="display:flex; justify-content: space-between; margin-top:5px;">
+                        <span style="font-size:12px;">1 мин</span>
+                        <span class="range-value" id="timeoutIntervalValue">3 мин</span>
+                        <span style="font-size:12px;">10 мин</span>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <label class="form-label">Опции</label>
+
+                    <div class="form-check" style="margin-bottom: 12px;">
+                        <input type="checkbox" class="form-check-input" id="enableScreenShots" checked>
+                        <label class="form-check-label" for="enableScreenShots">Делать снимки экрана</label>
+                    </div>
+
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="enableWebcamShots" checked>
+                        <label class="form-check-label" for="enableWebcamShots">Делать снимки веб-камеры</label>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
+                <button class="btn btn-outline" onclick="resetSettings()">Сбросить</button>
+                <button class="btn btn-primary" onclick="saveSettings()">Сохранить</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">История рабочих сессий</h3>
+            </div>
+
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Дата</th>
+                            <th>Начало</th>
+                            <th>Конец</th>
+                            <th>Длительность</th>
+                        </tr>
+                    </thead>
+                    <tbody id="workDayHistory"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.remoteControlData = {
+        currentUserId: @Model.CurrentUserId,
+        currentUserRole: '@Model.CurrentUserRole',
+        isAdmin: @Model.IsAdmin.ToString().ToLower(),
+        isManager: @Model.IsManager.ToString().ToLower(),
+        isEmployee: @Model.IsEmployee.ToString().ToLower(),
+        tasks: @Html.Raw(Model.TasksJson ?? "[]"),
+        workDays: @Html.Raw(Model.WorkDaysJson ?? "[]")
+    };
+</script>
+
+@section Scripts {
+    <script src="~/js/timer.js" asp-append-version="true"></script>
+    <script src="~/js/capture.js" asp-append-version="true"></script>
 }

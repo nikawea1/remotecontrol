@@ -1,4 +1,255 @@
 ﻿@page
 @model RemoteControl1.Pages.TasksModel
 @{
+    ViewData["Title"] = "Задачи";
+}
+
+<div id="tasksPage" class="container main-content page-content">
+    <div class="page-content">
+        <div class="page-header-row">
+            <h1 class="page-title">
+                <i class="fas fa-tasks"></i>
+                Управление задачами
+            </h1>
+
+            @if (!Model.IsEmployee)
+            {
+                <button class="btn btn-primary" onclick="showAddTaskModal()" id="tasksPageAddBtn">
+                    <i class="fas fa-plus"></i> Новая задача
+                </button>
+            }
+        </div>
+
+        <div class="filters-bar">
+            <div class="filter-group">
+                <i class="fas fa-filter"></i>
+                <select class="filter-select" id="taskStatusFilter" onchange="filterTasks()">
+                    <option value="all">Все статусы</option>
+                    <option value="new">Новые</option>
+                    <option value="progress">В работе</option>
+                    <option value="review">На проверке</option>
+                    <option value="done">Завершено</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <i class="fas fa-flag"></i>
+                <select class="filter-select" id="taskPriorityFilter" onchange="filterTasks()">
+                    <option value="all">Все приоритеты</option>
+                    <option value="high">Высокий</option>
+                    <option value="medium">Средний</option>
+                    <option value="low">Низкий</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <i class="fas fa-project-diagram"></i>
+                <select class="filter-select" id="taskProjectFilter" onchange="filterTasks()">
+                    <option value="all">Все проекты</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <i class="fas fa-search"></i>
+                <input type="text" class="filter-input" id="taskSearch" placeholder="Поиск по названию..." onkeyup="filterTasks()">
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Название задачи</th>
+                            <th>Проект</th>
+                            <th>Этап</th>
+                            <th>Приоритет</th>
+                            <th>Срок</th>
+                            <th>Статус</th>
+                            <th>Исполнитель</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tasksTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!Model.IsEmployee)
+{
+    <div id="addTaskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Новая задача</h3>
+                <span class="close" onclick="closeModal('addTaskModal')">&times;</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Название задачи *</label>
+                <input type="text" class="form-control" id="taskName" placeholder="Введите название">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Описание</label>
+                <textarea class="form-control" id="taskDescription" rows="3" placeholder="Описание задачи"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Проект</label>
+                <select class="form-control" id="taskProjectSelect"></select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Этап проекта</label>
+                <select class="form-control" id="taskStageSelect">
+                    <option value="">Выберите этап</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Исполнитель</label>
+                <select class="form-control" id="taskAssignee">
+                    <option value="">Выберите исполнителя</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Приоритет</label>
+                <select class="form-control" id="taskPriority">
+                    <option value="high">Высокий</option>
+                    <option value="medium" selected>Средний</option>
+                    <option value="low">Низкий</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Плановое время (часы)</label>
+                <input type="number" class="form-control" id="taskPlannedTime" step="0.5" min="0.5" value="8">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Дедлайн</label>
+                <input type="date" class="form-control" id="taskDeadline">
+            </div>
+
+            <button class="btn btn-primary" style="width: 100%;" onclick="addTask()">
+                <i class="fas fa-save"></i> Сохранить задачу
+            </button>
+        </div>
+    </div>
+}
+
+<div id="editTaskModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Редактирование задачи</h3>
+            <span class="close" onclick="closeModal('editTaskModal'); restoreProjectViewAfterTaskModal();">&times;</span>
+        </div>
+
+        <input type="hidden" id="editTaskId">
+
+        <div class="form-group">
+            <label class="form-label">Название задачи *</label>
+            <input type="text" class="form-control" id="editTaskName">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Описание</label>
+            <textarea class="form-control" id="editTaskDescription" rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Проект</label>
+            <select class="form-control" id="editTaskProject"></select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Этап проекта</label>
+            <select class="form-control" id="editTaskStageSelect">
+                <option value="">Выберите этап</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Исполнитель</label>
+            <select class="form-control" id="editTaskAssignee"></select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Приоритет</label>
+            <select class="form-control" id="editTaskPriority">
+                <option value="high">Высокий</option>
+                <option value="medium">Средний</option>
+                <option value="low">Низкий</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Статус</label>
+            <select class="form-control" id="editTaskStatus">
+                <option value="new">Новая</option>
+                <option value="progress">В работе</option>
+                <option value="review">На проверке</option>
+                <option value="done">Завершена</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Плановое время (часы)</label>
+            <input type="number" class="form-control" id="editTaskPlannedTime" step="0.5" min="0">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Дедлайн</label>
+            <input type="date" class="form-control" id="editTaskDeadline">
+        </div>
+
+        <button class="btn btn-primary" style="width: 100%;" onclick="saveTaskChanges()">
+            <i class="fas fa-save"></i> Сохранить изменения
+        </button>
+    </div>
+</div>
+
+<div id="deleteTaskModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Подтверждение удаления</h3>
+            <span class="close" onclick="closeModal('deleteTaskModal'); restoreProjectViewAfterTaskModal();">&times;</span>
+        </div>
+
+        <input type="hidden" id="deleteTaskId">
+
+        <p style="margin-bottom:20px;">
+            Вы действительно хотите удалить задачу
+            <strong id="deleteTaskName"></strong>?
+        </p>
+
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('deleteTaskModal'); restoreProjectViewAfterTaskModal();">Отмена</button>
+            <button class="btn btn-danger" onclick="confirmDeleteTask()">
+                <i class="fas fa-trash"></i> Удалить
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.remoteControlData = {
+        currentUserId: @Model.CurrentUserId,
+        currentUserRole: '@Model.CurrentUserRole',
+        isAdmin: @Model.IsAdmin.ToString().ToLower(),
+        isManager: @Model.IsManager.ToString().ToLower(),
+        isEmployee: @Model.IsEmployee.ToString().ToLower(),
+        tasks: @Html.Raw(Model.TasksJson ?? "[]"),
+        projects: @Html.Raw(Model.ProjectsJson ?? "[]"),
+        users: @Html.Raw(Model.UsersJson ?? "[]")
+    };
+</script>
+
+@section Scripts {
+    <script src="~/js/tasks.js" asp-append-version="true"></script>
+    <script src="~/js/projects.js" asp-append-version="true"></script>
 }

@@ -1,14 +1,11 @@
-﻿// timer.js
+﻿//timer.js
 
 let bottomTrackerExpanded = false;
-
 let workDayStatusInterval = null;
 
 let idleTimerHandle = null;
 let idleListenersBound = false;
 let idlePauseInProgress = false;
-
-
 
 function formatTimerValue(totalSeconds) {
     const hours = Math.floor(totalSeconds / 3600);
@@ -22,9 +19,38 @@ function formatTimerValue(totalSeconds) {
 
 function updateTimerDisplay() {
     const timeString = formatTimerValue(seconds);
+
     document.querySelectorAll(".timer, #bottomTimer").forEach(timer => {
         timer.textContent = timeString;
     });
+}
+
+function updateMiniTrackerButtons() {
+    const startBtn = document.getElementById("bottomMiniStart");
+    const pauseBtn = document.getElementById("bottomMiniPause");
+    const stopBtn = document.getElementById("bottomMiniStop");
+
+    if (!startBtn || !pauseBtn || !stopBtn) return;
+
+    if (!isTracking && !isPaused) {
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+        stopBtn.disabled = true;
+        return;
+    }
+
+    if (isTracking && !isPaused) {
+        startBtn.disabled = true;
+        pauseBtn.disabled = false;
+        stopBtn.disabled = false;
+        return;
+    }
+
+    if (isPaused) {
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+        stopBtn.disabled = false;
+    }
 }
 
 function updateBottomTrackerUI() {
@@ -71,35 +97,25 @@ function updateBottomTrackerUI() {
         }
     }
 
-    if (startBtn) {
-        startBtn.disabled = isTracking;
-    }
+    if (startBtn) startBtn.disabled = isTracking;
+    if (pauseBtn) pauseBtn.disabled = !isTracking;
+    if (stopBtn) stopBtn.disabled = !isTracking && !isPaused;
 
-    if (pauseBtn) {
-        pauseBtn.disabled = !isTracking;
-    }
-
-    if (stopBtn) {
-        stopBtn.disabled = !isTracking && !isPaused;
-    }
-    const mainBtn = document.getElementById('bottomMainActionBtn');
-    const mainIcon = document.getElementById('bottomMainActionIcon');
-
-    if (mainBtn && mainIcon) {
-        mainBtn.disabled = false;
+    if (bottomMainActionBtn && bottomMainActionIcon) {
+        bottomMainActionBtn.disabled = false;
 
         if (isTracking) {
-            mainBtn.className = 'bottom-main-action';
-            mainBtn.style.background = '#e53935';
-            mainIcon.className = 'fas fa-stop';
+            bottomMainActionBtn.className = "bottom-main-action";
+            bottomMainActionBtn.style.background = "#e53935";
+            bottomMainActionIcon.className = "fas fa-stop";
         } else if (isPaused) {
-            mainBtn.className = 'bottom-main-action';
-            mainBtn.style.background = '#43a047';
-            mainIcon.className = 'fas fa-play';
+            bottomMainActionBtn.className = "bottom-main-action";
+            bottomMainActionBtn.style.background = "#43a047";
+            bottomMainActionIcon.className = "fas fa-play";
         } else {
-            mainBtn.className = 'bottom-main-action';
-            mainBtn.style.background = 'var(--primary)';
-            mainIcon.className = 'fas fa-play';
+            bottomMainActionBtn.className = "bottom-main-action";
+            bottomMainActionBtn.style.background = "var(--primary)";
+            bottomMainActionIcon.className = "fas fa-play";
         }
     }
 
@@ -130,13 +146,24 @@ function toggleBottomTracker() {
     shell.classList.toggle("collapsed", !bottomTrackerExpanded);
 }
 
-
-
 function updateTimer() {
     if (!isPaused && isTracking) {
         seconds++;
         updateTimerDisplay();
     }
+}
+
+function highlightBottomTracker() {
+    const shell = document.getElementById("bottomTrackerShell");
+    if (!shell) return;
+
+    shell.classList.remove("attention");
+    void shell.offsetWidth;
+    shell.classList.add("attention");
+
+    setTimeout(() => {
+        shell.classList.remove("attention");
+    }, 1600);
 }
 
 async function startTracking() {
@@ -197,8 +224,8 @@ async function startTracking() {
         updateBottomTrackerUI();
         highlightBottomTracker();
         showNotification(`Трекер запущен: ${task.name}`);
-        await startScreenshotCapture();
 
+        await startScreenshotCapture();
         resetIdleTimer();
     } catch {
         showNotification("Ошибка сети/сервера");
@@ -288,8 +315,8 @@ async function stopTracking() {
 
         stopScreenshotCapture();
         releaseScreenAccess();
-
         resetIdleTimer();
+
         showNotification("Таймер остановлен");
         return;
     }
@@ -339,7 +366,6 @@ async function stopTracking() {
 
         stopScreenshotCapture();
         releaseScreenAccess();
-
         resetIdleTimer();
 
         showNotification(`Сессия завершена.\nОтработано: ${entry.hours} ч`);
@@ -482,22 +508,6 @@ async function addTimeEntry() {
         showNotification("Ошибка сети/сервера");
     }
 }
-
-function highlightBottomTracker() {
-    const shell = document.getElementById("bottomTrackerShell");
-    if (!shell) return;
-
-    shell.classList.remove("attention");
-    void shell.offsetWidth;
-    shell.classList.add("attention");
-
-    setTimeout(() => {
-        shell.classList.remove("attention");
-    }, 1600);
-}
-
-
-
 
 async function loadWorkDayStatus() {
     try {
@@ -642,12 +652,6 @@ function handleUserActivity() {
 
 function handleVisibilityChange() {
     if (!isWorkDayStarted) return;
-
-    if (document.hidden) {
-        resetIdleTimer();
-        return;
-    }
-
     resetIdleTimer();
 }
 
@@ -693,7 +697,6 @@ function updateIdleWatcherState() {
     resetIdleTimer();
 }
 
-
 function startWorkDayStatusPolling() {
     if (workDayStatusInterval) {
         clearInterval(workDayStatusInterval);
@@ -711,32 +714,3 @@ document.addEventListener("DOMContentLoaded", function () {
     loadWorkDayStatus();
     startWorkDayStatusPolling();
 });
-
-
-function updateMiniTrackerButtons() {
-    const startBtn = document.getElementById("bottomMiniStart");
-    const pauseBtn = document.getElementById("bottomMiniPause");
-    const stopBtn = document.getElementById("bottomMiniStop");
-
-    if (!startBtn || !pauseBtn || !stopBtn) return;
-
-    if (!isTracking && !isPaused) {
-        startBtn.disabled = false;
-        pauseBtn.disabled = true;
-        stopBtn.disabled = true;
-        return;
-    }
-
-    if (isTracking && !isPaused) {
-        startBtn.disabled = true;
-        pauseBtn.disabled = false;
-        stopBtn.disabled = false;
-        return;
-    }
-
-    if (isPaused) {
-        startBtn.disabled = false;
-        pauseBtn.disabled = true;
-        stopBtn.disabled = false;
-    }
-}

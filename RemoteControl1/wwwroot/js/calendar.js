@@ -1,4 +1,6 @@
-﻿const calendarState = {
+﻿//calendar.js
+
+const calendarState = {
     events: Array.isArray(window.remoteControlData?.calendarEvents)
         ? window.remoteControlData.calendarEvents.map(normalizeCalendarEvent)
         : [],
@@ -51,7 +53,6 @@ function renderCalendarPage() {
     if (firstWeekDay === 0) firstWeekDay = 7;
 
     const daysInMonth = lastDay.getDate();
-
     let html = "";
 
     for (let i = 1; i < firstWeekDay; i++) {
@@ -85,8 +86,7 @@ function renderCalendarPage() {
                 </div>
 
                 ${hiddenCount > 0 ? `
-                    <div class="calendar-more-events"
-                         title="Ещё событий: ${hiddenCount}">
+                    <div class="calendar-more-events" title="Ещё событий: ${hiddenCount}">
                         •••
                     </div>
                 ` : ""}
@@ -100,6 +100,7 @@ function renderCalendarPage() {
 function renderCalendarSidebar() {
     const dateText = document.getElementById("selectedCalendarDateText");
     const list = document.getElementById("calendarEventsListMain");
+
     if (!dateText || !list) return;
 
     const dateStr = formatCalendarDate(calendarState.selectedDate);
@@ -142,6 +143,7 @@ function prevCalendarMonth() {
         calendarState.currentDate.getMonth() - 1,
         1
     );
+
     renderCalendarPage();
     renderMiniCalendarMonths();
 }
@@ -152,6 +154,7 @@ function nextCalendarMonth() {
         calendarState.currentDate.getMonth() + 1,
         1
     );
+
     renderCalendarPage();
     renderMiniCalendarMonths();
 }
@@ -159,6 +162,7 @@ function nextCalendarMonth() {
 function toggleMiniCalendar() {
     const popup = document.getElementById("miniCalendarPopup");
     if (!popup) return;
+
     popup.classList.toggle("hidden");
 }
 
@@ -170,6 +174,7 @@ function changeMiniCalendarYear(step) {
 function renderMiniCalendarMonths() {
     const yearLabel = document.getElementById("miniCalendarYearLabel");
     const monthsWrap = document.getElementById("miniCalendarMonths");
+
     if (!yearLabel || !monthsWrap) return;
 
     yearLabel.textContent = calendarState.miniYear;
@@ -187,7 +192,9 @@ function pickMiniCalendarMonth(monthIndex) {
     calendarState.currentDate = new Date(calendarState.miniYear, monthIndex, 1);
 
     const popup = document.getElementById("miniCalendarPopup");
-    if (popup) popup.classList.add("hidden");
+    if (popup) {
+        popup.classList.add("hidden");
+    }
 
     renderCalendarPage();
     renderCalendarSidebar();
@@ -195,64 +202,39 @@ function pickMiniCalendarMonth(monthIndex) {
 
 function getEventsForDate(dateStr) {
     return calendarState.events
-        .filter(ev => {
-            const evDate = formatCalendarDate(new Date(ev.eventDate));
-            return evDate === dateStr;
-        })
+        .filter(ev => formatCalendarDate(new Date(ev.eventDate)) === dateStr)
         .sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate));
 }
 
 function getCalendarEventClass(type) {
     switch ((type || "").toLowerCase()) {
-        case "meeting":
-            return "event-meeting";
-        case "meetup":
-            return "event-meetup";
-        case "task":
-            return "event-task";
-        case "deadline":
-            return "event-deadline";
-        case "review":
-            return "event-review";
-        case "call":
-            return "event-call";
-        case "presentation":
-            return "event-presentation";
-        case "personal":
-            return "event-personal";
-        case "reminder":
-            return "event-reminder";
-        case "other":
-            return "event-other";
-        default:
-            return "event-default";
+        case "meeting": return "event-meeting";
+        case "meetup": return "event-meetup";
+        case "task": return "event-task";
+        case "deadline": return "event-deadline";
+        case "review": return "event-review";
+        case "call": return "event-call";
+        case "presentation": return "event-presentation";
+        case "personal": return "event-personal";
+        case "reminder": return "event-reminder";
+        case "other": return "event-other";
+        default: return "event-default";
     }
 }
 
 function getCalendarEventTypeText(type) {
     switch ((type || "").toLowerCase()) {
-        case "meeting":
-            return "Встреча";
-        case "meetup":
-            return "Митап";
-        case "task":
-            return "Задача";
-        case "deadline":
-            return "Дедлайн";
-        case "review":
-            return "Проверка";
-        case "call":
-            return "Звонок";
-        case "presentation":
-            return "Презентация";
-        case "personal":
-            return "Личное";
-        case "reminder":
-            return "Напоминание";
-        case "other":
-            return "Другое";
-        default:
-            return "Событие";
+        case "meeting": return "Встреча";
+        case "meetup": return "Митап";
+        case "task": return "Задача";
+        case "deadline": return "Дедлайн";
+        case "review": return "Проверка";
+        case "call": return "Звонок";
+        case "presentation": return "Презентация";
+        case "personal": return "Личное";
+        case "reminder": return "Напоминание";
+        case "other": return "Другое";
+        default: return "Событие";
     }
 }
 
@@ -260,6 +242,7 @@ function formatCalendarDate(date) {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, "0");
     const d = String(date.getDate()).padStart(2, "0");
+
     return `${y}-${m}-${d}`;
 }
 
@@ -267,6 +250,7 @@ function formatCalendarDateRu(date) {
     const d = String(date.getDate()).padStart(2, "0");
     const m = String(date.getMonth() + 1).padStart(2, "0");
     const y = date.getFullYear();
+
     return `${d}.${m}.${y}`;
 }
 
@@ -274,6 +258,7 @@ function formatCalendarTime(value) {
     const date = new Date(value);
     const h = String(date.getHours()).padStart(2, "0");
     const m = String(date.getMinutes()).padStart(2, "0");
+
     return `${h}:${m}`;
 }
 
@@ -296,16 +281,11 @@ function fillCalendarProjectSelect() {
     if (!select) return;
 
     const currentValue = select.value;
-    const projectsList = Array.isArray(window.remoteControlData?.projects)
-        ? window.remoteControlData.projects
-        : [];
 
     select.innerHTML = `<option value="">Без проекта</option>`;
 
-    projectsList.forEach(project => {
-        const id = project.id ?? project.Id;
-        const name = project.name ?? project.Name ?? "";
-        select.innerHTML += `<option value="${id}">${escapeHtml(name)}</option>`;
+    projects.forEach(project => {
+        select.innerHTML += `<option value="${project.id}">${escapeHtml(project.name)}</option>`;
     });
 
     select.value = currentValue;
@@ -319,7 +299,6 @@ function openCalendarModal(date = null) {
     const type = document.getElementById("calendarType");
     const projectId = document.getElementById("calendarProjectId");
     const location = document.getElementById("calendarLocation");
-    const modal = document.getElementById("calendarModal");
 
     if (title) title.value = "";
     if (description) description.value = "";
@@ -347,10 +326,7 @@ function openCalendarModal(date = null) {
         time.value = "10:00";
     }
 
-    if (modal) {
-        modal.style.display = "flex";
-        modal.classList.add("show");
-    }
+    openModal("calendarModal");
 }
 
 function saveCalendarEvent() {
@@ -402,6 +378,7 @@ function saveCalendarEvent() {
 document.addEventListener("click", function (e) {
     const popup = document.getElementById("miniCalendarPopup");
     const wrap = document.querySelector(".calendar-title-wrap");
+
     if (!popup || !wrap) return;
 
     if (!wrap.contains(e.target)) {

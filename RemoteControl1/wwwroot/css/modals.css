@@ -1,0 +1,124 @@
+﻿/* modals.css */
+
+/* =========================================================
+   МОДАЛЬНЫЕ ОКНА
+   ========================================================= */
+
+body.modal-open {
+    overflow: hidden !important;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 4000;
+    background: rgba(15, 23, 42, 0.45);
+    padding: 20px;
+    overflow-y: auto;
+}
+
+    .modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+.modal-content {
+    position: relative;
+    z-index: 4001;
+    width: 100%;
+    max-width: 540px;
+    max-height: 84vh;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #e8edf5;
+    border-radius: 24px;
+    padding: 28px;
+    box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #edf2f7;
+}
+
+.modal-title {
+    margin: 0;
+    color: var(--primary-dark);
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.close {
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--gray);
+}
+
+.modal-close {
+    border: none;
+    background: transparent;
+    color: var(--gray);
+    font-size: 26px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.modal-body {
+    margin-top: 10px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+}
+
+/* ===== ФИКС СЛОЕВ МОДАЛОК ПОВЕРХ ПРОСМОТРА ПРОЕКТА ===== */
+
+#addTaskModal,
+#editTaskModal,
+#deleteTaskModal,
+#addProjectModal,
+#editProjectModal,
+#deleteProjectModal,
+#userModal,
+#editUserModal,
+#userDetailsModal,
+#calendarModal {
+    z-index: 4000;
+}
+
+    #addTaskModal .modal-content,
+    #editTaskModal .modal-content,
+    #deleteTaskModal .modal-content,
+    #addProjectModal .modal-content,
+    #editProjectModal .modal-content,
+    #deleteProjectModal .modal-content,
+    #userModal .modal-content,
+    #editUserModal .modal-content,
+    #userDetailsModal .modal-content,
+    #calendarModal .modal-content {
+        position: relative;
+        z-index: 4001;
+    }
+
+@media (max-width: 576px) {
+    .modal {
+        padding: 12px;
+    }
+
+    .modal-content {
+        padding: 20px;
+        border-radius: 20px;
+    }
+}

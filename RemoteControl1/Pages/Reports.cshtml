@@ -1,4 +1,122 @@
 ﻿@page
 @model RemoteControl1.Pages.ReportsModel
 @{
+    ViewData["Title"] = "Отчёты";
+}
+
+<div id="reportsPage" class="container main-content page-content">
+    <div class="page-content">
+        <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:30px; flex-wrap:wrap; gap:15px;">
+            <h1 style="display:flex; align-items:center; gap:15px;">
+                <i class="fas fa-chart-bar" style="color: var(--primary);"></i> Отчеты и аналитика
+            </h1>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="btn btn-outline" onclick="exportReport('csv')">
+                    <i class="fas fa-file-csv"></i> CSV
+                </button>
+                <button class="btn btn-outline" onclick="exportReport('excel')">
+                    <i class="fas fa-file-excel"></i> Excel
+                </button>
+                <button class="btn btn-outline" onclick="exportReport('word')">
+                    <i class="fas fa-file-word"></i> Word
+                </button>
+                <button class="btn btn-outline" onclick="exportReport('pdf')">
+                    <i class="fas fa-file-pdf"></i> PDF
+                </button>
+                <button class="btn btn-primary" onclick="exportReport('print')">
+                    <i class="fas fa-print"></i> Печать
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div style="display:flex; gap:15px; align-items:center; flex-wrap:wrap;">
+                <div class="date-range-old">
+                    <input type="date" class="date-input-old" id="reportDateFrom">
+                    <span>—</span>
+                    <input type="date" class="date-input-old" id="reportDateTo">
+                    <button class="btn btn-primary" onclick="updateReports()">
+                        <i class="fas fa-sync-alt"></i> Обновить
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="filters-bar">
+            <div class="filter-group">
+                <i class="fas fa-user"></i>
+                <select class="filter-select" id="employeeFilter" onchange="filterReports()">
+                    <option value="all">Все сотрудники</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <i class="fas fa-project-diagram"></i>
+                <select class="filter-select" id="reportProjectFilter" onchange="filterReports()">
+                    <option value="all">Все проекты</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="reports-layout">
+            <div class="reports-sidebar">
+                <ul class="reports-menu">
+                    <li class="reports-menu-item">
+                        <button type="button" class="reports-menu-link active" onclick="return showReport('daily', this)">
+                            <i class="fas fa-calendar-day"></i> Ежедневный отчет
+                        </button>
+                    </li>
+                    <li class="reports-menu-item">
+                        <button type="button" class="reports-menu-link" onclick="return showReport('weekly', this)">
+                            <i class="fas fa-calendar-week"></i> Недельный отчет
+                        </button>
+                    </li>
+                    <li class="reports-menu-item">
+                        <button type="button" class="reports-menu-link" onclick="return showReport('monthly', this)">
+                            <i class="fas fa-calendar-alt"></i> Месячный отчет
+                        </button>
+                    </li>
+                    <li class="reports-menu-item">
+                        <button type="button" class="reports-menu-link" onclick="return showReport('performance', this)">
+                            <i class="fas fa-chart-line"></i> Продуктивность
+                        </button>
+                    </li>
+                    <li class="reports-menu-item">
+                        <button type="button" class="reports-menu-link" onclick="return showReport('overdue', this)">
+                            <i class="fas fa-exclamation-triangle"></i> Просроченные задачи
+                        </button>
+                    </li>
+                    <li class="reports-menu-item">
+                        <button type="button" class="reports-menu-link" onclick="return showReport('overtime', this)">
+                            <i class="fas fa-clock"></i> Переработки
+                        </button>
+                    </li>
+                    <li class="reports-menu-item">
+                        <button type="button" class="reports-menu-link" onclick="return showReport('bonus', this)">
+                            <i class="fas fa-gift"></i> Система бонусов
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="reports-content" id="reportsContent"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.remoteControlData = {
+        currentUserId: @Model.CurrentUserId,
+        currentUserRole: '@Model.CurrentUserRole',
+        isAdmin: @Model.IsAdmin.ToString().ToLower(),
+        isManager: @Model.IsManager.ToString().ToLower(),
+        isEmployee: @Model.IsEmployee.ToString().ToLower(),
+        tasks: @Html.Raw(Model.TasksJson ?? "[]"),
+        projects: @Html.Raw(Model.ProjectsJson ?? "[]"),
+        users: @Html.Raw(Model.UsersJson ?? "[]")
+    };
+</script>
+
+@section Scripts {
+    <script src="~/js/reports.js" asp-append-version="true"></script>
 }

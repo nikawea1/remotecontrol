@@ -1,50 +1,221 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@using Microsoft.AspNetCore.Http
+@{
+    var sessionUserName = Context.Session.GetString("user_name") ?? "Пользователь";
+    var sessionUserEmail = Context.Session.GetString("user_email") ?? "";
+    var sessionUserRole = (Context.Session.GetString("user_role") ?? "employee").ToLower();
+
+    var avatarLetter = "U";
+    if (!string.IsNullOrWhiteSpace(sessionUserName))
+    {
+        avatarLetter = sessionUserName.Trim().Substring(0, 1).ToUpper();
+    }
+
+    string roleText = sessionUserRole switch
+    {
+        "admin" => "Администратор",
+        "manager" => "Руководитель",
+        _ => "Сотрудник"
+    };
+
+    bool isAdmin = sessionUserRole == "admin";
+    bool isManager = sessionUserRole == "manager";
+    bool isEmployee = !isAdmin && !isManager;
+}
+
+<!DOCTYPE html>
+<html lang="ru">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - RemoteControl1</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <title>@ViewData["Title"] - Remote Control</title>
+
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/common.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/modals.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/notifications.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/tasks.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/projects.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/reports.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/calendar.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/profile.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/tracker.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/users.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/RemoteControl1.styles.css" asp-append-version="true" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">RemoteControl1</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
-                        </li>
-                    </ul>
+    @Html.AntiForgeryToken()
+
+    <nav class="navbar">
+        <div class="container nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-clock"></i>
+                REMOTE CONTROL
+            </div>
+
+            <ul class="nav-menu">
+                <li>
+                    <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/MainPage" ? "active" : "")" asp-page="/MainPage">
+                        <i class="fas fa-home"></i>
+                        <span>Главная</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Tasks" ? "active" : "")" asp-page="/Tasks">
+                        <i class="fas fa-tasks"></i>
+                        <span>Задачи</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Projects" ? "active" : "")" asp-page="/Projects">
+                        <i class="fas fa-project-diagram"></i>
+                        <span>Проекты</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Tracker" ? "active" : "")" asp-page="/Tracker">
+                        <i class="fas fa-stopwatch"></i>
+                        <span>Трекер</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Reports" ? "active" : "")" asp-page="/Reports">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Отчеты</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Calendar" ? "active" : "")" asp-page="/Calendar">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Календарь</span>
+                    </a>
+                </li>
+
+                @if (!isEmployee)
+                {
+                    <li>
+                        <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Users" ? "active" : "")" asp-page="/Users">
+                            <i class="fas fa-users"></i>
+                            <span>Сотрудники</span>
+                        </a>
+                    </li>
+                }
+            </ul>
+
+            <div class="nav-right">
+                <div class="header-user-block" onclick="toggleProfileDropdown()" id="headerUserBlock">
+                    <div class="header-user-text-wrap">
+                        <div class="header-user-name" id="userNameHeader">@sessionUserName</div>
+                        <div class="header-user-role @(sessionUserRole == "admin" ? "is-admin" : "")" id="userRoleHeader">@roleText</div>
+                    </div>
+
+                    <div class="header-user-avatar" id="userAvatar">
+                        @avatarLetter
+                    </div>
+
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <div class="profile-dropdown-header">
+                            <div class="profile-dropdown-avatar" id="dropdownAvatar">@avatarLetter</div>
+                            <div class="profile-dropdown-info">
+                                <h4 id="dropdownName">@sessionUserName</h4>
+                                <p id="dropdownRole">@roleText</p>
+                                <p style="margin-top:6px; font-size:13px; color: rgba(255,255,255,0.85);" id="dropdownEmail">@sessionUserEmail</p>
+                            </div>
+                        </div>
+
+                        <div class="profile-dropdown-menu">
+                            <div class="profile-dropdown-item" onclick="window.location.href='@Url.Page("/Profile")'">
+                                <i class="fas fa-user"></i>
+                                <span>Мой профиль</span>
+                            </div>
+
+                            <div class="profile-dropdown-divider"></div>
+
+                            <div class="profile-dropdown-item" onclick="logout()">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Выйти</span>
+                            </div>
+                        </div>
+
+                        <div class="profile-dropdown-footer">
+                            <span><i class="far fa-clock"></i> Рабочая панель</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+        </div>
+    </nav>
+
+    <main role="main">
+        @RenderBody()
+    </main>
+
+    <div class="bottom-tracker-shell collapsed" id="bottomTrackerShell">
+        <button class="bottom-tracker-toggle" type="button" onclick="toggleBottomTracker()" id="bottomTrackerToggle" title="Развернуть таймер">
+            <i class="fas fa-chevron-up" id="bottomTrackerToggleIcon"></i>
+        </button>
+
+        <div class="bottom-tracker-card" id="bottomTracker">
+            <div class="bottom-tracker-top">
+                <div class="bottom-tracker-state" id="bottomTrackerStateBox">
+                    <span class="status-dot stopped" id="statusDot"></span>
+                    <span id="statusText">Не активен</span>
+                </div>
+            </div>
+
+            <div class="bottom-tracker-main-row">
+                <div class="bottom-tracker-time-wrap">
+                    <div class="bottom-tracker-time" id="bottomTimer">00:00:00</div>
+                </div>
+
+                <div class="bottom-tracker-actions-collapsed" id="bottomTrackerCollapsedActions">
+                    <button class="bottom-main-action" type="button" onclick="handleBottomMainAction()" id="bottomMainActionBtn">
+                        <i class="fas fa-play" id="bottomMainActionIcon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bottom-tracker-actions-expanded" id="bottomTrackerExpandedActions">
+                <button class="btn bottom-control-btn start" type="button" onclick="startTracking()" id="bottomStartBtn">
+                    <i class="fas fa-play"></i>
+                    <span>Старт</span>
+                </button>
+
+                <button class="btn bottom-control-btn pause" type="button" onclick="pauseTracking()" id="bottomPauseBtn">
+                    <i class="fas fa-pause"></i>
+                    <span>Пауза</span>
+                </button>
+
+                <button class="btn bottom-control-btn stop" type="button" onclick="stopTracking()" id="bottomStopBtn">
+                    <i class="fas fa-stop"></i>
+                    <span>Стоп</span>
+                </button>
+            </div>
+        </div>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - RemoteControl1 - <a asp-area="" asp-page="/Privacy">Privacy</a>
+    <div id="notification" class="notification hidden">
+        <div style="display:flex; align-items:center; gap:10px;">
+            <i class="fas fa-info-circle" style="color: var(--primary); font-size: 20px;"></i>
+            <div id="notificationMessage">Уведомление</div>
         </div>
-    </footer>
+    </div>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/modals.js" asp-append-version="true"></script>
+    <script src="~/js/notify.js" asp-append-version="true"></script>
+    <script src="~/js/timer.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
