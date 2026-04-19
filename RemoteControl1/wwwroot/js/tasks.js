@@ -26,6 +26,18 @@ function renderDashboard() {
     }
 }
 
+
+function getAvailableTimerTasks() {
+    const allTasks = Array.isArray(tasks) ? tasks : [];
+
+    if (!currentUserId || Number(currentUserId) <= 0) {
+        return [];
+    }
+
+    return allTasks.filter(t => Number(t.userId) === Number(currentUserId));
+}
+
+
 function renderDashboardTasks() {
     const container = document.getElementById("dashboardTasks");
     if (!container) {
@@ -174,15 +186,7 @@ function fillTaskStageSelect(projectId, selectId, selectedStageName = "") {
 }
 
 
-function getAvailableTimerTasks() {
-    const allTasks = Array.isArray(tasks) ? tasks : [];
 
-    if (!currentUserId || Number(currentUserId) <= 0) {
-        return [];
-    }
-
-    return allTasks.filter(t => Number(t.userId) === Number(currentUserId));
-}
 
 function fillTaskSelects() {
     const availableTasks = getAvailableTimerTasks();
@@ -572,6 +576,7 @@ async function addTask() {
         closeModal("addTaskModal");
 
         fillTaskSelects();
+
         refreshProjectsStats();
         renderTasksTable();
         renderDashboard();
@@ -702,6 +707,7 @@ async function saveTaskChanges() {
         renderDashboard();
         renderDashboardTasks();
         fillTaskSelects();
+
         refreshProjectsStats();
         renderProjects();
 
@@ -767,6 +773,7 @@ async function confirmDeleteTask() {
         renderDashboard();
         renderDashboardTasks();
         fillTaskSelects();
+    
         refreshProjectsStats();
         renderProjects();
 
@@ -832,6 +839,7 @@ async function startTask(id) {
 
             setActiveTask(updatedTask);
             fillTaskSelects();
+         
             refreshProjectsStats();
             renderTasksTable();
             renderDashboard();
@@ -855,4 +863,6 @@ function formatManualRequestDate(value) {
 
     return `<span class="manual-date">${value}</span>`;
 }
+
+
 

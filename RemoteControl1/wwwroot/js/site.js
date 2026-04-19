@@ -326,7 +326,13 @@ function showPage(pageId) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-    loadCaptureSettings();
+    try {
+        if (typeof loadCaptureSettings === "function") {
+            loadCaptureSettings();
+        }
+    } catch (e) {
+        console.error("Ошибка loadCaptureSettings:", e);
+    }
 
     refreshProjectsStats();
     fillProjectFilter();
@@ -336,8 +342,8 @@ document.addEventListener("DOMContentLoaded", function () {
     fillTaskStageSelect(0, "taskStageSelect", "");
     fillTaskStageSelect(0, "editTaskStageSelect", "");
 
-    fillTaskSelects();
     syncTrackerTaskSelects();
+    fillTaskSelects();
 
     renderDashboard();
     renderDashboardTasks();

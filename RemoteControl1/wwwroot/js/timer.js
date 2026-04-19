@@ -3,7 +3,7 @@
 let bottomTrackerExpanded = false;
 
 let workDayStatusInterval = null;
-let idleTimeoutMinutes = 3;
+
 let idleTimerHandle = null;
 let idleListenersBound = false;
 let idlePauseInProgress = false;
@@ -559,6 +559,11 @@ function renderWorkDayStatus(status) {
 
     const modeText = isFixed ? "Фиксированный" : "Гибкий";
 
+    const lastMetricLabel = isFixed ? "До конца дня" : "Ещё по задачам";
+    const lastMetricValue = isFixed
+        ? Number(status.remainingToPlannedEndHours || 0).toFixed(1)
+        : Number(status.remainingByTrackedHours || 0).toFixed(1);
+
     box.innerHTML = `
         <div class="workday-status-grid">
             <div class="workday-main-line">
@@ -603,8 +608,13 @@ function renderWorkDayStatus(status) {
                 </div>
 
                 <div class="workday-metric">
-                    <div class="workday-label">Осталось</div>
+                    <div class="workday-label">До нормы</div>
                     <div class="workday-metric-value">${Number(status.remainingHours || 0).toFixed(1)} ч</div>
+                </div>
+
+                <div class="workday-metric">
+                    <div class="workday-label">${lastMetricLabel}</div>
+                    <div class="workday-metric-value">${lastMetricValue} ч</div>
                 </div>
             </div>
         </div>

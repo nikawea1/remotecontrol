@@ -2138,13 +2138,16 @@ namespace RemoteControl1.Services
                     a.ActivityType == "workday" &&
                     a.IsActive);
 
+            var requiredDailyHours = user.RequiredDailyHours > 0 ? user.RequiredDailyHours : 8m;
+            var workMode = string.IsNullOrWhiteSpace(user.WorkMode) ? "fixed" : user.WorkMode;
+
             if (activeDay == null)
             {
                 return new
                 {
                     isWorking = false,
-                    workMode = user.WorkMode,
-                    requiredDailyHours = user.RequiredDailyHours,
+                    workMode = workMode,
+                    requiredDailyHours = requiredDailyHours,
                     plannedStartTime = user.PlannedStartTime?.ToString(@"hh\:mm"),
                     plannedEndTime = user.PlannedEndTime?.ToString(@"hh\:mm"),
                     idleTimeoutMinutes = user.IdleTimeoutMinutes > 0 ? user.IdleTimeoutMinutes : 3,
@@ -2152,7 +2155,9 @@ namespace RemoteControl1.Services
                     currentHours = 0m,
                     trackedHours = 0m,
                     idleHours = 0m,
-                    remainingHours = user.RequiredDailyHours > 0 ? user.RequiredDailyHours : 0m
+                    remainingHours = requiredDailyHours,
+                    remainingByTrackedHours = requiredDailyHours,
+                    remainingToPlannedEndHours = 0m
                 };
             }
 
@@ -2179,22 +2184,41 @@ namespace RemoteControl1.Services
             foreach (var item in taskTimerLogs)
             {
                 if (item.IsActive)
-                    tracked += (decimal)(now - item.StartedAtUtc).TotalHours;
+                    tracked += Math.Round((decimal)(now - item.StartedAtUtc).TotalHours, 2);
                 else
-                    tracked += (decimal)item.DurationHours;
+                    tracked += item.DurationHours;
             }
 
-            tracked += manualLogs.Sum(x => (decimal)x.DurationHours);
+            tracked += manualLogs.Sum(x => x.DurationHours);
             tracked = Math.Round(tracked, 2);
 
             var idle = currentDayHours - tracked;
             if (idle < 0)
-                idle = 0;
+                idle = 0m;
 
-            var requiredDailyHours = user.RequiredDailyHours > 0 ? user.RequiredDailyHours : 8m;
             var remainingHours = requiredDailyHours - currentDayHours;
             if (remainingHours < 0)
-                remainingHours = 0;
+                remainingHours = 0m;
+
+            var remainingByTrackedHours = requiredDailyHours - tracked;
+            if (remainingByTrackedHours < 0)
+                remainingByTrackedHours = 0m;
+
+            decimal remainingToPlannedEndHours = 0m;
+
+            if (workMode == "fixed" && user.PlannedEndTime.HasValue)
+            {
+                var localNow = DateTime.Now;
+                var plannedEndToday = localNow.Date.Add(user.PlannedEndTime.Value);
+
+                remainingToPlannedEndHours = Math.Round(
+                    (decimal)(plannedEndToday - localNow).TotalHours,
+                    2
+                );
+
+                if (remainingToPlannedEndHours < 0)
+                    remainingToPlannedEndHours = 0m;
+            }
 
             return new
             {
@@ -2204,7 +2228,9 @@ namespace RemoteControl1.Services
                 trackedHours = tracked,
                 idleHours = idle,
                 remainingHours = remainingHours,
-                workMode = user.WorkMode,
+                remainingByTrackedHours = remainingByTrackedHours,
+                remainingToPlannedEndHours = remainingToPlannedEndHours,
+                workMode = workMode,
                 requiredDailyHours = requiredDailyHours,
                 plannedStartTime = user.PlannedStartTime?.ToString(@"hh\:mm"),
                 plannedEndTime = user.PlannedEndTime?.ToString(@"hh\:mm"),

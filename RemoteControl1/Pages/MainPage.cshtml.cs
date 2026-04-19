@@ -544,12 +544,9 @@ namespace RemoteControl1.Pages
             if (userId == null)
                 return new JsonResult(new { ok = false, error = "Пользователь не найден" });
 
-            if (CurrentUserIsEmployee())
-            {
-                var isMyTask = await IsMyTaskAsync(dto.TaskId);
-                if (!isMyTask)
-                    return new JsonResult(new { ok = false, error = "Нет прав" });
-            }
+            var isMyTask = await IsMyTaskAsync(dto.TaskId);
+            if (!isMyTask)
+                return new JsonResult(new { ok = false, error = "Можно запускать только свои задачи" });
 
             var result = await _taskService.StartTaskTimerAsync(userId.Value, dto);
 
@@ -598,12 +595,9 @@ namespace RemoteControl1.Pages
             if (userId == null)
                 return new JsonResult(new { ok = false, error = "Пользователь не найден" });
 
-            if (CurrentUserIsEmployee())
-            {
-                var isMyTask = await IsMyTaskAsync(dto.TaskId);
-                if (!isMyTask)
-                    return new JsonResult(new { ok = false, error = "Нет прав" });
-            }
+            var isMyTask = await IsMyTaskAsync(dto.TaskId);
+            if (!isMyTask)
+                return new JsonResult(new { ok = false, error = "Можно учитывать время только по своим задачам" });
 
             var result = await _taskService.AddManualTimeAsync(userId.Value, dto);
 
@@ -1436,6 +1430,40 @@ namespace RemoteControl1.Pages
             return JsonSerializer.Serialize(clean);
         }
 
+        public async Task<JsonResult> OnGetMyOwnTasksAsync()
+        {
+            var userId = await GetCurrentUserIdAsync();
+            if (userId == null)
+                return new JsonResult(new { ok = false, items = new List<object>() });
+
+            var items = await _db.Tasks
+                .Include(t => t.Project)
+                .Where(t => t.UserId == userId.Value)
+                .OrderByDescending(t => t.Id)
+                .Select(t => new
+                {
+                    id = t.Id,
+                    name = t.Title,
+                    description = t.Description,
+                    project = t.Project != null ? t.Project.Name : "",
+                    projectId = t.ProjectId,
+                    userId = t.UserId,
+                    assignee = t.Assignee,
+                    priority = t.Priority,
+                    status = t.Status,
+                    plannedTime = t.PlannedTimeHours,
+                    deadline = t.Deadline.HasValue ? t.Deadline.Value.ToString("dd.MM.yyyy") : "",
+                    deadlineRaw = t.Deadline.HasValue ? t.Deadline.Value.ToString("yyyy-MM-dd") : "",
+                    stageName = t.StageName ?? ""
+                })
+                .ToListAsync();
+
+            return new JsonResult(new
+            {
+                ok = true,
+                items
+            });
+        }
 
         public async Task<JsonResult> OnGetWorkDayStatusAsync()
         {

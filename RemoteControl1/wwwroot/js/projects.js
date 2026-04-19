@@ -723,6 +723,7 @@ async function confirmDeleteProject() {
         fillProjectSelect("taskProjectSelect");
         fillProjectSelect("editTaskProject");
         fillTaskSelects();
+       
 
         refreshProjectsStats();
         renderProjects();
