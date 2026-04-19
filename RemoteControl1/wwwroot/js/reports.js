@@ -1,4 +1,6 @@
-﻿function getExportQuery() {
+﻿
+//reports.js
+function getExportQuery() {
     const dateFrom = document.getElementById("reportDateFrom")?.value || "";
     const dateTo = document.getElementById("reportDateTo")?.value || "";
     const projectId = document.getElementById("reportProjectFilter")?.value || "all";
@@ -112,16 +114,16 @@ function showReport(reportId, el) {
     if (el) {
         el.classList.add("active");
     } else {
-        document.querySelectorAll(".reports-menu-link").forEach(link => {
-            const clickText = link.getAttribute("onclick") || "";
-            if (clickText.includes(`showReport('${reportId}'`)) {
-                link.classList.add("active");
-            }
-        });
+        const first = document.querySelector(".reports-menu-link");
+        if (first) {
+            first.classList.add("active");
+        }
     }
 
     return false;
 }
+
+
 
 async function loadReportsFromServer() {
     const dateFrom = document.getElementById("reportDateFrom")?.value || "";
@@ -157,6 +159,7 @@ async function updateReports() {
     try {
         const data = await loadReportsFromServer();
         renderReports(data);
+        //showNotification("Отчет обновлен");
     } catch (e) {
         console.error(e);
 
@@ -165,9 +168,7 @@ async function updateReports() {
             box.innerHTML = `<div class="card"><div style="color:var(--danger);">Не удалось загрузить отчёты</div></div>`;
         }
 
-        if (typeof showNotification === "function") {
-            showNotification("Не удалось загрузить отчет");
-        }
+        showNotification("Не удалось загрузить отчет");
     }
 }
 
@@ -220,32 +221,14 @@ function renderReports(data) {
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Дата</th>
                             <th>Задача</th>
                             <th>Проект</th>
-                            <th>Часы</th>
-                            <th>Комментарий</th>
+                            <th>Время</th>
                             <th>Статус</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${(data.daily.entries || []).length
-            ? data.daily.entries.map(item => `
-                                <tr>
-                                    <td>${item.date || ""}</td>
-                                    <td>${item.task || ""}</td>
-                                    <td>${item.project || ""}</td>
-                                    <td>${formatHoursValue(item.hours)}</td>
-                                    <td>${item.comment || "—"}</td>
-                                    <td>${item.status || "—"}</td>
-                                </tr>
-                            `).join("")
-            : `
-                                <tr>
-                                    <td colspan="6" style="text-align:center; color:var(--gray);">Нет данных</td>
-                                </tr>
-                            `
-        }
+                        ${renderEntryRows(data.daily.entries || [])}
                     </tbody>
                 </table>
             </div>
@@ -259,15 +242,15 @@ function renderReports(data) {
                     <div class="stat-icon"><i class="fas fa-clock"></i></div>
                     <div class="stat-info">
                         <div class="stat-value">${formatHoursValue(data.weekly.totalHours)}</div>
-                        <div class="stat-label">Часов за неделю</div>
+                        <div class="stat-label">Часов отработано</div>
                     </div>
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-icon"><i class="fas fa-tasks"></i></div>
                     <div class="stat-info">
                         <div class="stat-value">${data.weekly.completedTasks}</div>
-                        <div class="stat-label">Завершено задач</div>
+                        <div class="stat-label">Задач завершено</div>
                     </div>
                 </div>
 
@@ -282,38 +265,16 @@ function renderReports(data) {
 
             <div class="charts-grid">
                 <div class="chart-box">
-                    <div class="chart-title">По дням недели</div>
+                    <div class="chart-title">Активность по дням</div>
                     <div class="bar-chart">
-                        ${(data.weekly.byDays || []).length
-            ? data.weekly.byDays.map(item => `
-                                <div class="bar-item">
-                                    <div class="bar-label">${item.label}</div>
-                                    <div class="bar-progress">
-                                        <div class="bar-fill" style="width:${Math.max(4, Number(item.value || 0) * 10)}%"></div>
-                                    </div>
-                                    <div class="bar-value">${formatHoursValue(item.value)}</div>
-                                </div>
-                            `).join("")
-            : `<div style="color:var(--gray);">Нет данных</div>`
-        }
+                        ${renderBars(data.weekly.byDays || [])}
                     </div>
                 </div>
 
                 <div class="chart-box">
-                    <div class="chart-title">По проектам</div>
+                    <div class="chart-title">Распределение по проектам</div>
                     <div class="bar-chart">
-                        ${(data.weekly.byProjects || []).length
-            ? data.weekly.byProjects.map(item => `
-                                <div class="bar-item">
-                                    <div class="bar-label">${item.label}</div>
-                                    <div class="bar-progress">
-                                        <div class="bar-fill" style="width:${Math.max(4, Number(item.value || 0) * 10)}%"></div>
-                                    </div>
-                                    <div class="bar-value">${formatHoursValue(item.value)}</div>
-                                </div>
-                            `).join("")
-            : `<div style="color:var(--gray);">Нет данных</div>`
-        }
+                        ${renderBars(data.weekly.byProjects || [])}
                     </div>
                 </div>
             </div>
@@ -327,15 +288,15 @@ function renderReports(data) {
                     <div class="stat-icon"><i class="fas fa-clock"></i></div>
                     <div class="stat-info">
                         <div class="stat-value">${formatHoursValue(data.monthly.totalHours)}</div>
-                        <div class="stat-label">Часов за месяц</div>
+                        <div class="stat-label">Часов отработано</div>
                     </div>
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-icon"><i class="fas fa-tasks"></i></div>
                     <div class="stat-info">
                         <div class="stat-value">${data.monthly.completedTasks}</div>
-                        <div class="stat-label">Завершено задач</div>
+                        <div class="stat-label">Задач завершено</div>
                     </div>
                 </div>
 
@@ -350,60 +311,30 @@ function renderReports(data) {
 
             <div class="charts-grid">
                 <div class="chart-box">
-                    <div class="chart-title">По проектам</div>
+                    <div class="chart-title">Часы по проектам</div>
                     <div class="bar-chart">
-                        ${(data.monthly.byProjects || []).length
-            ? data.monthly.byProjects.map(item => `
-                                <div class="bar-item">
-                                    <div class="bar-label">${item.label}</div>
-                                    <div class="bar-progress">
-                                        <div class="bar-fill" style="width:${Math.max(4, Number(item.value || 0) * 10)}%"></div>
-                                    </div>
-                                    <div class="bar-value">${formatHoursValue(item.value)}</div>
-                                </div>
-                            `).join("")
-            : `<div style="color:var(--gray);">Нет данных</div>`
-        }
+                        ${renderBars(data.monthly.byProjects || [])}
                     </div>
                 </div>
 
                 <div class="chart-box">
-                    <div class="chart-title">По неделям</div>
+                    <div class="chart-title">Часы по неделям</div>
                     <div class="bar-chart">
-                        ${(data.monthly.byWeeks || []).length
-            ? data.monthly.byWeeks.map(item => `
-                                <div class="bar-item">
-                                    <div class="bar-label">${item.label}</div>
-                                    <div class="bar-progress">
-                                        <div class="bar-fill" style="width:${Math.max(4, Number(item.value || 0) * 10)}%"></div>
-                                    </div>
-                                    <div class="bar-value">${formatHoursValue(item.value)}</div>
-                                </div>
-                            `).join("")
-            : `<div style="color:var(--gray);">Нет данных</div>`
-        }
+                        ${renderBars(data.monthly.byWeeks || [])}
                     </div>
                 </div>
             </div>
         </div>
 
         <div id="performanceReport" class="report-card hidden">
-            <h3 style="margin-bottom:20px;">Продуктивность</h3>
+            <h3 style="margin-bottom:20px;">Анализ продуктивности</h3>
 
             <div class="stats-grid" style="margin-bottom:20px;">
                 <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-bolt"></i></div>
+                    <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
                     <div class="stat-info">
                         <div class="stat-value">${data.performance.efficiency}%</div>
-                        <div class="stat-label">Эффективность</div>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-business-time"></i></div>
-                    <div class="stat-info">
-                        <div class="stat-value">${formatHoursValue(data.performance.overtime)}</div>
-                        <div class="stat-label">Переработка</div>
+                        <div class="stat-label">Общая эффективность</div>
                     </div>
                 </div>
 
@@ -414,6 +345,38 @@ function renderReports(data) {
                         <div class="stat-label">Просроченных задач</div>
                     </div>
                 </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-business-time"></i></div>
+                    <div class="stat-info">
+                        <div class="stat-value">${formatHoursValue(data.performance.overtime)}</div>
+                        <div class="stat-label">Часов переработки</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-box">
+                    <div class="chart-title">План / факт по часам</div>
+                    <div class="bar-chart">
+                        ${renderBars([
+        { label: "План", value: data.performance.plannedHours },
+        { label: "Факт", value: data.performance.actualHours }
+    ])}
+                    </div>
+                </div>
+
+                <div class="chart-box">
+                    <div class="chart-title">Задачи по статусам</div>
+                    <div class="bar-chart">
+                        ${renderBars([
+        { label: "Новые", value: data.performance.newCount },
+        { label: "В работе", value: data.performance.progressCount },
+        { label: "На проверке", value: data.performance.reviewCount },
+        { label: "Завершены", value: data.performance.doneCount }
+    ])}
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -422,26 +385,26 @@ function renderReports(data) {
 
             <div class="stats-grid" style="margin-bottom:20px;">
                 <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-exclamation-circle"></i></div>
+                    <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
                     <div class="stat-info">
                         <div class="stat-value">${data.overdue.count}</div>
-                        <div class="stat-label">Просроченных задач</div>
+                        <div class="stat-label">Всего просрочено</div>
                     </div>
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-calendar-times"></i></div>
+                    <div class="stat-icon"><i class="fas fa-clock"></i></div>
                     <div class="stat-info">
                         <div class="stat-value">${data.overdue.averageDelay}</div>
-                        <div class="stat-label">Средняя задержка (дней)</div>
+                        <div class="stat-label">Средняя просрочка, дней</div>
                     </div>
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-icon"><i class="fas fa-user"></i></div>
                     <div class="stat-info">
                         <div class="stat-value">${data.overdue.assignees}</div>
-                        <div class="stat-label">Сотрудников с просрочками</div>
+                        <div class="stat-label">Сотрудников с просрочкой</div>
                     </div>
                 </div>
             </div>
@@ -453,27 +416,12 @@ function renderReports(data) {
                             <th>Задача</th>
                             <th>Проект</th>
                             <th>Исполнитель</th>
-                            <th>Дедлайн</th>
+                            <th>Срок</th>
                             <th>Просрочка</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${(data.overdue.items || []).length
-            ? data.overdue.items.map(item => `
-                                <tr>
-                                    <td>${item.name}</td>
-                                    <td>${item.project}</td>
-                                    <td>${item.assignee}</td>
-                                    <td>${item.deadline}</td>
-                                    <td>${item.delayDays} дн.</td>
-                                </tr>
-                            `).join("")
-            : `
-                                <tr>
-                                    <td colspan="5" style="text-align:center; color:var(--gray);">Нет данных</td>
-                                </tr>
-                            `
-        }
+                        ${renderOverdueRows(data.overdue.items || [])}
                     </tbody>
                 </table>
             </div>
@@ -484,7 +432,7 @@ function renderReports(data) {
 
             <div class="stats-grid" style="margin-bottom:20px;">
                 <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                    <div class="stat-icon"><i class="fas fa-business-time"></i></div>
                     <div class="stat-info">
                         <div class="stat-value">${formatHoursValue(data.overtime.total)}</div>
                         <div class="stat-label">Всего переработки</div>
@@ -492,7 +440,7 @@ function renderReports(data) {
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-arrow-up"></i></div>
+                    <div class="stat-icon"><i class="fas fa-calendar-day"></i></div>
                     <div class="stat-info">
                         <div class="stat-value">${formatHoursValue(data.overtime.maxDay)}</div>
                         <div class="stat-label">Максимум за день</div>
@@ -500,11 +448,18 @@ function renderReports(data) {
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-calendar-day"></i></div>
+                    <div class="stat-icon"><i class="fas fa-list"></i></div>
                     <div class="stat-info">
                         <div class="stat-value">${data.overtime.daysCount}</div>
                         <div class="stat-label">Дней с переработкой</div>
                     </div>
+                </div>
+            </div>
+
+            <div class="chart-box">
+                <div class="chart-title">Переработка по дням</div>
+                <div class="bar-chart">
+                    ${renderBars(data.overtime.byDays || [])}
                 </div>
             </div>
         </div>
@@ -514,27 +469,39 @@ function renderReports(data) {
 
             <div class="stats-grid" style="margin-bottom:20px;">
                 <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-percent"></i></div>
+                    <div class="stat-icon"><i class="fas fa-gift"></i></div>
                     <div class="stat-info">
                         <div class="stat-value">${data.bonus.percent}%</div>
-                        <div class="stat-label">Процент бонуса</div>
+                        <div class="stat-label">Рекомендованный бонус</div>
                     </div>
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-money-bill-wave"></i></div>
+                    <div class="stat-icon"><i class="fas fa-ruble-sign"></i></div>
                     <div class="stat-info">
-                        <div class="stat-value">${formatMoneyValue(data.bonus.amount)}</div>
+                        <div class="stat-value">${formatMoney(data.bonus.amount)}</div>
                         <div class="stat-label">Сумма бонуса</div>
                     </div>
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-gift"></i></div>
+                    <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
                     <div class="stat-info">
-                        <div class="stat-value">${data.bonus.reason || "—"}</div>
+                        <div class="stat-value">${data.bonus.reason}</div>
                         <div class="stat-label">Основание</div>
                     </div>
+                </div>
+            </div>
+
+            <div class="chart-box">
+                <div class="chart-title">Основа расчета</div>
+                <div class="bar-chart">
+                    ${renderBars([
+        { label: "Эффективность", value: data.performance.efficiency },
+        { label: "План часов", value: data.performance.plannedHours },
+        { label: "Факт часов", value: data.performance.actualHours },
+        { label: "Завершено задач", value: data.monthly.completedTasks }
+    ])}
                 </div>
             </div>
         </div>
@@ -543,10 +510,85 @@ function renderReports(data) {
     showReport(activeId);
 }
 
-function formatHoursValue(value) {
-    return `${Number(value || 0).toFixed(2)} ч`;
+function renderEntryRows(items) {
+    if (!items.length) {
+        return `<tr><td colspan="4" style="text-align:center; color:var(--gray);">Нет данных за выбранный период</td></tr>`;
+    }
+
+    return items.map(x => `
+        <tr>
+            <td>${escapeHtml(x.task)}</td>
+            <td>${escapeHtml(x.project)}</td>
+            <td>${formatHours(x.hours)}</td>
+            <td><span class="badge ${getStatusClass(x.status)}">${getStatusText(x.status)}</span></td>
+        </tr>
+    `).join("");
 }
 
-function formatMoneyValue(value) {
-    return `${Number(value || 0).toFixed(2)} BYN`;
+function renderOverdueRows(items) {
+    if (!items.length) {
+        return `<tr><td colspan="5" style="text-align:center; color:var(--gray);">Просроченных задач нет</td></tr>`;
+    }
+
+    return items.map(x => `
+        <tr>
+            <td>${escapeHtml(x.name)}</td>
+            <td>${escapeHtml(x.project)}</td>
+            <td>${escapeHtml(x.assignee)}</td>
+            <td>${escapeHtml(x.deadline)}</td>
+            <td>${x.delayDays} дн.</td>
+        </tr>
+    `).join("");
 }
+
+function renderBars(items) {
+    if (!items.length) {
+        return `<div style="color:var(--gray);">Нет данных</div>`;
+    }
+
+    const max = Math.max(...items.map(x => Number(x.value || 0)), 1);
+
+    return items.map(item => {
+        const width = Math.max(4, Math.round((Number(item.value || 0) / max) * 100));
+
+        return `
+            <div class="bar-item">
+                <div class="bar-label">${escapeHtml(item.label)}</div>
+                <div class="bar-progress">
+                    <div class="bar-fill" style="width:${width}%;"></div>
+                </div>
+                <div class="bar-value">${formatBarValue(item.value)}</div>
+            </div>
+        `;
+    }).join("");
+}
+
+function formatBarValue(value) {
+    if (Number.isInteger(value)) {
+        return String(value);
+    }
+
+    return formatHoursValue(value) + " ч";
+}
+
+function formatHours(value) {
+    return `${formatHoursValue(value)} ч`;
+}
+
+function formatHoursValue(value) {
+    return Number(value || 0).toFixed(1).replace(".0", "");
+}
+
+function formatMoney(value) {
+    return Number(value || 0).toLocaleString("ru-RU");
+}
+
+function escapeHtml(value) {
+    return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+

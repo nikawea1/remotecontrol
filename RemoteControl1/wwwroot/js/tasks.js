@@ -1,15 +1,5 @@
-﻿//tasks.js
-
-function getAvailableTimerTasks() {
-    const allTasks = Array.isArray(tasks) ? tasks : [];
-
-    if (!currentUserId || Number(currentUserId) <= 0) {
-        return [];
-    }
-
-    return allTasks.filter(t => Number(t.userId) === Number(currentUserId));
-}
-
+﻿
+//tasks.js
 function renderDashboard() {
     const activeTasks = document.getElementById("activeTasks");
     const completedTasks = document.getElementById("completedTasks");
@@ -36,13 +26,27 @@ function renderDashboard() {
     }
 }
 
+
+function getAvailableTimerTasks() {
+    const allTasks = Array.isArray(tasks) ? tasks : [];
+
+    if (!currentUserId || Number(currentUserId) <= 0) {
+        return [];
+    }
+
+    return allTasks.filter(t => Number(t.userId) === Number(currentUserId));
+}
+
+
 function renderDashboardTasks() {
     const container = document.getElementById("dashboardTasks");
-    if (!container) return;
+    if (!container) {
+        return;
+    }
 
     const dashboardItems = getAvailableTimerTasks().slice(0, 3);
 
-    if (!dashboardItems.length) {
+    if (dashboardItems.length === 0) {
         container.innerHTML = `
             <div class="card" style="grid-column: 1 / -1; margin-bottom:0;">
                 <div style="color: var(--gray);">Задач пока нет</div>
@@ -71,7 +75,9 @@ function renderDashboardTasks() {
 
 function renderActivityLog() {
     const container = document.getElementById("activityLog");
-    if (!container) return;
+    if (!container) {
+        return;
+    }
 
     if (!timeEntries.length) {
         container.innerHTML = `
@@ -96,7 +102,9 @@ function renderActivityLog() {
 
 function fillProjectFilter() {
     const select = document.getElementById("taskProjectFilter");
-    if (!select) return;
+    if (!select) {
+        return;
+    }
 
     select.innerHTML =
         `<option value="all">Все проекты</option>` +
@@ -105,12 +113,16 @@ function fillProjectFilter() {
 
 function fillProjectSelect(selectId, selectedId = null) {
     const select = document.getElementById(selectId);
-    if (!select) return;
+    if (!select) {
+        return;
+    }
 
     select.innerHTML = projects.map(p =>
         `<option value="${p.id}" ${selectedId == p.id ? "selected" : ""}>${p.name}</option>`
     ).join("");
 }
+
+
 
 function getUsersForProject(projectId) {
     const project = projects.find(p => Number(p.id) === Number(projectId));
@@ -173,6 +185,9 @@ function fillTaskStageSelect(projectId, selectId, selectedStageName = "") {
         `).join("");
 }
 
+
+
+
 function fillTaskSelects() {
     const availableTasks = getAvailableTimerTasks();
 
@@ -230,11 +245,14 @@ function fillTaskSelects() {
     }
 }
 
+
 function syncTrackerTaskSelects() {
     const currentTask = document.getElementById("currentTask");
     const currentTaskFull = document.getElementById("currentTaskFull");
 
-    if (!currentTask || !currentTaskFull) return;
+    if (!currentTask || !currentTaskFull) {
+        return;
+    }
 
     currentTask.onchange = function () {
         const taskId = Number(currentTask.value || 0);
@@ -266,7 +284,9 @@ function syncTrackerTaskSelects() {
 }
 
 function setActiveTask(task) {
-    if (!task) return;
+    if (!task) {
+        return;
+    }
 
     activeTaskId = Number(task.id);
     activeTaskName = task.name || "";
@@ -275,9 +295,32 @@ function setActiveTask(task) {
     const currentTaskFull = document.getElementById("currentTaskFull");
     const quickTask = document.getElementById("quickTask");
 
-    if (currentTask) currentTask.value = String(task.id);
-    if (currentTaskFull) currentTaskFull.value = String(task.id);
-    if (quickTask) quickTask.value = String(task.id);
+    if (currentTask) {
+        currentTask.value = String(task.id);
+    }
+
+    if (currentTaskFull) {
+        currentTaskFull.value = String(task.id);
+    }
+
+    if (quickTask) {
+        quickTask.value = String(task.id);
+    }
+}
+
+function getStatusOptions(selected) {
+    const statuses = [
+        { value: "new", text: "Новая" },
+        { value: "progress", text: "В работе" },
+        { value: "review", text: "На проверке" },
+        { value: "done", text: "Завершена" }
+    ];
+
+    return statuses.map(s => `
+        <option value="${s.value}" ${s.value === selected ? "selected" : ""}>
+            ${s.text}
+        </option>
+    `).join("");
 }
 
 async function saveEmployeeTaskStatus(taskId) {
@@ -288,11 +331,11 @@ async function saveEmployeeTaskStatus(taskId) {
     const task = tasks.find(x => x.id === taskId);
     if (!task) return;
 
-    const response = await fetch("/MainPage?handler=UpdateTask", {
-        method: "POST",
+    const response = await fetch('/MainPage?handler=UpdateTask', {
+        method: 'POST',
         headers: {
-            "Content-Type": "application/json",
-            "RequestVerificationToken": getRequestVerificationToken()
+            'Content-Type': 'application/json',
+            'RequestVerificationToken': getRequestVerificationToken()
         },
         body: JSON.stringify({
             id: task.id,
@@ -311,7 +354,7 @@ async function saveEmployeeTaskStatus(taskId) {
     const result = await response.json();
 
     if (!result.ok) {
-        showNotification(result.error || "Не удалось изменить статус");
+        showNotification(result.error || 'Не удалось изменить статус');
         return;
     }
 
@@ -324,13 +367,14 @@ async function saveEmployeeTaskStatus(taskId) {
     renderDashboard();
     renderDashboardTasks();
     renderProjects();
-
-    showNotification("Статус обновлён");
+    showNotification('Статус обновлён');
 }
 
 function renderTasksTable() {
     const container = document.getElementById("tasksTable");
-    if (!container) return;
+    if (!container) {
+        return;
+    }
 
     const filterStatus = document.getElementById("taskStatusFilter")?.value || "all";
     const filterPriority = document.getElementById("taskPriorityFilter")?.value || "all";
@@ -355,87 +399,89 @@ function renderTasksTable() {
     }
 
     container.innerHTML = filteredTasks.map(task => `
-        <tr>
-            <td>#${task.id}</td>
-            <td><strong>${task.name}</strong></td>
-            <td>${task.project}</td>
-            <td>${task.stageName || "-"}</td>
-            <td><span class="badge ${getPriorityClass(task.priority)}">${getPriorityText(task.priority)}</span></td>
-            <td>${task.deadline || ""}</td>
-            <td>
-                ${isEmployee
+    <tr>
+        <td>#${task.id}</td>
+        <td><strong>${task.name}</strong></td>
+        <td>${task.project}</td>
+        <td>${task.stageName || "-"}</td>
+        <td><span class="badge ${getPriorityClass(task.priority)}">${getPriorityText(task.priority)}</span></td>
+        <td>${task.deadline || ""}</td>
+        <td>
+    ${isEmployee
             ? `<div class="task-status-cell">
-                            <div class="status-dropdown">
-                                <input type="hidden" id="employeeStatus_${task.id}" class="employee-status-value" value="${task.status}">
-                                <button type="button"
-                                        class="status-badge ${getStatusBadgeClass(task.status)} task-status-badge"
-                                        onclick="toggleStatusMenu(this)">
-                                    <span class="status-badge-dot"></span>
-                                    <span class="status-badge-text">${getStatusText(task.status)}</span>
-                                    <i class="fas fa-chevron-down status-badge-arrow"></i>
-                                </button>
+            <div class="status-dropdown">
+                <input type="hidden" id="employeeStatus_${task.id}" class="employee-status-value" value="${task.status}">
+                <button type="button"
+                        class="status-badge ${getStatusBadgeClass(task.status)} task-status-badge"
+                        onclick="toggleStatusMenu(this)">
+                    <span class="status-badge-dot"></span>
+                    <span class="status-badge-text">${getStatusText(task.status)}</span>
+                    <i class="fas fa-chevron-down status-badge-arrow"></i>
+                </button>
 
-                                <div class="status-menu hidden">
-                                    <button type="button" class="status-menu-item" onclick="changeStatus(this, 'new')">
-                                        <span class="status-menu-dot status-new-dot"></span>
-                                        <span>Новая</span>
-                                    </button>
-                                    <button type="button" class="status-menu-item" onclick="changeStatus(this, 'progress')">
-                                        <span class="status-menu-dot status-progress-dot"></span>
-                                        <span>В работе</span>
-                                    </button>
-                                    <button type="button" class="status-menu-item" onclick="changeStatus(this, 'review')">
-                                        <span class="status-menu-dot status-review-dot"></span>
-                                        <span>На проверке</span>
-                                    </button>
-                                    <button type="button" class="status-menu-item" onclick="changeStatus(this, 'done')">
-                                        <span class="status-menu-dot status-done-dot"></span>
-                                        <span>Завершена</span>
-                                    </button>
-                                </div>
-                            </div>
-                       </div>`
-            : `<span class="task-status ${getStatusBadgeClass(task.status)}">${getStatusText(task.status)}</span>`
-        }
-            </td>
-            <td><span class="task-assignee-name">${task.assignee || ""}</span></td>
-            <td>
-                <div class="table-actions">
-                    ${isEmployee
-            ? `<button class="btn btn-sm btn-primary" onclick="saveEmployeeTaskStatus(${task.id})" title="Сохранить статус">
-                                <i class="fas fa-save"></i>
-                           </button>`
-            : `<button class="btn btn-sm btn-outline" onclick="openEditTaskModal(${task.id})" title="Редактировать">
-                                <i class="fas fa-edit"></i>
-                           </button>
-                           <button class="btn btn-sm btn-danger" onclick="openDeleteTaskModal(${task.id})" title="Удалить">
-                                <i class="fas fa-trash"></i>
-                           </button>`
-        }
-
-                    ${(isEmployee || isManager || isAdmin) ? `
-                        <button class="btn btn-sm btn-success" onclick="startTask(${task.id})" title="Начать">
-                            <i class="fas fa-play"></i>
-                        </button>
-                    ` : ``}
+                <div class="status-menu hidden">
+                    <button type="button" class="status-menu-item" onclick="changeStatus(this, 'new')">
+                        <span class="status-menu-dot status-new-dot"></span>
+                        <span>Новая</span>
+                    </button>
+                    <button type="button" class="status-menu-item" onclick="changeStatus(this, 'progress')">
+                        <span class="status-menu-dot status-progress-dot"></span>
+                        <span>В работе</span>
+                    </button>
+                    <button type="button" class="status-menu-item" onclick="changeStatus(this, 'review')">
+                        <span class="status-menu-dot status-review-dot"></span>
+                        <span>На проверке</span>
+                    </button>
+                    <button type="button" class="status-menu-item" onclick="changeStatus(this, 'done')">
+                        <span class="status-menu-dot status-done-dot"></span>
+                        <span>Завершена</span>
+                    </button>
                 </div>
-            </td>
-        </tr>
-    `).join("");
+            </div>
+       </div>`
+            : `<span class="task-status ${getStatusBadgeClass(task.status)}">${getStatusText(task.status)}</span>`
+}
+</td>
+        <td><span class="task-assignee-name">${task.assignee || ""}</span></td>
+        <td>
+            <div class="table-actions">
+                ${isEmployee
+            ? `<button class="btn btn-sm btn-primary" onclick="saveEmployeeTaskStatus(${task.id})" title="Сохранить статус">
+                            <i class="fas fa-save"></i>
+                       </button>`
+            : `<button class="btn btn-sm btn-outline" onclick="openEditTaskModal(${task.id})" title="Редактировать">
+                            <i class="fas fa-edit"></i>
+                       </button>
+                       <button class="btn btn-sm btn-danger" onclick="openDeleteTaskModal(${task.id})" title="Удалить">
+                            <i class="fas fa-trash"></i>
+                       </button>`
+        }
+
+                ${(isEmployee || isManager || isAdmin) ? `
+                    <button class="btn btn-sm btn-success" onclick="startTask(${task.id})" title="Начать">
+                        <i class="fas fa-play"></i>
+                    </button>
+                ` : ``}
+            </div>
+        </td>
+    </tr>
+`).join("");
 }
 
 function filterTasks() {
     renderTasksTable();
 }
 
-
-
 function showAddTaskModal(projectId = null, stageName = "") {
     if (isEmployee) return;
+
+    const modal = document.getElementById("addTaskModal");
+    if (!modal) return;
 
     const taskName = document.getElementById("taskName");
     const taskDescription = document.getElementById("taskDescription");
     const taskProjectSelect = document.getElementById("taskProjectSelect");
+    const taskStageSelect = document.getElementById("taskStageSelect");
     const taskPriority = document.getElementById("taskPriority");
     const taskPlannedTime = document.getElementById("taskPlannedTime");
     const taskDeadline = document.getElementById("taskDeadline");
@@ -465,7 +511,7 @@ function showAddTaskModal(projectId = null, stageName = "") {
         };
     }
 
-    openModal("addTaskModal");
+    modal.classList.add("show");
 }
 
 async function addTask() {
@@ -530,6 +576,7 @@ async function addTask() {
         closeModal("addTaskModal");
 
         fillTaskSelects();
+
         refreshProjectsStats();
         renderTasksTable();
         renderDashboard();
@@ -567,6 +614,7 @@ function openEditTaskModal(id) {
     const editTaskStatus = document.getElementById("editTaskStatus");
     const editTaskPlannedTime = document.getElementById("editTaskPlannedTime");
     const editTaskDeadline = document.getElementById("editTaskDeadline");
+    const modal = document.getElementById("editTaskModal");
 
     if (editTaskId) editTaskId.value = task.id;
     if (editTaskName) editTaskName.value = task.name || "";
@@ -594,10 +642,13 @@ function openEditTaskModal(id) {
         };
     }
 
-    openModal("editTaskModal");
+    if (modal) {
+        modal.classList.add("show");
+    }
 }
 
 async function saveTaskChanges() {
+
     const stageName = document.getElementById("editTaskStageSelect")?.value || "";
 
     const dto = {
@@ -610,14 +661,13 @@ async function saveTaskChanges() {
         status: document.getElementById("editTaskStatus")?.value || "new",
         plannedTime: parseFloat(document.getElementById("editTaskPlannedTime")?.value || "0"),
         deadline: document.getElementById("editTaskDeadline")?.value || null,
-        stageName: stageName
+        stageName: stageName,
     };
 
     if (!dto.name) {
         showNotification("Введите название задачи");
         return;
     }
-
     if (!stageName) {
         showNotification("Выберите этап проекта");
         return;
@@ -688,11 +738,11 @@ function openDeleteTaskModal(id) {
 
     const deleteTaskId = document.getElementById("deleteTaskId");
     const deleteTaskName = document.getElementById("deleteTaskName");
+    const modal = document.getElementById("deleteTaskModal");
 
     if (deleteTaskId) deleteTaskId.value = task.id;
     if (deleteTaskName) deleteTaskName.textContent = task.name;
-
-    openModal("deleteTaskModal");
+    if (modal) modal.classList.add("show");
 }
 
 async function confirmDeleteTask() {
@@ -714,10 +764,8 @@ async function confirmDeleteTask() {
             showNotification(data?.error || "Ошибка удаления");
             return;
         }
-
         const deletedTask = tasks.find(t => t.id === id);
         const deletedProjectId = deletedTask ? deletedTask.projectId : 0;
-
         tasks = tasks.filter(t => t.id !== id);
 
         closeModal("deleteTaskModal");
@@ -725,7 +773,7 @@ async function confirmDeleteTask() {
         renderDashboard();
         renderDashboardTasks();
         fillTaskSelects();
-
+    
         refreshProjectsStats();
         renderProjects();
 
@@ -791,6 +839,7 @@ async function startTask(id) {
 
             setActiveTask(updatedTask);
             fillTaskSelects();
+         
             refreshProjectsStats();
             renderTasksTable();
             renderDashboard();
@@ -806,3 +855,14 @@ async function startTask(id) {
     highlightBottomTracker();
     showNotification(`Запущена задача: ${task.name}`);
 }
+
+function formatManualRequestDate(value) {
+    if (!value) {
+        return "-";
+    }
+
+    return `<span class="manual-date">${value}</span>`;
+}
+
+
+

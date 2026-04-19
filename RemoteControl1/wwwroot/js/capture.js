@@ -56,6 +56,7 @@ async function loadCaptureSettings() {
     const screenInterval = document.getElementById("screenInterval");
     const webcamInterval = document.getElementById("webcamInterval");
     const idleTimeout = document.getElementById("idleTimeout");
+
     const enableScreen = document.getElementById("enableScreenShots");
     const enableWebcam = document.getElementById("enableWebcamShots");
 
@@ -177,6 +178,7 @@ function resetSettings() {
     showNotification("Значения сброшены. Не забудьте сохранить");
 }
 
+
 async function ensureWebcamAccess() {
     if (webcamStream) {
         return true;
@@ -222,7 +224,9 @@ async function captureWebcamScreenshot() {
     ctx.drawImage(webcamVideo, 0, 0, canvas.width, canvas.height);
 
     const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
-    if (!blob) return;
+    if (!blob) {
+        return;
+    }
 
     const formData = new FormData();
     formData.append("file", blob, "webcam.png");
@@ -308,7 +312,9 @@ async function captureScreenshot() {
     ctx.drawImage(screenshotVideo, 0, 0, canvas.width, canvas.height);
 
     const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
-    if (!blob) return;
+    if (!blob) {
+        return;
+    }
 
     const formData = new FormData();
     formData.append("file", blob, "screen.png");
