@@ -1,4 +1,315 @@
 ﻿@page
+@* Файл: RemoteControl1/Pages/Profile.cshtml *@
 @model RemoteControl1.Pages.ProfileModel
 @{
+    ViewData["Title"] = "Профиль";
+}
+
+<div id="profilePage" class="container main-content page-content">
+    <div class="page-content">
+        <div class="content-header">
+            <h1 class="page-title">
+                <i class="fas fa-user-circle"></i> Мой профиль
+            </h1>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 300px 1fr; gap:24px;">
+            <div class="card">
+                <div style="text-align:center; margin-bottom:20px;">
+                    <div class="profile-dropdown-avatar" style="margin:0 auto 16px; width:90px; height:90px; font-size:34px;" id="profileAvatarBig">
+                        U
+                    </div>
+
+                    <h3 id="profileCardName" style="margin-bottom:6px;">Пользователь</h3>
+                    <div id="profileCardPosition" style="color:var(--gray); margin-bottom:8px;">—</div>
+                    <div id="profileCardEmail" style="color:var(--gray); font-size:14px;">—</div>
+                </div>
+
+                <div class="stats-grid" style="grid-template-columns:1fr; gap:12px; margin-bottom:20px;">
+                    <div class="project-stat">
+                        <div class="stat-label">Роль</div>
+                        <div class="project-name" id="profileRoleText">—</div>
+                    </div>
+
+                    <div class="project-stat">
+                        <div class="stat-label">Статус</div>
+                        <div class="project-name" id="profileStatusText">—</div>
+                    </div>
+
+                    <div class="project-stat">
+                        <div class="stat-label">Часовая ставка</div>
+                        <div class="project-name" id="profileRateText">—</div>
+                    </div>
+                </div>
+
+                <div class="admin-tabs" style="flex-direction:column;">
+                    <button class="admin-tab-btn active" type="button" onclick="showProfileTab('profileInfo', this)">
+                        <i class="fas fa-id-card"></i> Основное
+                    </button>
+                    <button class="admin-tab-btn" type="button" onclick="showProfileTab('profileContacts', this)">
+                        <i class="fas fa-address-book"></i> Контакты
+                    </button>
+                    <button class="admin-tab-btn" type="button" onclick="showProfileTab('profileWork', this)">
+                        <i class="fas fa-briefcase"></i> Работа
+                    </button>
+                    <button class="admin-tab-btn" type="button" onclick="showProfileTab('profileSecurity', this)">
+                        <i class="fas fa-shield-alt"></i> Безопасность
+                    </button>
+                    <button class="admin-tab-btn" type="button" onclick="showProfileTab('profilePrefs', this)">
+                        <i class="fas fa-sliders-h"></i> Настройки
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <div id="profileInfo" class="admin-tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-user"></i> Основная информация</h3>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">ФИО</label>
+                                <input class="form-control" id="profileFullName" autocomplete="name" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Логин</label>
+                                <input class="form-control" id="profileLogin" autocomplete="username" readonly>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="profileEmail" autocomplete="email">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Телефон</label>
+                                <input type="tel" class="form-control" id="profilePhone" autocomplete="tel">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Должность</label>
+                                <input class="form-control" id="profilePosition" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Роль</label>
+                                <input class="form-control" id="profileRole" readonly>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Статус</label>
+                                <input class="form-control" id="profileStatus" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Ставка</label>
+                                <input class="form-control" id="profileRate" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="profileContacts" class="admin-tab-content hidden">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-address-book"></i> Контактные данные</h3>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="profileContactEmail" autocomplete="email">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Телефон</label>
+                                <input type="tel" class="form-control" id="profileContactPhone" autocomplete="tel">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Комментарий</label>
+                            <textarea class="form-control" id="profileContactNote" rows="4" placeholder="Личная заметка о контактах"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="profileWork" class="admin-tab-content hidden">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-tasks"></i></div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="profileActiveTasks">0</div>
+                                <div class="stat-label">Активных задач</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="profileDoneTasks">0</div>
+                                <div class="stat-label">Выполнено задач</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="profileHours">0</div>
+                                <div class="stat-label">Часов отработано</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-folder-open"></i></div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="profileProjectsCount">0</div>
+                                <div class="stat-label">Проектов</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-history"></i> Последняя активность</h3>
+                        </div>
+
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Дата</th>
+                                        <th>Задача</th>
+                                        <th>Часы</th>
+                                        <th>Комментарий</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="profileActivityBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="profileSecurity" class="admin-tab-content hidden">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-lock"></i> Безопасность</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Текущий пароль</label>
+                            <input type="password" class="form-control" id="profileCurrentPassword" placeholder="Введите текущий пароль" autocomplete="current-password">
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Новый пароль</label>
+                                <input type="password" class="form-control" id="profileNewPassword" placeholder="Введите новый пароль" autocomplete="new-password">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Подтверждение</label>
+                                <input type="password" class="form-control" id="profileConfirmPassword" placeholder="Повторите пароль" autocomplete="new-password">
+                            </div>
+                        </div>
+
+                        <div class="modal-footer" style="margin-top:0;">
+                            <button class="btn btn-primary" type="button" onclick="changePassword()">
+                                <i class="fas fa-key"></i> Сменить пароль
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="profilePrefs" class="admin-tab-content hidden">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-cog"></i> Пользовательские настройки</h3>
+                        </div>
+
+                        <div class="settings-grid">
+                            <div class="setting-item">
+                                <label class="form-label">Уведомления в интерфейсе</label>
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="profileNotifyUi">
+                                    <label class="form-check-label" for="profileNotifyUi">Показывать уведомления</label>
+                                </div>
+                            </div>
+
+                            <div class="setting-item">
+                                <label class="form-label">Автовыбор последней задачи</label>
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="profileRememberTask">
+                                    <label class="form-check-label" for="profileRememberTask">Запоминать последнюю задачу</label>
+                                </div>
+                            </div>
+
+                            <div class="setting-item">
+                                <label class="form-label">Снимки экрана</label>
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="profileUseScreens">
+                                    <label class="form-check-label" for="profileUseScreens">Разрешить снимки экрана</label>
+                                </div>
+                            </div>
+
+                            <div class="setting-item">
+                                <label class="form-label">Снимки веб-камеры</label>
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="profileUseWebcam">
+                                    <label class="form-check-label" for="profileUseWebcam">Разрешить снимки веб-камеры</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top:20px;">
+                            <label class="form-label">Личная заметка</label>
+                            <textarea class="form-control" id="profilePersonalNote" rows="4" placeholder="Любая личная заметка по работе"></textarea>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button class="btn btn-outline" type="button" onclick="resetProfilePreferences()">
+                                Сбросить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="modal-footer" style="margin-top:0; justify-content:flex-end;">
+                        <button class="btn btn-primary" type="button" onclick="saveProfile()">
+                            <i class="fas fa-save"></i> Сохранить изменения
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.remoteControlData = {
+        currentUserId: @Model.CurrentUserId,
+        currentUserRole: '@Model.CurrentUserRole',
+        isAdmin: @Model.IsAdmin.ToString().ToLower(),
+        isManager: @Model.IsManager.ToString().ToLower(),
+        isEmployee: @Model.IsEmployee.ToString().ToLower(),
+        currentUserName: '@Html.Raw((Model.CurrentUserName ?? "").Replace("'", "\\'"))',
+        currentUserEmail: '@Html.Raw((Model.CurrentUserEmail ?? "").Replace("'", "\\'"))',
+        currentUserLogin: '@Html.Raw((Model.CurrentUserLogin ?? "").Replace("'", "\\'"))',
+        currentUserPhone: '@Html.Raw((Model.CurrentUserPhone ?? "").Replace("'", "\\'"))',
+        currentUserPosition: '@Html.Raw((Model.CurrentUserPosition ?? "").Replace("'", "\\'"))',
+        currentUserRate: @Model.CurrentUserRate.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        currentUserIsActive: @Model.CurrentUserIsActive.ToString().ToLower(),
+        tasks: @Html.Raw(Model.TasksJson ?? "[]"),
+        projects: @Html.Raw(Model.ProjectsJson ?? "[]"),
+        activity: @Html.Raw(Model.ActivityJson ?? "[]")
+    };
+</script>
+
+@section Scripts {
+    <script src="~/js/users.js" asp-append-version="true"></script>
+    <script src="~/js/profile.js" asp-append-version="true"></script>
 }

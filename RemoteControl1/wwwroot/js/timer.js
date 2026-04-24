@@ -1,14 +1,60 @@
-﻿// timer.js
+﻿// Файл: RemoteControl1/wwwroot/js/timer.js
 
 let bottomTrackerExpanded = false;
-
 let workDayStatusInterval = null;
 
 let idleTimerHandle = null;
 let idleListenersBound = false;
 let idlePauseInProgress = false;
+let currentWorkDayStatus = null;
 
+function getTimerTasks() {
+    if (typeof getAvailableTimerTasks === "function") {
+        return getAvailableTimerTasks();
+    }
 
+    const allTasks = Array.isArray(tasks) ? tasks : [];
+
+    if (!currentUserId || Number(currentUserId) <= 0) {
+        return [];
+    }
+
+    return allTasks.filter(t => Number(t.userId) === Number(currentUserId));
+}
+
+async function startCaptureIfAvailable() {
+    if (typeof startScreenshotCapture === "function") {
+        await startScreenshotCapture();
+    }
+}
+
+function stopCaptureIfAvailable() {
+    if (typeof stopScreenshotCapture === "function") {
+        stopScreenshotCapture();
+    }
+}
+
+function releaseScreenIfAvailable() {
+    if (typeof releaseScreenAccess === "function") {
+        releaseScreenAccess();
+    }
+}
+
+function formatLocalTime(date) {
+    return date.toLocaleTimeString("ru-RU", {
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+}
+
+function normalizeWorkDayEntry(item) {
+    return {
+        date: item?.date ?? item?.Date ?? "-",
+        start: item?.start ?? item?.Start ?? "-",
+        end: item?.end ?? item?.End ?? "-",
+        hours: Number(item?.hours ?? item?.Hours ?? 0)
+    };
+}
 
 function formatTimerValue(totalSeconds) {
     const hours = Math.floor(totalSeconds / 3600);
@@ -22,9 +68,38 @@ function formatTimerValue(totalSeconds) {
 
 function updateTimerDisplay() {
     const timeString = formatTimerValue(seconds);
+
     document.querySelectorAll(".timer, #bottomTimer").forEach(timer => {
         timer.textContent = timeString;
     });
+}
+
+function updateMiniTrackerButtons() {
+    const startBtn = document.getElementById("bottomMiniStart");
+    const pauseBtn = document.getElementById("bottomMiniPause");
+    const stopBtn = document.getElementById("bottomMiniStop");
+
+    if (!startBtn || !pauseBtn || !stopBtn) return;
+
+    if (!isTracking && !isPaused) {
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+        stopBtn.disabled = true;
+        return;
+    }
+
+    if (isTracking && !isPaused) {
+        startBtn.disabled = true;
+        pauseBtn.disabled = false;
+        stopBtn.disabled = false;
+        return;
+    }
+
+    if (isPaused) {
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+        stopBtn.disabled = false;
+    }
 }
 
 function updateBottomTrackerUI() {
@@ -71,35 +146,25 @@ function updateBottomTrackerUI() {
         }
     }
 
-    if (startBtn) {
-        startBtn.disabled = isTracking;
-    }
+    if (startBtn) startBtn.disabled = isTracking;
+    if (pauseBtn) pauseBtn.disabled = !isTracking;
+    if (stopBtn) stopBtn.disabled = !isTracking && !isPaused;
 
-    if (pauseBtn) {
-        pauseBtn.disabled = !isTracking;
-    }
-
-    if (stopBtn) {
-        stopBtn.disabled = !isTracking && !isPaused;
-    }
-    const mainBtn = document.getElementById('bottomMainActionBtn');
-    const mainIcon = document.getElementById('bottomMainActionIcon');
-
-    if (mainBtn && mainIcon) {
-        mainBtn.disabled = false;
+    if (bottomMainActionBtn && bottomMainActionIcon) {
+        bottomMainActionBtn.disabled = false;
 
         if (isTracking) {
-            mainBtn.className = 'bottom-main-action';
-            mainBtn.style.background = '#e53935';
-            mainIcon.className = 'fas fa-stop';
+            bottomMainActionBtn.className = "bottom-main-action";
+            bottomMainActionBtn.style.background = "#e53935";
+            bottomMainActionIcon.className = "fas fa-stop";
         } else if (isPaused) {
-            mainBtn.className = 'bottom-main-action';
-            mainBtn.style.background = '#43a047';
-            mainIcon.className = 'fas fa-play';
+            bottomMainActionBtn.className = "bottom-main-action";
+            bottomMainActionBtn.style.background = "#43a047";
+            bottomMainActionIcon.className = "fas fa-play";
         } else {
-            mainBtn.className = 'bottom-main-action';
-            mainBtn.style.background = 'var(--primary)';
-            mainIcon.className = 'fas fa-play';
+            bottomMainActionBtn.className = "bottom-main-action";
+            bottomMainActionBtn.style.background = "var(--primary)";
+            bottomMainActionIcon.className = "fas fa-play";
         }
     }
 
@@ -130,13 +195,24 @@ function toggleBottomTracker() {
     shell.classList.toggle("collapsed", !bottomTrackerExpanded);
 }
 
-
-
 function updateTimer() {
     if (!isPaused && isTracking) {
         seconds++;
         updateTimerDisplay();
     }
+}
+
+function highlightBottomTracker() {
+    const shell = document.getElementById("bottomTrackerShell");
+    if (!shell) return;
+
+    shell.classList.remove("attention");
+    void shell.offsetWidth;
+    shell.classList.add("attention");
+
+    setTimeout(() => {
+        shell.classList.remove("attention");
+    }, 1600);
 }
 
 async function startTracking() {
@@ -162,7 +238,7 @@ async function startTracking() {
         return;
     }
 
-    const task = getAvailableTimerTasks().find(t => Number(t.id) === Number(selectedTaskId));
+    const task = getTimerTasks().find(t => Number(t.id) === Number(selectedTaskId));
     if (!task) {
         showNotification("Задача не найдена");
         return;
@@ -197,8 +273,8 @@ async function startTracking() {
         updateBottomTrackerUI();
         highlightBottomTracker();
         showNotification(`Трекер запущен: ${task.name}`);
-        await startScreenshotCapture();
 
+        await startCaptureIfAvailable();
         resetIdleTimer();
     } catch {
         showNotification("Ошибка сети/сервера");
@@ -235,7 +311,7 @@ async function pauseTracking(options = {}) {
         clearInterval(timerInterval);
         timerInterval = null;
 
-        const task = getAvailableTimerTasks().find(t => Number(t.id) === Number(activeTaskId));
+        const task = getTimerTasks().find(t => Number(t.id) === Number(activeTaskId));
         const taskName = task ? task.name : "Без задачи";
 
         const entry = {
@@ -252,7 +328,7 @@ async function pauseTracking(options = {}) {
         renderActivityLog();
         renderDashboard();
         updateBottomTrackerUI();
-        stopScreenshotCapture();
+        stopCaptureIfAvailable();
 
         resetIdleTimer();
 
@@ -286,10 +362,10 @@ async function stopTracking() {
         renderDashboard();
         updateBottomTrackerUI();
 
-        stopScreenshotCapture();
-        releaseScreenAccess();
-
+        stopCaptureIfAvailable();
+        releaseScreenIfAvailable();
         resetIdleTimer();
+
         showNotification("Таймер остановлен");
         return;
     }
@@ -309,7 +385,7 @@ async function stopTracking() {
             return;
         }
 
-        const task = getAvailableTimerTasks().find(t => Number(t.id) === Number(activeTaskId));
+        const task = getTimerTasks().find(t => Number(t.id) === Number(activeTaskId));
         const taskName = task ? task.name : "Без задачи";
 
         const entry = {
@@ -337,9 +413,8 @@ async function stopTracking() {
         renderDashboard();
         updateBottomTrackerUI();
 
-        stopScreenshotCapture();
-        releaseScreenAccess();
-
+        stopCaptureIfAvailable();
+        releaseScreenIfAvailable();
         resetIdleTimer();
 
         showNotification(`Сессия завершена.\nОтработано: ${entry.hours} ч`);
@@ -383,6 +458,8 @@ async function startTracker() {
 
 async function stopTracker() {
     try {
+        const previousStatus = currentWorkDayStatus ? { ...currentWorkDayStatus } : null;
+
         if (isTracking || isPaused) {
             await stopTracking();
         }
@@ -420,8 +497,22 @@ async function stopTracker() {
         if (startBtn) startBtn.classList.remove("hidden");
         if (stopBtn) stopBtn.classList.add("hidden");
 
-        stopScreenshotCapture();
-        releaseScreenAccess();
+        stopCaptureIfAvailable();
+        releaseScreenIfAvailable();
+
+        if (previousStatus?.startedAt && previousStatus.startedAt !== "--:--") {
+            workDays = [
+                {
+                    date: new Date().toLocaleDateString("ru-RU"),
+                    start: previousStatus.startedAt,
+                    end: formatLocalTime(new Date()),
+                    hours: Number(data.hours || previousStatus.currentHours || 0)
+                },
+                ...(Array.isArray(workDays) ? workDays : [])
+            ];
+
+            renderWorkDayHistory();
+        }
 
         await loadWorkDayStatus();
 
@@ -483,22 +574,6 @@ async function addTimeEntry() {
     }
 }
 
-function highlightBottomTracker() {
-    const shell = document.getElementById("bottomTrackerShell");
-    if (!shell) return;
-
-    shell.classList.remove("attention");
-    void shell.offsetWidth;
-    shell.classList.add("attention");
-
-    setTimeout(() => {
-        shell.classList.remove("attention");
-    }, 1600);
-}
-
-
-
-
 async function loadWorkDayStatus() {
     try {
         const res = await fetch("/MainPage?handler=WorkDayStatus", {
@@ -522,6 +597,7 @@ async function loadWorkDayStatus() {
 }
 
 function applyWorkDayStatus(status) {
+    currentWorkDayStatus = status ? { ...status } : null;
     isWorkDayStarted = !!status.isWorking;
 
     idleTimeoutMinutes = Number(status.idleTimeoutMinutes || 3);
@@ -621,6 +697,49 @@ function renderWorkDayStatus(status) {
     `;
 }
 
+function renderWorkDayHistory() {
+    const body = document.getElementById("workDayHistory");
+    if (!body) return;
+
+    const items = Array.isArray(workDays)
+        ? workDays.map(normalizeWorkDayEntry)
+        : [];
+
+    if (!items.length) {
+        body.innerHTML = `
+            <tr>
+                <td colspan="4" style="text-align:center; color: var(--gray);">История рабочих сессий пока пуста</td>
+            </tr>
+        `;
+        return;
+    }
+
+    body.innerHTML = items.map(item => `
+        <tr>
+            <td>${item.date || "-"}</td>
+            <td>${item.start || "-"}</td>
+            <td>${item.end || "-"}</td>
+            <td>${Number(item.hours || 0).toFixed(1)} ч</td>
+        </tr>
+    `).join("");
+}
+
+function initTrackerPage() {
+    if (typeof fillTaskSelects === "function") {
+        fillTaskSelects();
+    }
+
+    if (typeof syncTrackerTaskSelects === "function") {
+        syncTrackerTaskSelects();
+    }
+
+    if (typeof loadCaptureSettings === "function") {
+        loadCaptureSettings();
+    }
+
+    renderWorkDayHistory();
+}
+
 function bindIdleListeners() {
     if (idleListenersBound) return;
 
@@ -642,12 +761,6 @@ function handleUserActivity() {
 
 function handleVisibilityChange() {
     if (!isWorkDayStarted) return;
-
-    if (document.hidden) {
-        resetIdleTimer();
-        return;
-    }
-
     resetIdleTimer();
 }
 
@@ -693,7 +806,6 @@ function updateIdleWatcherState() {
     resetIdleTimer();
 }
 
-
 function startWorkDayStatusPolling() {
     if (workDayStatusInterval) {
         clearInterval(workDayStatusInterval);
@@ -707,36 +819,12 @@ function startWorkDayStatusPolling() {
 document.addEventListener("DOMContentLoaded", function () {
     updateTimerDisplay();
     updateBottomTrackerUI();
+
+    if (document.getElementById("trackerPage")) {
+        initTrackerPage();
+    }
+
     bindIdleListeners();
     loadWorkDayStatus();
     startWorkDayStatusPolling();
 });
-
-
-function updateMiniTrackerButtons() {
-    const startBtn = document.getElementById("bottomMiniStart");
-    const pauseBtn = document.getElementById("bottomMiniPause");
-    const stopBtn = document.getElementById("bottomMiniStop");
-
-    if (!startBtn || !pauseBtn || !stopBtn) return;
-
-    if (!isTracking && !isPaused) {
-        startBtn.disabled = false;
-        pauseBtn.disabled = true;
-        stopBtn.disabled = true;
-        return;
-    }
-
-    if (isTracking && !isPaused) {
-        startBtn.disabled = true;
-        pauseBtn.disabled = false;
-        stopBtn.disabled = false;
-        return;
-    }
-
-    if (isPaused) {
-        startBtn.disabled = false;
-        pauseBtn.disabled = true;
-        stopBtn.disabled = false;
-    }
-}

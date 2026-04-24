@@ -1,4 +1,6 @@
-﻿const calendarState = {
+﻿// Файл: RemoteControl1/wwwroot/js/calendar.js
+
+const calendarState = {
     events: Array.isArray(window.remoteControlData?.calendarEvents)
         ? window.remoteControlData.calendarEvents.map(normalizeCalendarEvent)
         : [],
@@ -9,15 +11,23 @@
 
 function normalizeCalendarEvent(ev) {
     const eventDate = new Date(ev.eventDate || ev.EventDate || ev.date || new Date());
+    const rawId = ev.id ?? ev.Id ?? Date.now();
+    const normalizedId = Number(rawId);
 
     return {
-        id: Number(ev.id ?? ev.Id ?? Date.now()),
+        id: Number.isFinite(normalizedId) ? normalizedId : Date.now(),
         title: ev.title ?? ev.Title ?? "Без названия",
         description: ev.description ?? ev.Description ?? "",
         eventType: (ev.eventType ?? ev.EventType ?? ev.type ?? "meeting").toLowerCase(),
         eventDate: eventDate.toISOString(),
         projectId: ev.projectId ?? ev.ProjectId ?? null,
-        locationOrLink: ev.locationOrLink ?? ev.LocationOrLink ?? ""
+        projectName: ev.projectName ?? ev.ProjectName ?? "",
+        locationOrLink: ev.locationOrLink ?? ev.LocationOrLink ?? "",
+        source: ev.source ?? ev.Source ?? "calendar",
+        isReadOnly: Boolean(ev.isReadOnly ?? ev.IsReadOnly ?? false),
+        canManage: Boolean(ev.canManage ?? ev.CanManage ?? false),
+        taskId: ev.taskId ?? ev.TaskId ?? null,
+        taskStatus: ev.taskStatus ?? ev.TaskStatus ?? ""
     };
 }
 
@@ -26,6 +36,28 @@ function initCalendarPage() {
     renderCalendarSidebar();
     renderMiniCalendarMonths();
     fillCalendarProjectSelect();
+    loadCalendarEvents();
+}
+
+async function loadCalendarEvents() {
+    try {
+        const res = await fetch("/Calendar?handler=Events");
+        const data = await res.json();
+
+        if (!res.ok || !data.ok) {
+            showNotification(data?.error || "Не удалось синхронизировать календарь");
+            return;
+        }
+
+        calendarState.events = Array.isArray(data.items)
+            ? data.items.map(normalizeCalendarEvent)
+            : [];
+
+        renderCalendarPage();
+        renderCalendarSidebar();
+    } catch {
+        showNotification("Ошибка синхронизации календаря");
+    }
 }
 
 function renderCalendarPage() {
@@ -51,7 +83,6 @@ function renderCalendarPage() {
     if (firstWeekDay === 0) firstWeekDay = 7;
 
     const daysInMonth = lastDay.getDate();
-
     let html = "";
 
     for (let i = 1; i < firstWeekDay; i++) {
@@ -85,8 +116,7 @@ function renderCalendarPage() {
                 </div>
 
                 ${hiddenCount > 0 ? `
-                    <div class="calendar-more-events"
-                         title="Ещё событий: ${hiddenCount}">
+                    <div class="calendar-more-events" title="Ещё событий: ${hiddenCount}">
                         •••
                     </div>
                 ` : ""}
@@ -100,6 +130,7 @@ function renderCalendarPage() {
 function renderCalendarSidebar() {
     const dateText = document.getElementById("selectedCalendarDateText");
     const list = document.getElementById("calendarEventsListMain");
+
     if (!dateText || !list) return;
 
     const dateStr = formatCalendarDate(calendarState.selectedDate);
@@ -126,6 +157,34 @@ function renderCalendarSidebar() {
                 ${getCalendarEventTypeText(ev.eventType)}
             </div>
             ${ev.description ? `<div class="calendar-side-desc">${escapeHtml(ev.description)}</div>` : ""}
+            ${ev.locationOrLink ? `
+                <div class="calendar-side-link">
+                    <i class="fas fa-location-dot"></i>
+                    ${escapeHtml(ev.locationOrLink)}
+                </div>
+            ` : ""}
+            ${ev.projectName ? `
+                <div class="calendar-side-link">
+                    <i class="fas fa-folder"></i>
+                    ${escapeHtml(ev.projectName)}
+                </div>
+            ` : ""}
+            ${ev.source === "task" ? `
+                <div class="calendar-side-link">
+                    <i class="fas fa-lock"></i>
+                    Системное событие из дедлайна задачи
+                </div>
+            ` : ""}
+            ${ev.canManage && !ev.isReadOnly ? `
+                <div class="calendar-side-actions">
+                    <button class="btn btn-sm btn-outline" type="button" onclick="openEditCalendarEvent(${ev.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" type="button" onclick="deleteCalendarEvent(${ev.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            ` : ""}
         </div>
     `).join("");
 }
@@ -142,6 +201,7 @@ function prevCalendarMonth() {
         calendarState.currentDate.getMonth() - 1,
         1
     );
+
     renderCalendarPage();
     renderMiniCalendarMonths();
 }
@@ -152,6 +212,7 @@ function nextCalendarMonth() {
         calendarState.currentDate.getMonth() + 1,
         1
     );
+
     renderCalendarPage();
     renderMiniCalendarMonths();
 }
@@ -159,6 +220,7 @@ function nextCalendarMonth() {
 function toggleMiniCalendar() {
     const popup = document.getElementById("miniCalendarPopup");
     if (!popup) return;
+
     popup.classList.toggle("hidden");
 }
 
@@ -170,6 +232,7 @@ function changeMiniCalendarYear(step) {
 function renderMiniCalendarMonths() {
     const yearLabel = document.getElementById("miniCalendarYearLabel");
     const monthsWrap = document.getElementById("miniCalendarMonths");
+
     if (!yearLabel || !monthsWrap) return;
 
     yearLabel.textContent = calendarState.miniYear;
@@ -187,7 +250,9 @@ function pickMiniCalendarMonth(monthIndex) {
     calendarState.currentDate = new Date(calendarState.miniYear, monthIndex, 1);
 
     const popup = document.getElementById("miniCalendarPopup");
-    if (popup) popup.classList.add("hidden");
+    if (popup) {
+        popup.classList.add("hidden");
+    }
 
     renderCalendarPage();
     renderCalendarSidebar();
@@ -195,64 +260,39 @@ function pickMiniCalendarMonth(monthIndex) {
 
 function getEventsForDate(dateStr) {
     return calendarState.events
-        .filter(ev => {
-            const evDate = formatCalendarDate(new Date(ev.eventDate));
-            return evDate === dateStr;
-        })
+        .filter(ev => formatCalendarDate(new Date(ev.eventDate)) === dateStr)
         .sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate));
 }
 
 function getCalendarEventClass(type) {
     switch ((type || "").toLowerCase()) {
-        case "meeting":
-            return "event-meeting";
-        case "meetup":
-            return "event-meetup";
-        case "task":
-            return "event-task";
-        case "deadline":
-            return "event-deadline";
-        case "review":
-            return "event-review";
-        case "call":
-            return "event-call";
-        case "presentation":
-            return "event-presentation";
-        case "personal":
-            return "event-personal";
-        case "reminder":
-            return "event-reminder";
-        case "other":
-            return "event-other";
-        default:
-            return "event-default";
+        case "meeting": return "event-meeting";
+        case "meetup": return "event-meetup";
+        case "task": return "event-task";
+        case "deadline": return "event-deadline";
+        case "review": return "event-review";
+        case "call": return "event-call";
+        case "presentation": return "event-presentation";
+        case "personal": return "event-personal";
+        case "reminder": return "event-reminder";
+        case "other": return "event-other";
+        default: return "event-default";
     }
 }
 
 function getCalendarEventTypeText(type) {
     switch ((type || "").toLowerCase()) {
-        case "meeting":
-            return "Встреча";
-        case "meetup":
-            return "Митап";
-        case "task":
-            return "Задача";
-        case "deadline":
-            return "Дедлайн";
-        case "review":
-            return "Проверка";
-        case "call":
-            return "Звонок";
-        case "presentation":
-            return "Презентация";
-        case "personal":
-            return "Личное";
-        case "reminder":
-            return "Напоминание";
-        case "other":
-            return "Другое";
-        default:
-            return "Событие";
+        case "meeting": return "Встреча";
+        case "meetup": return "Митап";
+        case "task": return "Задача";
+        case "deadline": return "Дедлайн";
+        case "review": return "Проверка";
+        case "call": return "Звонок";
+        case "presentation": return "Презентация";
+        case "personal": return "Личное";
+        case "reminder": return "Напоминание";
+        case "other": return "Другое";
+        default: return "Событие";
     }
 }
 
@@ -260,6 +300,7 @@ function formatCalendarDate(date) {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, "0");
     const d = String(date.getDate()).padStart(2, "0");
+
     return `${y}-${m}-${d}`;
 }
 
@@ -267,6 +308,7 @@ function formatCalendarDateRu(date) {
     const d = String(date.getDate()).padStart(2, "0");
     const m = String(date.getMonth() + 1).padStart(2, "0");
     const y = date.getFullYear();
+
     return `${d}.${m}.${y}`;
 }
 
@@ -274,6 +316,7 @@ function formatCalendarTime(value) {
     const date = new Date(value);
     const h = String(date.getHours()).padStart(2, "0");
     const m = String(date.getMinutes()).padStart(2, "0");
+
     return `${h}:${m}`;
 }
 
@@ -295,23 +338,27 @@ function fillCalendarProjectSelect() {
     const select = document.getElementById("calendarProjectId");
     if (!select) return;
 
-    const currentValue = select.value;
-    const projectsList = Array.isArray(window.remoteControlData?.projects)
-        ? window.remoteControlData.projects
-        : [];
+    const currentValue = String(select.value || "");
+    const availableProjects = Array.isArray(window.projects) ? window.projects : [];
 
     select.innerHTML = `<option value="">Без проекта</option>`;
 
-    projectsList.forEach(project => {
-        const id = project.id ?? project.Id;
-        const name = project.name ?? project.Name ?? "";
-        select.innerHTML += `<option value="${id}">${escapeHtml(name)}</option>`;
+    availableProjects.forEach(project => {
+        select.innerHTML += `<option value="${project.id}">${escapeHtml(project.name)}</option>`;
     });
 
-    select.value = currentValue;
+    if ([...select.options].some(option => option.value === currentValue)) {
+        select.value = currentValue;
+    } else {
+        select.value = "";
+    }
 }
 
 function openCalendarModal(date = null) {
+    fillCalendarProjectSelect();
+
+    const id = document.getElementById("calendarEventId");
+    const modalTitle = document.getElementById("calendarModalTitle");
     const title = document.getElementById("calendarTitle");
     const dateInput = document.getElementById("calendarDate");
     const time = document.getElementById("calendarTime");
@@ -319,13 +366,16 @@ function openCalendarModal(date = null) {
     const type = document.getElementById("calendarType");
     const projectId = document.getElementById("calendarProjectId");
     const location = document.getElementById("calendarLocation");
-    const modal = document.getElementById("calendarModal");
+    const deleteBtn = document.getElementById("calendarDeleteBtn");
 
+    if (id) id.value = "";
+    if (modalTitle) modalTitle.textContent = "Новое событие";
     if (title) title.value = "";
     if (description) description.value = "";
     if (type) type.value = "meeting";
     if (projectId) projectId.value = "";
     if (location) location.value = "";
+    if (deleteBtn) deleteBtn.classList.add("hidden");
 
     let targetDate;
 
@@ -347,13 +397,52 @@ function openCalendarModal(date = null) {
         time.value = "10:00";
     }
 
-    if (modal) {
-        modal.style.display = "flex";
-        modal.classList.add("show");
-    }
+    openModal("calendarModal");
 }
 
-function saveCalendarEvent() {
+function openEditCalendarEvent(id) {
+    const event = calendarState.events.find(x => Number(x.id) === Number(id));
+
+    if (!event) {
+        showNotification("Событие не найдено");
+        return;
+    }
+
+    if (event.isReadOnly || !event.canManage) {
+        showNotification("Это событие нельзя редактировать");
+        return;
+    }
+
+    fillCalendarProjectSelect();
+
+    const eventDate = new Date(event.eventDate);
+    const idInput = document.getElementById("calendarEventId");
+    const modalTitle = document.getElementById("calendarModalTitle");
+    const title = document.getElementById("calendarTitle");
+    const dateInput = document.getElementById("calendarDate");
+    const time = document.getElementById("calendarTime");
+    const description = document.getElementById("calendarDescription");
+    const type = document.getElementById("calendarType");
+    const projectId = document.getElementById("calendarProjectId");
+    const location = document.getElementById("calendarLocation");
+    const deleteBtn = document.getElementById("calendarDeleteBtn");
+
+    if (idInput) idInput.value = String(event.id);
+    if (modalTitle) modalTitle.textContent = "Редактировать событие";
+    if (title) title.value = event.title || "";
+    if (dateInput) dateInput.value = formatCalendarDate(eventDate);
+    if (time) time.value = formatCalendarTime(event.eventDate);
+    if (description) description.value = event.description || "";
+    if (type) type.value = event.eventType || "meeting";
+    if (projectId) projectId.value = event.projectId ? String(event.projectId) : "";
+    if (location) location.value = event.locationOrLink || "";
+    if (deleteBtn) deleteBtn.classList.remove("hidden");
+
+    openModal("calendarModal");
+}
+
+async function saveCalendarEvent() {
+    const id = Number(document.getElementById("calendarEventId")?.value || 0);
     const title = document.getElementById("calendarTitle")?.value.trim();
     const date = document.getElementById("calendarDate")?.value;
     const time = document.getElementById("calendarTime")?.value;
@@ -377,17 +466,52 @@ function saveCalendarEvent() {
         return;
     }
 
+    if (projectId) {
+        const projectSelect = document.getElementById("calendarProjectId");
+        const hasProjectOption = projectSelect
+            ? [...projectSelect.options].some(option => option.value === String(projectId))
+            : false;
+
+        if (!hasProjectOption) {
+            showNotification("Выберите доступный проект");
+            return;
+        }
+    }
+
     const eventDate = new Date(`${date}T${time}:00`);
 
-    calendarState.events.push({
-        id: Date.now(),
+    const dto = {
+        id: id,
         title: title,
         description: description,
         eventDate: eventDate.toISOString(),
         eventType: type,
         projectId: projectId ? Number(projectId) : null,
         locationOrLink: location
-    });
+    };
+
+    try {
+        const res = await fetch("/Calendar?handler=SaveEvent", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "RequestVerificationToken": getRequestVerificationToken()
+            },
+            body: JSON.stringify(dto)
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.ok) {
+            showNotification(data?.error || "Не удалось сохранить событие");
+            return;
+        }
+
+        await loadCalendarEvents();
+    } catch {
+        showNotification("Ошибка сохранения события");
+        return;
+    }
 
     calendarState.selectedDate = new Date(`${date}T00:00:00`);
     calendarState.currentDate = new Date(eventDate.getFullYear(), eventDate.getMonth(), 1);
@@ -396,12 +520,56 @@ function saveCalendarEvent() {
     renderCalendarPage();
     renderCalendarSidebar();
 
-    showNotification("Событие добавлено");
+    showNotification("Событие сохранено");
+}
+
+async function deleteCalendarEvent(id = null) {
+    const eventId = Number(id || document.getElementById("calendarEventId")?.value || 0);
+
+    if (!eventId) {
+        showNotification("Событие не найдено");
+        return;
+    }
+
+    const event = calendarState.events.find(x => Number(x.id) === Number(eventId));
+    if (event && (event.isReadOnly || !event.canManage)) {
+        showNotification("Это событие нельзя удалить");
+        return;
+    }
+
+    if (!confirm("Удалить событие?")) {
+        return;
+    }
+
+    try {
+        const res = await fetch("/Calendar?handler=DeleteEvent", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "RequestVerificationToken": getRequestVerificationToken()
+            },
+            body: JSON.stringify({ id: eventId })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.ok) {
+            showNotification(data?.error || "Не удалось удалить событие");
+            return;
+        }
+
+        closeModal("calendarModal");
+        await loadCalendarEvents();
+        showNotification("Событие удалено");
+    } catch {
+        showNotification("Ошибка удаления события");
+    }
 }
 
 document.addEventListener("click", function (e) {
     const popup = document.getElementById("miniCalendarPopup");
     const wrap = document.querySelector(".calendar-title-wrap");
+
     if (!popup || !wrap) return;
 
     if (!wrap.contains(e.target)) {

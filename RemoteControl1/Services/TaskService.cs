@@ -721,6 +721,14 @@ namespace RemoteControl1.Services
             if (!isMember)
                 return ServiceResult<TaskVm>.Fail("Сотрудник не состоит в выбранном проекте");
 
+            var stageName = dto.StageName?.Trim() ?? "";
+            if (string.IsNullOrWhiteSpace(stageName))
+                return ServiceResult<TaskVm>.Fail("Выберите этап проекта");
+
+            var allowedStageNames = await GetAllowedProjectStageNamesAsync(project);
+            if (!StageBelongsToProject(stageName, allowedStageNames))
+                return ServiceResult<TaskVm>.Fail("Этап не относится к выбранному проекту");
+
             var task = new TaskItem
             {
                 Title = dto.Name.Trim(),
@@ -729,10 +737,10 @@ namespace RemoteControl1.Services
                 UserId = performerId,
                 Assignee = BuildFullName(performer.LastName, performer.FirstName, performer.MiddleName),
                 Priority = string.IsNullOrWhiteSpace(dto.Priority) ? "medium" : dto.Priority,
-                Status = string.IsNullOrWhiteSpace(dto.Status) ? "new" : dto.Status,
+                Status = NormalizeTaskStatus(dto.Status, "new"),
                 PlannedTimeHours = dto.PlannedTime,
                 Deadline = dto.Deadline,
-                StageName = dto.StageName?.Trim() ?? ""
+                StageName = stageName
             };
 
             _db.Tasks.Add(task);
@@ -758,6 +766,20 @@ namespace RemoteControl1.Services
             if (task == null)
                 return ServiceResult<TaskVm>.Fail("Задача не найдена");
 
+            if (role == "employee")
+            {
+                if (task.UserId != currentUserId)
+                    return ServiceResult<TaskVm>.Fail("Нет прав");
+
+                task.Status = NormalizeTaskStatus(dto.Status, task.Status);
+
+                await _db.SaveChangesAsync();
+                await _db.Entry(task).Reference(t => t.Project).LoadAsync();
+                await _db.Entry(task).Reference(t => t.User).LoadAsync();
+
+                return ServiceResult<TaskVm>.Success(MapTask(task));
+            }
+
             if (string.IsNullOrWhiteSpace(dto.Name))
                 return ServiceResult<TaskVm>.Fail("Введите название задачи");
 
@@ -767,9 +789,6 @@ namespace RemoteControl1.Services
 
             if (project == null)
                 return ServiceResult<TaskVm>.Fail("Проект не найден");
-
-            if (role == "employee" && task.UserId != currentUserId)
-                return ServiceResult<TaskVm>.Fail("Нет прав");
 
             if (role == "manager" && project.ManagerId != currentUserId)
                 return ServiceResult<TaskVm>.Fail("Нет прав на этот проект");
@@ -787,16 +806,24 @@ namespace RemoteControl1.Services
             if (!isMember)
                 return ServiceResult<TaskVm>.Fail("Сотрудник не состоит в выбранном проекте");
 
+            var stageName = dto.StageName?.Trim() ?? "";
+            if (string.IsNullOrWhiteSpace(stageName))
+                return ServiceResult<TaskVm>.Fail("Выберите этап проекта");
+
+            var allowedStageNames = await GetAllowedProjectStageNamesAsync(project);
+            if (!StageBelongsToProject(stageName, allowedStageNames))
+                return ServiceResult<TaskVm>.Fail("Этап не относится к выбранному проекту");
+
             task.Title = dto.Name.Trim();
             task.Description = dto.Description?.Trim() ?? "";
             task.Priority = string.IsNullOrWhiteSpace(dto.Priority) ? "medium" : dto.Priority;
-            task.Status = string.IsNullOrWhiteSpace(dto.Status) ? "new" : dto.Status;
+            task.Status = NormalizeTaskStatus(dto.Status, task.Status);
             task.ProjectId = dto.ProjectId;
             task.UserId = performerId;
             task.Assignee = BuildFullName(performer.LastName, performer.FirstName, performer.MiddleName);
             task.PlannedTimeHours = dto.PlannedTime;
             task.Deadline = dto.Deadline;
-            task.StageName = dto.StageName?.Trim() ?? "";
+            task.StageName = stageName;
 
             await _db.SaveChangesAsync();
             await _db.Entry(task).Reference(t => t.Project).LoadAsync();
@@ -940,6 +967,7 @@ namespace RemoteControl1.Services
                 ManagerName = BuildFullName(manager.LastName, manager.FirstName, manager.MiddleName),
                 MemberIds = memberIds,
                 MembersCount = memberIds.Count,
+                ProjectType = project.ProjectType,
                 ProjectTypeName = GetProjectTypeName(project.ProjectType),
                 StageNames = ParseStageNames(project.StageNamesJson)
             });
@@ -1684,6 +1712,67 @@ namespace RemoteControl1.Services
             }
         }
 
+        private static string NormalizeTaskStatus(string? status, string fallback = "new")
+        {
+            var value = (status ?? "").Trim().ToLower();
+            var fallbackValue = (fallback ?? "").Trim().ToLower();
+
+            return value switch
+            {
+                "new" => "new",
+                "progress" => "progress",
+                "review" => "review",
+                "done" => "done",
+                _ => fallbackValue switch
+                {
+                    "new" => "new",
+                    "progress" => "progress",
+                    "review" => "review",
+                    "done" => "done",
+                    _ => "new"
+                }
+            };
+        }
+
+        private async Task<List<string>> GetAllowedProjectStageNamesAsync(Project project)
+        {
+            var stageNames = ParseStageNames(project.StageNamesJson);
+
+            if (stageNames.Count == 0)
+            {
+                stageNames = GetProjectPresetStageNames(project.ProjectType);
+            }
+
+            var taskStageNames = await _db.Tasks
+                .Where(t => t.ProjectId == project.Id && t.StageName != null && t.StageName != "")
+                .Select(t => t.StageName!)
+                .ToListAsync();
+
+            stageNames.AddRange(taskStageNames
+                .Select(x => x.Trim())
+                .Where(x => !string.IsNullOrWhiteSpace(x)));
+
+            return stageNames
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        private static bool StageBelongsToProject(string stageName, List<string> allowedStageNames)
+        {
+            return allowedStageNames.Any(x =>
+                string.Equals(x, stageName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static List<string> GetProjectPresetStageNames(string? projectType)
+        {
+            return NormalizeProjectType(projectType) switch
+            {
+                "linear" => new List<string> { "Анализ", "Проектирование", "Разработка", "Тестирование", "Запуск" },
+                "hybrid" => new List<string> { "Подготовка", "Разработка / Backend", "Разработка / Frontend", "Сдача / QA", "Сдача / Релиз" },
+                _ => new List<string> { "Backend", "Frontend", "UI/UX", "QA", "Docs" }
+            };
+        }
+
         private static string SerializeStageNames(List<string>? items)
         {
             var clean = (items ?? new List<string>())
@@ -1742,46 +1831,18 @@ namespace RemoteControl1.Services
                 stageNames = new List<string>();
             }
 
-            int progress = 0;
-
-            if (stageNames.Count > 0)
-            {
-                var stagePercents = new List<int>();
-
-                foreach (var stageName in stageNames)
-                {
-                    var stageTasks = tasks
-                        .Where(x => (x.StageName ?? "") == stageName)
-                        .ToList();
-
-                    if (stageTasks.Count == 0)
-                    {
-                        stagePercents.Add(0);
-                        continue;
-                    }
-
-                    var stageDone = stageTasks.Count(x => x.Status == "done");
-                    var stageProgress = (int)Math.Round(stageDone * 100.0 / stageTasks.Count);
-
-                    stagePercents.Add(stageProgress);
-                }
-
-                progress = stagePercents.Count > 0
-                    ? (int)Math.Round(stagePercents.Average())
-                    : 0;
-            }
-            else
-            {
-                var tasksCount = tasks.Count;
-                var doneCount = tasks.Count(x => x.Status == "done");
-                progress = tasksCount == 0 ? 0 : (int)Math.Round(doneCount * 100.0 / tasksCount);
-            }
+            var tasksCount = tasks.Count;
+            var doneCount = tasks.Count(x => x.Status == "done");
+            var progress = tasksCount == 0
+                ? 0
+                : (int)Math.Round(doneCount * 100.0 / tasksCount);
 
             return new ProjectVm
             {
                 Id = p.Id,
                 Name = p.Name,
                 Description = p.Description,
+                CreatedAt = p.CreatedAt,
                 TasksCount = tasks.Count,
                 Progress = progress,
                 ManagerId = p.ManagerId,
@@ -1790,6 +1851,7 @@ namespace RemoteControl1.Services
                     : "",
                 MemberIds = memberIds,
                 MembersCount = memberIds.Count,
+                ProjectType = p.ProjectType,
                 ProjectTypeName = GetProjectTypeName(p.ProjectType),
                 StageNames = stageNames
             };
@@ -2389,6 +2451,7 @@ namespace RemoteControl1.Services
         public int Id { get; set; }
         public string Name { get; set; } = "";
         public string? Description { get; set; }
+        public DateTime CreatedAt { get; set; }
         public int TasksCount { get; set; }
         public int Progress { get; set; }
 
@@ -2398,6 +2461,7 @@ namespace RemoteControl1.Services
         public List<int> MemberIds { get; set; } = new();
         public int MembersCount { get; set; }
 
+        public string? ProjectType { get; set; }
         public string ProjectTypeName { get; set; } = "Проект";
         public List<string> StageNames { get; set; } = new();
     }

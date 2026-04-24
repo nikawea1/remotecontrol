@@ -1,6 +1,7 @@
+// Файл: RemoteControl1/Pages/MainPage.cshtml.cs
+
+//MainPage.cshtml.cs
 using ClosedXML.Excel;
-using DocumentFormat.OpenXml.InkML;
-//using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -35,6 +36,8 @@ namespace RemoteControl1.Pages
         public string ProjectsJson { get; set; } = "[]";
         public string ActivityJson { get; set; } = "[]";
         public string UsersJson { get; set; } = "[]";
+        public string WorkDaysJson { get; set; } = "[]";
+        public string CalendarEventsJson { get; set; } = "[]";
 
         public int CurrentUserId { get; set; }
         public bool IsAdmin { get; set; }
@@ -42,16 +45,11 @@ namespace RemoteControl1.Pages
         public bool IsManager { get; set; }
         public bool IsEmployee { get; set; }
 
-        public string WorkDaysJson { get; set; } = "[]";
-
         public string CurrentUserLogin { get; set; } = "";
         public string CurrentUserPhone { get; set; } = "";
         public string CurrentUserPosition { get; set; } = "";
         public decimal CurrentUserRate { get; set; }
         public bool CurrentUserIsActive { get; set; }
-
-
-        public string CalendarEventsJson { get; set; } = "[]";
 
         public async Task<IActionResult> OnGetAsync()
         {
@@ -86,18 +84,37 @@ namespace RemoteControl1.Pages
                     .OrderBy(x => x.EventDate)
                     .ToListAsync();
             }
+            else if (IsManager)
+            {
+                var visibleProjectIds = await _db.Projects
+                    .Where(p => p.ManagerId == user.Id || p.Members.Any(m => m.UserId == user.Id))
+                    .Select(p => p.Id)
+                    .ToListAsync();
+
+                events = await _db.CalendarEvents
+                    .Where(x =>
+                        x.UserId == user.Id ||
+                        x.CreatedByUserId == user.Id ||
+                        (x.ProjectId.HasValue && visibleProjectIds.Contains(x.ProjectId.Value)))
+                    .OrderBy(x => x.EventDate)
+                    .ToListAsync();
+            }
             else
             {
+                var memberProjectIds = await _db.ProjectMembers
+                    .Where(m => m.UserId == user.Id)
+                    .Select(m => m.ProjectId)
+                    .ToListAsync();
+
                 events = await _db.CalendarEvents
-                    .Where(x => x.UserId == user.Id)
+                    .Where(x =>
+                        x.UserId == user.Id ||
+                        (x.ProjectId.HasValue && memberProjectIds.Contains(x.ProjectId.Value)))
                     .OrderBy(x => x.EventDate)
                     .ToListAsync();
             }
 
             CalendarEventsJson = JsonSerializer.Serialize(events);
-
-
-
             var data = await _taskService.GetPageDataAsync(user.Id);
 
             if (IsEmployee)
@@ -135,7 +152,6 @@ namespace RemoteControl1.Pages
             });
         }
 
-
         public async Task<JsonResult> OnPostCreateManualTimeRequestAsync()
         {
             var userId = await GetCurrentUserIdAsync();
@@ -145,7 +161,11 @@ namespace RemoteControl1.Pages
             var form = Request.Form;
 
             int.TryParse(form["taskId"], out var taskId);
-            decimal.TryParse(form["hours"], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var hours);
+            decimal.TryParse(
+                form["hours"],
+                System.Globalization.NumberStyles.Any,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out var hours);
 
             var dto = new AddManualTimeDto
             {
@@ -228,7 +248,6 @@ namespace RemoteControl1.Pages
                 error = result.Error
             });
         }
-
 
         public async Task<JsonResult> OnPostAddTaskAsync([FromBody] AddTaskDto dto)
         {
@@ -314,6 +333,7 @@ namespace RemoteControl1.Pages
                 project = result.Data
             });
         }
+
         public async Task<JsonResult> OnPostUpdateProjectAsync([FromBody] UpdateProjectDto dto)
         {
             if (!CurrentUserIsManagerOrAdmin())
@@ -351,7 +371,6 @@ namespace RemoteControl1.Pages
             {
                 managerId = currentUserId;
             }
-
             var manager = await _db.Users.FirstOrDefaultAsync(x => x.Id == managerId);
             if (manager == null)
                 return new JsonResult(new { ok = false, error = "Менеджер не найден" });
@@ -361,7 +380,25 @@ namespace RemoteControl1.Pages
             project.ManagerId = managerId;
 
             project.ProjectType = NormalizeProjectType(dto.ProjectType);
-            project.StageNamesJson = SerializeStageNames(dto.StageNames);
+            var requestedStageNames = (dto.StageNames ?? new List<string>())
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => x.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            var taskStageNames = await _db.Tasks
+                .Where(t => t.ProjectId == project.Id && !string.IsNullOrWhiteSpace(t.StageName))
+                .Select(t => t.StageName!)
+                .Distinct()
+                .ToListAsync();
+
+            foreach (var taskStageName in taskStageNames)
+            {
+                if (!requestedStageNames.Any(x => string.Equals(x, taskStageName, StringComparison.OrdinalIgnoreCase)))
+                    requestedStageNames.Add(taskStageName);
+            }
+
+            project.StageNamesJson = SerializeStageNames(requestedStageNames);
 
             var newMemberIds = (dto.MemberIds ?? new List<int>())
                 .Where(x => x > 0)
@@ -402,32 +439,12 @@ namespace RemoteControl1.Pages
 
             await _db.SaveChangesAsync();
 
-            var tasksCount = await _db.Tasks.CountAsync(t => t.ProjectId == project.Id);
-            var doneCount = await _db.Tasks.CountAsync(t => t.ProjectId == project.Id && t.Status == "done");
-
             var stageNames = JsonSerializer.Deserialize<List<string>>(project.StageNamesJson ?? "[]") ?? new List<string>();
-
-            var stagePercents = new List<int>();
-
-            foreach (var stageName in stageNames)
-            {
-                var stageTasks = await _db.Tasks
-                    .Where(t => t.ProjectId == project.Id && t.StageName == stageName)
-                    .ToListAsync();
-
-                if (stageTasks.Count == 0)
-                {
-                    stagePercents.Add(0);
-                    continue;
-                }
-
-                var stageDone = stageTasks.Count(t => t.Status == "done");
-                var stageProgress = (int)Math.Round(stageDone * 100.0 / stageTasks.Count);
-                stagePercents.Add(stageProgress);
-            }
-
-            var projectProgress = stagePercents.Count > 0
-                ? (int)Math.Round(stagePercents.Average())
+            var projectTasks = await _db.Tasks
+                .Where(t => t.ProjectId == project.Id)
+                .ToListAsync();
+            var projectProgress = projectTasks.Count > 0
+                ? (int)Math.Round(projectTasks.Count(t => t.Status == "done") * 100.0 / projectTasks.Count)
                 : 0;
 
             return new JsonResult(new
@@ -438,7 +455,7 @@ namespace RemoteControl1.Pages
                     id = project.Id,
                     name = project.Name,
                     description = project.Description ?? "",
-                    tasksCount = tasksCount,
+                    tasksCount = projectTasks.Count,
                     progress = projectProgress,
                     managerId = project.ManagerId,
                     managerName = string.Join(" ", new[] { manager.LastName, manager.FirstName, manager.MiddleName }
@@ -455,6 +472,7 @@ namespace RemoteControl1.Pages
                 }
             });
         }
+
         public async Task<JsonResult> OnPostDeleteProjectAsync([FromBody] DeleteProjectDto dto)
         {
             var currentUserId = CurrentUserOrZero();
@@ -478,9 +496,7 @@ namespace RemoteControl1.Pages
                 .ToListAsync();
 
             var activityLogs = await _db.ActivityLogs
-                .Where(a =>
-                    a.ProjectId == dto.Id ||
-                    (a.TaskItemId.HasValue && projectTaskIds.Contains(a.TaskItemId.Value)))
+                .Where(a => a.ProjectId == dto.Id || (a.TaskItemId.HasValue && projectTaskIds.Contains(a.TaskItemId.Value)))
                 .ToListAsync();
 
             if (activityLogs.Count > 0)
@@ -501,7 +517,6 @@ namespace RemoteControl1.Pages
                 _db.ProjectMembers.RemoveRange(projectMembers);
 
             _db.Projects.Remove(project);
-
             await _db.SaveChangesAsync();
 
             return new JsonResult(new { ok = true });
@@ -673,10 +688,7 @@ namespace RemoteControl1.Pages
             var taskIdText = Request.Form["taskId"].ToString();
             int.TryParse(taskIdText, out var taskId);
 
-            var folder = Path.Combine(
-                @"C:\Users\Lenovo\Pictures\Screenshots",
-                userId.Value.ToString()
-            );
+            var folder = Path.Combine(@"C:\Users\Lenovo\Pictures\Screenshots", userId.Value.ToString());
             Directory.CreateDirectory(folder);
 
             var fileName = $"{DateTime.Now:yyyyMMdd_HHmmss}.png";
@@ -705,14 +717,12 @@ namespace RemoteControl1.Pages
             if (file == null || file.Length == 0)
                 return new JsonResult(new { ok = false, error = "Файл не получен" });
 
-            var folder = Path.Combine(
-                @"C:\Users\Lenovo\Pictures\Screenshots",
-                userId.Value.ToString()
-            );
+            var folder = Path.Combine(@"C:\Users\Lenovo\Pictures\Screenshots", userId.Value.ToString());
             Directory.CreateDirectory(folder);
 
             var fileName = $"webcam_{DateTime.Now:yyyyMMdd_HHmmss}.png";
             var filePath = Path.Combine(folder, fileName);
+
 
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
@@ -725,18 +735,15 @@ namespace RemoteControl1.Pages
                 fileName
             });
         }
-      
+
         public async Task<IActionResult> OnGetExportCsvAsync(string? dateFrom, string? dateTo, int? projectId)
         {
             var userId = await GetCurrentUserIdAsync();
             if (userId == null)
                 return RedirectToPage("/Auth");
 
-
             var selectedUserId = Request.Query["userId"].FirstOrDefault();
             int? userIdParsed = int.TryParse(selectedUserId, out var uid) ? uid : null;
-
-
 
             var data = await BuildExportDataAsync(userIdParsed, dateFrom, dateTo, projectId);
 
@@ -749,7 +756,7 @@ namespace RemoteControl1.Pages
                     $"{EscapeCsv(row.Date)};" +
                     $"{EscapeCsv(row.Task)};" +
                     $"{EscapeCsv(row.Project)};" +
-                    $"{row.Hours.ToString("0.##")};" +
+                    $"{row.Hours:0.##};" +
                     $"{EscapeCsv(row.Comment)};" +
                     $"{EscapeCsv(row.Status)};" +
                     $"{EscapeCsv(row.Assignee)};" +
@@ -779,19 +786,14 @@ namespace RemoteControl1.Pages
             var ws1 = wb.Worksheets.Add("Сводка");
             ws1.Cell(1, 1).Value = "Показатель";
             ws1.Cell(1, 2).Value = "Значение";
-
             ws1.Cell(2, 1).Value = "Пользователь";
             ws1.Cell(2, 2).Value = data.UserName;
-
             ws1.Cell(3, 1).Value = "Часов всего";
             ws1.Cell(3, 2).Value = data.TotalHours;
-
             ws1.Cell(4, 1).Value = "Записей";
             ws1.Cell(4, 2).Value = data.Rows.Count;
-
             ws1.Cell(5, 1).Value = "Завершенных задач";
             ws1.Cell(5, 2).Value = data.DoneTasks;
-
             ws1.Columns().AdjustToContents();
 
             var ws2 = wb.Worksheets.Add("Активность");
@@ -847,7 +849,6 @@ namespace RemoteControl1.Pages
             html.AppendLine($"<p><b>Всего часов:</b> {data.TotalHours:0.##}</p>");
             html.AppendLine($"<p><b>Записей:</b> {data.Rows.Count}</p>");
             html.AppendLine($"<p><b>Завершенных задач:</b> {data.DoneTasks}</p>");
-
             html.AppendLine("<table border='1' cellpadding='5' cellspacing='0'>");
             html.AppendLine("<tr><th>Дата</th><th>Задача</th><th>Проект</th><th>Часы</th><th>Комментарий</th><th>Статус</th><th>Исполнитель</th><th>Дедлайн</th></tr>");
 
@@ -874,50 +875,6 @@ namespace RemoteControl1.Pages
                 "report.doc");
         }
 
-
-        /*public async Task<JsonResult> OnGetReportDataAsync(string? dateFrom, string? dateTo, int? projectId, int? userId)
-        {
-            var currentUserId = await GetCurrentUserIdAsync();
-            if (currentUserId == null)
-                return new JsonResult(new { ok = false, error = "Пользователь не найден" });
-
-            int targetUserId = currentUserId.Value;
-
-            if (CurrentUserIsAdmin())
-            {
-                if (userId.HasValue)
-                    targetUserId = userId.Value;
-            }
-            else if (CurrentUserIsManager())
-            {
-                if (userId.HasValue)
-                {
-                    var managerProjectIds = await _db.Projects
-                        .Where(p => p.ManagerId == currentUserId)
-                        .Select(p => p.Id)
-                        .Distinct()
-                        .ToListAsync();
-
-                    var allowed = await _db.Tasks.AnyAsync(t =>
-                        t.UserId == userId.Value &&
-                        managerProjectIds.Contains(t.ProjectId));
-
-                    if (allowed)
-                        targetUserId = userId.Value;
-                }
-            }
-
-            var result = await _taskService.GetReportDataAsync(targetUserId, dateFrom, dateTo, projectId);
-
-            return new JsonResult(new
-            {
-                ok = result.Ok,
-                error = result.Error,
-                data = result.Data
-            });
-        }
-        */
-
         public async Task<JsonResult> OnGetReportsDataAsync(string? dateFrom, string? dateTo, int? projectId, int? employeeId)
         {
             var currentUserId = await GetCurrentUserIdAsync();
@@ -941,7 +898,6 @@ namespace RemoteControl1.Pages
             });
         }
 
-
         public async Task<IActionResult> OnGetExportPdfAsync(string? dateFrom, string? dateTo, int? projectId)
         {
             var userId = await GetCurrentUserIdAsync();
@@ -952,7 +908,6 @@ namespace RemoteControl1.Pages
             int? userIdParsed = int.TryParse(selectedUserId, out var uid) ? uid : null;
 
             var data = await BuildExportDataAsync(userIdParsed, dateFrom, dateTo, projectId);
-
 
             var pdfBytes = Document.Create(container =>
             {
@@ -1011,118 +966,120 @@ namespace RemoteControl1.Pages
         {
             return container
                 .Border(1)
-                .BorderColor(QuestPDF.Helpers.Colors.Grey.Lighten2)
+                .BorderColor(Colors.Grey.Lighten2)
                 .Padding(4);
         }
 
-       private async Task<ExportDataVm> BuildExportDataAsync(int? selectedUserId, string? dateFrom, string? dateTo, int? projectId)
-{
-    var currentUserId = await GetCurrentUserIdAsync();
-    if (currentUserId == null)
-        return new ExportDataVm();
-
-    int targetUserId = currentUserId.Value;
-
-    if (CurrentUserIsAdmin())
-    {
-        if (selectedUserId.HasValue)
-            targetUserId = selectedUserId.Value;
-    }
-    else if (CurrentUserIsManager())
-    {
-        if (selectedUserId.HasValue)
+        private async Task<ExportDataVm> BuildExportDataAsync(int? selectedUserId, string? dateFrom, string? dateTo, int? projectId)
         {
-            var managerProjectIds = await _db.Projects
-                .Where(p => p.ManagerId == currentUserId.Value)
-                .Select(p => p.Id)
+            var currentUserId = await GetCurrentUserIdAsync();
+            if (currentUserId == null)
+                return new ExportDataVm();
+
+            int targetUserId = currentUserId.Value;
+
+            if (CurrentUserIsAdmin())
+            {
+                if (selectedUserId.HasValue)
+                    targetUserId = selectedUserId.Value;
+            }
+            else if (CurrentUserIsManager())
+            {
+                if (selectedUserId.HasValue)
+                {
+                    var managerProjectIds = await _db.Projects
+                        .Where(p => p.ManagerId == currentUserId.Value)
+                        .Select(p => p.Id)
+                        .ToListAsync();
+
+                    var allowed = await _db.Tasks.AnyAsync(t =>
+                        t.UserId == selectedUserId.Value &&
+                        managerProjectIds.Contains(t.ProjectId));
+
+                    if (allowed)
+                        targetUserId = selectedUserId.Value;
+                }
+            }
+
+            var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == targetUserId);
+
+            DateTime? from = null;
+            DateTime? to = null;
+
+            if (DateTime.TryParse(dateFrom, out var fromDate))
+                from = fromDate.Date;
+
+            if (DateTime.TryParse(dateTo, out var toDate))
+                to = toDate.Date.AddDays(1).AddTicks(-1);
+
+            var query = _db.ActivityLogs
+                .Include(a => a.TaskItem)
+                    .ThenInclude(t => t!.Project)
+                .Where(a =>
+                    a.UserId == targetUserId &&
+                    (a.ActivityType == "task_timer" || a.ActivityType == "manual_time"));
+
+            if (CurrentUserIsManager())
+            {
+                var managerProjectIds = await _db.Projects
+                    .Where(p => p.ManagerId == currentUserId.Value)
+                    .Select(p => p.Id)
+                    .ToListAsync();
+
+                query = query.Where(a => a.ProjectId.HasValue && managerProjectIds.Contains(a.ProjectId.Value));
+            }
+
+            if (from.HasValue)
+                query = query.Where(a => (a.EndedAtUtc ?? a.StartedAtUtc) >= from.Value);
+
+            if (to.HasValue)
+                query = query.Where(a => (a.EndedAtUtc ?? a.StartedAtUtc) <= to.Value);
+
+            if (projectId.HasValue)
+                query = query.Where(a => a.ProjectId == projectId.Value);
+
+            var logs = await query
+                .OrderByDescending(a => a.EndedAtUtc ?? a.StartedAtUtc)
                 .ToListAsync();
 
-            var allowed = await _db.Tasks.AnyAsync(t =>
-                t.UserId == selectedUserId.Value &&
-                managerProjectIds.Contains(t.ProjectId));
+            var rows = logs.Select(a => new ExportRowVm
+            {
+                Date = (a.EndedAtUtc ?? a.StartedAtUtc).ToLocalTime().ToString("dd.MM.yyyy HH:mm"),
+                Task = a.TaskItem?.Title ?? "Без задачи",
+                Project = a.TaskItem?.Project?.Name ?? "Без проекта",
+                Hours = a.DurationHours,
+                Comment = string.IsNullOrWhiteSpace(a.Comment) ? "Без комментария" : a.Comment!,
+                Status = a.TaskItem?.Status ?? "-",
+                Assignee = a.TaskItem?.Assignee ?? "-",
+                Deadline = a.TaskItem?.Deadline.HasValue == true
+                    ? a.TaskItem.Deadline.Value.ToString("dd.MM.yyyy")
+                    : "-"
+            }).ToList();
 
-            if (allowed)
-                targetUserId = selectedUserId.Value;
+            var taskIds = logs
+                .Where(a => a.TaskItemId.HasValue)
+                .Select(a => a.TaskItemId!.Value)
+                .Distinct()
+                .ToList();
+
+            var doneTasks = await _db.Tasks
+                .Where(t => taskIds.Contains(t.Id) && t.Status == "done")
+                .CountAsync();
+
+            return new ExportDataVm
+            {
+                UserName = user == null
+                    ? ""
+                    : string.Join(" ", new[] { user.LastName, user.FirstName, user.MiddleName }
+                        .Where(x => !string.IsNullOrWhiteSpace(x))),
+                TotalHours = logs.Sum(x => x.DurationHours),
+
+
+                DoneTasks = doneTasks,
+                Rows = rows
+            };
         }
-    }
 
-    var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == targetUserId);
-
-    DateTime? from = null;
-    DateTime? to = null;
-
-    if (DateTime.TryParse(dateFrom, out var fromDate))
-        from = fromDate.Date;
-
-    if (DateTime.TryParse(dateTo, out var toDate))
-        to = toDate.Date.AddDays(1).AddTicks(-1);
-
-    var query = _db.ActivityLogs
-        .Include(a => a.TaskItem)
-            .ThenInclude(t => t!.Project)
-        .Where(a =>
-            a.UserId == targetUserId &&
-            (a.ActivityType == "task_timer" || a.ActivityType == "manual_time"));
-
-    if (CurrentUserIsManager())
-    {
-        var managerProjectIds = await _db.Projects
-            .Where(p => p.ManagerId == currentUserId.Value)
-            .Select(p => p.Id)
-            .ToListAsync();
-
-        query = query.Where(a => a.ProjectId.HasValue && managerProjectIds.Contains(a.ProjectId.Value));
-    }
-
-    if (from.HasValue)
-        query = query.Where(a => (a.EndedAtUtc ?? a.StartedAtUtc) >= from.Value);
-
-    if (to.HasValue)
-        query = query.Where(a => (a.EndedAtUtc ?? a.StartedAtUtc) <= to.Value);
-
-    if (projectId.HasValue)
-        query = query.Where(a => a.ProjectId == projectId.Value);
-
-    var logs = await query
-        .OrderByDescending(a => a.EndedAtUtc ?? a.StartedAtUtc)
-        .ToListAsync();
-
-    var rows = logs.Select(a => new ExportRowVm
-    {
-        Date = (a.EndedAtUtc ?? a.StartedAtUtc).ToLocalTime().ToString("dd.MM.yyyy HH:mm"),
-        Task = a.TaskItem?.Title ?? "Без задачи",
-        Project = a.TaskItem?.Project?.Name ?? "Без проекта",
-        Hours = a.DurationHours,
-        Comment = string.IsNullOrWhiteSpace(a.Comment) ? "Без комментария" : a.Comment!,
-        Status = a.TaskItem?.Status ?? "-",
-        Assignee = a.TaskItem?.Assignee ?? "-",
-        Deadline = a.TaskItem?.Deadline.HasValue == true
-            ? a.TaskItem.Deadline.Value.ToString("dd.MM.yyyy")
-            : "-"
-    }).ToList();
-
-    var taskIds = logs
-        .Where(a => a.TaskItemId.HasValue)
-        .Select(a => a.TaskItemId!.Value)
-        .Distinct()
-        .ToList();
-
-    var doneTasks = await _db.Tasks
-        .Where(t => taskIds.Contains(t.Id) && t.Status == "done")
-        .CountAsync();
-
-    return new ExportDataVm
-    {
-        UserName = user == null
-            ? ""
-            : string.Join(" ", new[] { user.LastName, user.FirstName, user.MiddleName }
-                .Where(x => !string.IsNullOrWhiteSpace(x))),
-        TotalHours = logs.Sum(x => x.DurationHours),
-        DoneTasks = doneTasks,
-        Rows = rows
-    };
-}
-        
         private static string EscapeCsv(string? value)
         {
             var text = value ?? "";
@@ -1139,7 +1096,6 @@ namespace RemoteControl1.Pages
         {
             return Task.FromResult(HttpContext.Session.GetInt32("user_id"));
         }
-
 
         public class ChangePasswordDto
         {
@@ -1171,62 +1127,9 @@ namespace RemoteControl1.Pages
         private bool CurrentUserIsManager() => GetCurrentRole() == "manager";
         private bool CurrentUserIsEmployee() => GetCurrentRole() == "employee";
 
-
         private bool CurrentUserIsManagerOrAdmin()
         {
             return CurrentUserIsAdmin() || CurrentUserIsManager();
-        }
-
-
-        private async Task<List<Project>> GetAvailableProjects()
-        {
-            var userId = await GetCurrentUserIdAsync();
-            if (userId == null)
-                return new List<Project>();
-
-            if (CurrentUserIsAdmin())
-            {
-                return await _db.Projects.ToListAsync();
-            }
-
-            if (CurrentUserIsManager())
-            {
-                return await _db.Projects
-                    .Where(p => p.ManagerId == userId.Value)
-                    .ToListAsync();
-            }
-
-            return await _db.Projects
-                .Where(p => _db.Tasks.Any(t => t.ProjectId == p.Id && t.UserId == userId.Value))
-                .ToListAsync();
-        }
-
-        private async Task<List<TaskItem>> GetAvailableTasks()
-        {
-            var userId = await GetCurrentUserIdAsync();
-            if (userId == null)
-                return new List<TaskItem>();
-
-            if (CurrentUserIsAdmin())
-            {
-                return await _db.Tasks.ToListAsync();
-            }
-
-            if (CurrentUserIsManager())
-            {
-                var projectIds = await _db.Projects
-                    .Where(p => p.ManagerId == userId.Value)
-                    .Select(p => p.Id)
-                    .ToListAsync();
-
-                return await _db.Tasks
-                    .Where(t => projectIds.Contains(t.ProjectId))
-                    .ToListAsync();
-            }
-
-            return await _db.Tasks
-    .Where(t => t.UserId == userId.Value)
-    .ToListAsync();
         }
 
         private async Task<bool> IsMyTaskAsync(int taskId)
@@ -1247,13 +1150,6 @@ namespace RemoteControl1.Pages
             HttpContext.Session.Clear();
             return new JsonResult(new { ok = true, redirect = "/Auth" });
         }
-
-        private int GetCurrentUserId()
-        {
-            return HttpContext.Session.GetInt32("user_id") ?? 0;
-        }
-
-       
 
         public class SaveProfileContactNoteDto
         {
@@ -1334,7 +1230,6 @@ namespace RemoteControl1.Pages
             return new JsonResult(new { ok = true });
         }
 
-
         public class SaveProfileDto
         {
             public string? Email { get; set; }
@@ -1389,7 +1284,6 @@ namespace RemoteControl1.Pages
             user.IdleTimeoutMinutes = dto.IdleTimeoutMinutes < 1 ? 1 : dto.IdleTimeoutMinutes;
 
             await _db.SaveChangesAsync();
-
             HttpContext.Session.SetString("user_email", user.Email);
 
             return new JsonResult(new
@@ -1475,7 +1369,6 @@ namespace RemoteControl1.Pages
             return new JsonResult(new { ok = true, status = data });
         }
 
-
         private class ExportDataVm
         {
             public string UserName { get; set; } = "";
@@ -1495,7 +1388,5 @@ namespace RemoteControl1.Pages
             public string Assignee { get; set; } = "";
             public string Deadline { get; set; } = "";
         }
-            
-
     }
 }

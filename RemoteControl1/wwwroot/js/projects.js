@@ -1,37 +1,124 @@
 ﻿//projects.js
 
 
+
 let currentOpenedProjectId = null;
+let filteredProjects = Array.isArray(projects) ? [...projects] : [];
+let projectStages = [];
+
+function getProjectPresetKey(project) {
+    const rawType = String(project?.projectType || project?.projectTypeName || "").toLowerCase();
+
+    if (rawType === "linear" || rawType.includes("линей")) {
+        return "linear";
+    }
+
+    if (rawType === "hybrid" || rawType.includes("гибрид")) {
+        return "hybrid";
+    }
+
+    return "functional";
+}
+
+function getProjectStageNames(project, projectTasks = []) {
+    const stageNames = Array.isArray(project?.stageNames)
+        ? project.stageNames.map(x => (x || "").trim()).filter(Boolean)
+        : [];
+
+    const taskStageNames = [...new Set(
+        (projectTasks || [])
+            .map(task => (task.stageName || "").trim())
+            .filter(Boolean)
+    )];
+
+    const presetStageNames = projectPresets[getProjectPresetKey(project)]?.stages || [];
+    const baseStageNames = stageNames.length ? stageNames : presetStageNames;
+
+    return [...new Set([...baseStageNames, ...taskStageNames])];
+}
+
+function getProjectCreatedSortValue(project) {
+    const rawValue = project?.createdAt || project?.CreatedAt || "";
+    const parsedValue = rawValue ? Date.parse(rawValue) : NaN;
+
+    if (Number.isFinite(parsedValue)) {
+        return parsedValue;
+    }
+
+    return Number(project?.id || 0);
+}
+
+function getProjectStageSnapshot(project) {
+    const projectId = Number(project?.id || 0);
+    const projectTasks = tasks.filter(t => Number(t.projectId) === projectId);
+    const doneTasks = projectTasks.filter(t => t.status === "done").length;
+    const stageNames = getProjectStageNames(project, projectTasks);
+    const tasksByStages = stageNames.map(stageName => {
+        const stageTasks = projectTasks.filter(t => (t.stageName || "") === stageName);
+        const stageDone = stageTasks.filter(t => t.status === "done").length;
+        const stageProgress = stageTasks.length > 0
+            ? Math.round((stageDone / stageTasks.length) * 100)
+            : 0;
+
+        return {
+            name: stageName,
+            tasks: stageTasks,
+            done: stageDone,
+            total: stageTasks.length,
+            progress: stageProgress
+        };
+    });
+
+    const projectTypeKey = getProjectPresetKey(project);
+    const currentStage = tasksByStages.find(stage => stage.total > 0 && stage.progress < 100)
+        || tasksByStages.find(stage => stage.total === 0)
+        || tasksByStages.find(stage => stage.progress < 100)
+        || tasksByStages[tasksByStages.length - 1]
+        || null;
+
+    const currentStageIndex = currentStage
+        ? tasksByStages.findIndex(stage => stage.name === currentStage.name)
+        : -1;
+
+    const nextStage = projectTypeKey === "linear" && currentStageIndex >= 0 && currentStageIndex < tasksByStages.length - 1
+        ? tasksByStages[currentStageIndex + 1]
+        : null;
+
+    return {
+        projectTypeKey,
+        projectTasks,
+        doneTasks,
+        stageNames,
+        tasksByStages,
+        currentStage,
+        currentStageIndex,
+        nextStage
+    };
+}
+
+function applyProjectSorting(projectList = filteredProjects) {
+    const sortBy = document.getElementById("projectSort")?.value || "recent";
+
+    projectList.sort((a, b) => {
+        if (sortBy === "recent") return getProjectCreatedSortValue(b) - getProjectCreatedSortValue(a);
+        if (sortBy === "name") return a.name.localeCompare(b.name);
+        if (sortBy === "tasks") return (b.tasksCount || 0) - (a.tasksCount || 0);
+        if (sortBy === "progress") return (b.progress || 0) - (a.progress || 0);
+        return 0;
+    });
+
+    return projectList;
+}
 
 function refreshProjectsStats() {
     projects = projects.map(project => {
         const projectId = Number(project.id);
         const projectTasks = tasks.filter(t => Number(t.projectId) === projectId);
         const tasksCount = projectTasks.length;
-
-        let progress = 0;
-
-        if (Array.isArray(project.stageNames) && project.stageNames.length > 0) {
-            const stagePercents = project.stageNames.map(stageName => {
-                const stageTasks = projectTasks.filter(t => (t.stageName || "") === stageName);
-
-                if (stageTasks.length === 0) {
-                    return 0;
-                }
-
-                const doneCount = stageTasks.filter(t => t.status === "done").length;
-                return Math.round((doneCount / stageTasks.length) * 100);
-            });
-
-            progress = stagePercents.length > 0
-                ? Math.round(stagePercents.reduce((sum, x) => sum + x, 0) / stagePercents.length)
-                : 0;
-        } else {
-            const doneCount = projectTasks.filter(t => t.status === "done").length;
-            progress = tasksCount > 0
-                ? Math.round((doneCount / tasksCount) * 100)
-                : 0;
-        }
+        const doneCount = projectTasks.filter(t => t.status === "done").length;
+        const progress = tasksCount > 0
+            ? Math.round((doneCount / tasksCount) * 100)
+            : 0;
 
         return {
             ...project,
@@ -42,6 +129,7 @@ function refreshProjectsStats() {
     });
 
     filteredProjects = [...projects];
+    applyProjectSorting(filteredProjects);
 }
 
 function renderProjects() {
@@ -60,6 +148,18 @@ function renderProjects() {
     }
 
     container.innerHTML = filteredProjects.map(project => `
+        ${(() => {
+            const snapshot = getProjectStageSnapshot(project);
+            const currentStage = snapshot.currentStage;
+            const currentStageLabel = currentStage ? currentStage.name : "Этап не определен";
+            const currentStagePercent = currentStage ? currentStage.progress : 0;
+            const statusText = (project.progress || 0) >= 100
+                ? "Завершен"
+                : (project.tasksCount || 0) > 0
+                    ? "Активный"
+                    : "Без задач";
+
+            return `
         <div class="project-card" onclick="showProjectDetails(${project.id})">
             <div class="project-top">
                 <div class="project-title-wrap">
@@ -70,23 +170,25 @@ function renderProjects() {
                     </div>
                 </div>
 
-                <div class="project-header-actions" onclick="event.stopPropagation()">
-                    <button
-                        class="btn btn-sm btn-outline"
-                        type="button"
-                        title="Редактировать проект"
-                        onclick="openEditProjectModal(${project.id})">
-                        <i class="fas fa-edit"></i>
-                    </button>
+                ${!isEmployee ? `
+                    <div class="project-header-actions" onclick="event.stopPropagation()">
+                        <button
+                            class="btn btn-sm btn-outline"
+                            type="button"
+                            title="Редактировать проект"
+                            onclick="openEditProjectModal(${project.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
 
-                    <button
-                        class="btn btn-sm btn-danger"
-                        type="button"
-                        title="Удалить проект"
-                        onclick="openDeleteProjectModal(${project.id})">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
+                        <button
+                            class="btn btn-sm btn-danger"
+                            type="button"
+                            title="Удалить проект"
+                            onclick="openDeleteProjectModal(${project.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                ` : ""}
             </div>
 
             <div class="project-desc">
@@ -105,8 +207,9 @@ function renderProjects() {
                 </div>
 
                 <div class="metric-box">
-                    <div class="label">Готовность</div>
-                    <div class="value">${project.progress || 0}%</div>
+                    <div class="label">Текущий этап</div>
+                    <div class="value">${currentStageLabel}</div>
+                    <div class="sub">${currentStagePercent}% завершено</div>
                 </div>
             </div>
 
@@ -121,62 +224,51 @@ function renderProjects() {
                 </div>
             </div>
 
-            <div class="project-secondary">
-                <div class="metric-box">
-                    <div class="label">Статус</div>
-                    <div class="value">${(project.progress || 0) >= 100 ? "Завершен" : "Активный"}</div>
-                </div>
-
-                <div class="metric-box">
-                    <div class="label">Участники</div>
-                    <div class="value">${project.membersCount || 0}</div>
+            <div class="project-stages-preview">
+                <div class="stages-preview-title">Этапы проекта</div>
+                <div class="stages-preview-list">
+                    ${(project.stageNames && project.stageNames.length)
+                        ? `
+                            ${project.stageNames.slice(0, 4).map(stage => `
+                                <span class="stage-chip">
+                                    <i class="fas fa-circle" style="font-size:8px;color:var(--primary)"></i>
+                                    ${stage}
+                                </span>
+                            `).join("")}
+                            ${project.stageNames.length > 4 ? `
+                                <span class="stage-chip">+${project.stageNames.length - 4}</span>
+                            ` : ""}
+                        `
+                        : `
+                            <span class="stage-chip">
+                                <i class="fas fa-circle" style="font-size:8px;color:var(--primary)"></i>
+                                Этапы не заданы
+                            </span>
+                        `
+                    }
                 </div>
             </div>
 
-<div class="project-stages-preview">
-    <div class="stages-preview-title">Этапы проекта</div>
-    <div class="stages-preview-list">
-        ${(project.stageNames && project.stageNames.length)
-            ? `
-                ${project.stageNames.slice(0, 4).map(stage => `
-                    <span class="stage-chip">
-                        <i class="fas fa-circle" style="font-size:8px;color:var(--primary)"></i>
-                        ${stage}
-                    </span>
-                `).join("")}
-                ${project.stageNames.length > 4 ? `
-                    <span class="stage-chip">...</span>
-                ` : ""}
-            `
-            : `
-                <span class="stage-chip">
-                    <i class="fas fa-circle" style="font-size:8px;color:var(--primary)"></i>
-                    Этапы не заданы
-                </span>
-            `
-        }
-    </div>
-</div>
-
             <div class="project-card-bottom">
-                <div class="inline-pills">
-                    <span class="tiny-pill">
-                        <i class="fas fa-users"></i>
-                        ${project.membersCount || 0} участников
+                <div class="project-card-meta">
+                    <span class="tiny-pill is-secondary">
+                        <i class="fas fa-signal"></i>
+                        ${statusText}
                     </span>
 
-                    <span class="tiny-pill">
-                        <i class="fas fa-list-check"></i>
-                        ${project.tasksCount || 0} задач
+                    <span class="tiny-pill is-secondary">
+                        <i class="fas fa-users"></i>
+                        ${project.membersCount || 0}
                     </span>
                 </div>
 
-                <span class="open-hint">
-                    <span>Развернуть проект</span>
-                    <i class="fas fa-arrow-right"></i>
+                <span class="project-open-indicator" aria-hidden="true">
+                    <i class="fas fa-angle-right"></i>
                 </span>
             </div>
         </div>
+            `;
+        })()}
     `).join("");
 }
 
@@ -197,19 +289,12 @@ function filterProjects() {
             (project.description || "").toLowerCase().includes(searchText);
     });
 
+    applyProjectSorting(filteredProjects);
     renderProjects();
 }
 
 function sortProjects() {
-    const sortBy = document.getElementById("projectSort")?.value || "name";
-
-    filteredProjects.sort((a, b) => {
-        if (sortBy === "name") return a.name.localeCompare(b.name);
-        if (sortBy === "tasks") return (b.tasksCount || 0) - (a.tasksCount || 0);
-        if (sortBy === "progress") return (b.progress || 0) - (a.progress || 0);
-        return 0;
-    });
-
+    applyProjectSorting(filteredProjects);
     renderProjects();
 }
 
@@ -219,10 +304,11 @@ function resetProjectFilters() {
     const projectStatusFilter = document.getElementById("projectStatusFilter");
 
     if (projectSearch) projectSearch.value = "";
-    if (projectSort) projectSort.value = "name";
+    if (projectSort) projectSort.value = "recent";
     if (projectStatusFilter) projectStatusFilter.value = "all";
 
     filteredProjects = [...projects];
+    applyProjectSorting(filteredProjects);
     renderProjects();
 }
 
@@ -258,19 +344,23 @@ const projectPresets = {
 function showAddProjectModal() {
     const projectName = document.getElementById("projectName");
     const projectDescription = document.getElementById("projectDescription");
-    const modal = document.getElementById("addProjectModal");
+    const projectMembersSearch = document.getElementById("projectMembersSearch");
+    const newProjectStageName = document.getElementById("newProjectStageName");
 
     if (projectName) projectName.value = "";
     if (projectDescription) projectDescription.value = "";
+    if (projectMembersSearch) projectMembersSearch.value = "";
+    if (newProjectStageName) newProjectStageName.value = "";
 
     selectedProjectPreset = "functional";
+    projectStages = [...(projectPresets[selectedProjectPreset]?.stages || [])];
 
     fillProjectManagerSelect();
     fillProjectMembersSelect([]);
     renderProjectPresetCards();
     renderProjectPresetStages();
 
-    if (modal) modal.classList.add("show");
+    openModal("addProjectModal");
 }
 
 function renderProjectPresetCards() {
@@ -300,6 +390,11 @@ function renderProjectPresetCards() {
 
 function selectProjectPreset(presetKey) {
     selectedProjectPreset = presetKey;
+    projectStages = [...(projectPresets[presetKey]?.stages || [])];
+
+    const input = document.getElementById("newProjectStageName");
+    if (input) input.value = "";
+
     renderProjectPresetCards();
     renderProjectPresetStages();
 }
@@ -308,32 +403,134 @@ function renderProjectPresetStages() {
     const box = document.getElementById("projectPresetStagesPreview");
     if (!box) return;
 
-    const preset = projectPresets[selectedProjectPreset];
-    if (!preset) {
-        box.innerHTML = "";
+    if (!projectStages.length) {
+        box.innerHTML = `
+            <div class="stage-editor-item">
+                <div>
+                    <strong>Этапов пока нет</strong>
+                    <div style="font-size:12px; color:var(--gray);">Добавь хотя бы один этап</div>
+                </div>
+            </div>
+        `;
         return;
     }
 
-    box.innerHTML = preset.stages.map((stage, index) => `
+    box.innerHTML = projectStages.map((stage, index) => `
         <div class="stage-editor-item">
-            <div>
-                <strong>${stage}</strong>
-                <div style="font-size:12px; color:var(--gray);">Порядок: ${index + 1}</div>
+            <div style="flex:1; min-width:0;">
+                <input
+                    type="text"
+                    class="form-control"
+                    value="${stage.replace(/"/g, "&quot;")}"
+                    onchange="renameProjectStage(${index}, this.value)"
+                    placeholder="Название этапа">
+                <div style="font-size:12px; color:var(--gray); margin-top:6px;">
+                    Порядок: ${index + 1}
+                </div>
             </div>
 
-            <div style="display:flex; gap:8px;">
-                <button class="btn btn-sm btn-outline" type="button" title="Вверх">
+            <div class="stage-editor-actions">
+                <button class="btn btn-sm btn-outline" type="button" title="В начало" onclick="moveProjectStageToStart(${index})">
+                    <i class="fas fa-angles-up"></i>
+                </button>
+                <button class="btn btn-sm btn-outline" type="button" title="Вверх" onclick="moveProjectStageUp(${index})">
                     <i class="fas fa-arrow-up"></i>
                 </button>
-                <button class="btn btn-sm btn-outline" type="button" title="Вниз">
+                <button class="btn btn-sm btn-outline" type="button" title="Вниз" onclick="moveProjectStageDown(${index})">
                     <i class="fas fa-arrow-down"></i>
                 </button>
-                <button class="btn btn-sm btn-outline" type="button" title="Переименовать">
-                    <i class="fas fa-pen"></i>
+                <button class="btn btn-sm btn-outline" type="button" title="В конец" onclick="moveProjectStageToEnd(${index})">
+                    <i class="fas fa-angles-down"></i>
+                </button>
+                <button class="btn btn-sm btn-danger" type="button" title="Удалить" onclick="removeProjectStage(${index})">
+                    <i class="fas fa-trash"></i>
                 </button>
             </div>
         </div>
     `).join("");
+}
+
+function addProjectStage() {
+    const input = document.getElementById("newProjectStageName");
+    if (!input) return;
+
+    const name = (input.value || "").trim();
+    if (!name) {
+        showNotification("Введите название этапа");
+        return;
+    }
+
+    if (projectStages.some(x => x.toLowerCase() === name.toLowerCase())) {
+        showNotification("Такой этап уже есть");
+        return;
+    }
+
+    projectStages.push(name);
+    input.value = "";
+    renderProjectPresetStages();
+}
+
+function renameProjectStage(index, value) {
+    const name = (value || "").trim();
+
+    if (!name) {
+        showNotification("Название этапа не может быть пустым");
+        renderProjectPresetStages();
+        return;
+    }
+
+    const duplicate = projectStages.some((x, i) =>
+        i !== index && x.toLowerCase() === name.toLowerCase()
+    );
+
+    if (duplicate) {
+        showNotification("Такой этап уже существует");
+        renderProjectPresetStages();
+        return;
+    }
+
+    projectStages[index] = name;
+}
+
+function removeProjectStage(index) {
+    if (index < 0 || index >= projectStages.length) return;
+
+    projectStages.splice(index, 1);
+    renderProjectPresetStages();
+}
+
+function moveProjectStageUp(index) {
+    if (index <= 0) return;
+
+    [projectStages[index - 1], projectStages[index]] =
+        [projectStages[index], projectStages[index - 1]];
+
+    renderProjectPresetStages();
+}
+
+function moveProjectStageDown(index) {
+    if (index < 0 || index >= projectStages.length - 1) return;
+
+    [projectStages[index + 1], projectStages[index]] =
+        [projectStages[index], projectStages[index + 1]];
+
+    renderProjectPresetStages();
+}
+
+function moveProjectStageToStart(index) {
+    if (index <= 0 || index >= projectStages.length) return;
+
+    const [stage] = projectStages.splice(index, 1);
+    projectStages.unshift(stage);
+    renderProjectPresetStages();
+}
+
+function moveProjectStageToEnd(index) {
+    if (index < 0 || index >= projectStages.length - 1) return;
+
+    const [stage] = projectStages.splice(index, 1);
+    projectStages.push(stage);
+    renderProjectPresetStages();
 }
 
 function renderEditProjectPresetCards() {
@@ -372,8 +569,27 @@ function selectEditProjectPreset(presetKey) {
     renderEditProjectStages();
 }
 
+function getEditedProjectId() {
+    return Number(document.getElementById("editProjectId")?.value || 0);
+}
+
+function getProjectStageTaskCount(projectId, stageName) {
+    const pid = Number(projectId || 0);
+    const normalizedStage = String(stageName || "").trim().toLowerCase();
+
+    if (!pid || !normalizedStage) return 0;
+
+    return tasks.filter(task =>
+        Number(task.projectId) === pid &&
+        String(task.stageName || "").trim().toLowerCase() === normalizedStage
+    ).length;
+}
+
 function renderEditProjectStages() {
-    const container = document.getElementById("editProjectStagesList");
+    const container =
+        document.getElementById("editProjectStagesList") ||
+        document.getElementById("editProjectStagesPreview");
+
     if (!container) return;
 
     if (!editProjectStages.length) {
@@ -388,21 +604,31 @@ function renderEditProjectStages() {
         return;
     }
 
-    container.innerHTML = editProjectStages.map((stage, index) => `
+    const editedProjectId = getEditedProjectId();
+
+    container.innerHTML = editProjectStages.map((stage, index) => {
+        const stageTaskCount = getProjectStageTaskCount(editedProjectId, stage);
+        const isLocked = stageTaskCount > 0;
+
+        return `
         <div class="stage-editor-item">
             <div style="flex:1; min-width:0;">
                 <input
                     type="text"
-                    class="form-control"
+                    class="form-control ${isLocked ? "stage-input-locked" : ""}"
                     value="${stage.replace(/"/g, "&quot;")}"
                     onchange="renameEditProjectStage(${index}, this.value)"
+                    ${isLocked ? "readonly" : ""}
                     placeholder="Название этапа">
                 <div style="font-size:12px; color:var(--gray); margin-top:6px;">
-                    Порядок: ${index + 1}
+                    Порядок: ${index + 1}${isLocked ? ` · ${stageTaskCount} задач · название защищено` : ""}
                 </div>
             </div>
 
-            <div style="display:flex; gap:8px; flex-shrink:0;">
+            <div class="stage-editor-actions">
+                <button class="btn btn-sm btn-outline" type="button" title="В начало" onclick="moveEditProjectStageToStart(${index})">
+                    <i class="fas fa-angles-up"></i>
+                </button>
                 <button class="btn btn-sm btn-outline" type="button" title="Вверх" onclick="moveEditProjectStageUp(${index})">
                     <i class="fas fa-arrow-up"></i>
                 </button>
@@ -411,12 +637,17 @@ function renderEditProjectStages() {
                     <i class="fas fa-arrow-down"></i>
                 </button>
 
-                <button class="btn btn-sm btn-danger" type="button" title="Удалить" onclick="removeEditProjectStage(${index})">
+                <button class="btn btn-sm btn-outline" type="button" title="В конец" onclick="moveEditProjectStageToEnd(${index})">
+                    <i class="fas fa-angles-down"></i>
+                </button>
+
+                <button class="btn btn-sm btn-danger" type="button" title="${isLocked ? "Нельзя удалить этап с задачами" : "Удалить"}" ${isLocked ? "disabled" : ""} onclick="removeEditProjectStage(${index})">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
         </div>
-    `).join("");
+    `;
+    }).join("");
 }
 
 function addEditProjectStage() {
@@ -442,6 +673,12 @@ function addEditProjectStage() {
 function renameEditProjectStage(index, value) {
     const name = (value || "").trim();
 
+    if (getProjectStageTaskCount(getEditedProjectId(), editProjectStages[index]) > 0) {
+        showNotification("Этап с задачами нельзя переименовать без переноса задач");
+        renderEditProjectStages();
+        return;
+    }
+
     if (!name) {
         showNotification("Название этапа не может быть пустым");
         renderEditProjectStages();
@@ -463,6 +700,11 @@ function renameEditProjectStage(index, value) {
 
 function removeEditProjectStage(index) {
     if (index < 0 || index >= editProjectStages.length) return;
+
+    if (getProjectStageTaskCount(getEditedProjectId(), editProjectStages[index]) > 0) {
+        showNotification("Нельзя удалить этап, в котором уже есть задачи");
+        return;
+    }
 
     editProjectStages.splice(index, 1);
     renderEditProjectStages();
@@ -486,7 +728,25 @@ function moveEditProjectStageDown(index) {
     renderEditProjectStages();
 }
 
+function moveEditProjectStageToStart(index) {
+    if (index <= 0 || index >= editProjectStages.length) return;
+
+    const [stage] = editProjectStages.splice(index, 1);
+    editProjectStages.unshift(stage);
+    renderEditProjectStages();
+}
+
+function moveEditProjectStageToEnd(index) {
+    if (index < 0 || index >= editProjectStages.length - 1) return;
+
+    const [stage] = editProjectStages.splice(index, 1);
+    editProjectStages.push(stage);
+    renderEditProjectStages();
+}
+
 function openEditProjectModal(id) {
+    if (isEmployee) return;
+
     const project = projects.find(p => Number(p.id) === Number(id));
     if (!project) {
         showNotification("Проект не найден");
@@ -498,26 +758,18 @@ function openEditProjectModal(id) {
     const editProjectId = document.getElementById("editProjectId");
     const editProjectName = document.getElementById("editProjectName");
     const editProjectDescription = document.getElementById("editProjectDescription");
-    const modal = document.getElementById("editProjectModal");
+    const editProjectMembersSearch = document.getElementById("editProjectMembersSearch");
 
     if (editProjectId) editProjectId.value = String(project.id);
     if (editProjectName) editProjectName.value = project.name || "";
     if (editProjectDescription) editProjectDescription.value = project.description || "";
+    if (editProjectMembersSearch) editProjectMembersSearch.value = "";
 
     fillEditProjectManagerSelect(project.managerId || null);
     fillEditProjectMembersSelect(project.memberIds || []);
 
-    const projectTypeKey =
-        project.projectTypeName === "Линейный" ? "linear" :
-            project.projectTypeName === "Гибридный" ? "hybrid" :
-                "functional";
-
-    selectedEditProjectPreset = projectTypeKey;
-
-    const stageNames = Array.isArray(project.stageNames) ? [...project.stageNames] : [];
-    editProjectStages = stageNames.length
-        ? stageNames
-        : [...(projectPresets[selectedEditProjectPreset]?.stages || [])];
+    selectedEditProjectPreset = getProjectPresetKey(project);
+    editProjectStages = getProjectStageNames(project);
 
     const newEditStageName = document.getElementById("newEditStageName");
     if (newEditStageName) {
@@ -527,7 +779,7 @@ function openEditProjectModal(id) {
     renderEditProjectPresetCards();
     renderEditProjectStages();
 
-    if (modal) modal.classList.add("show");
+    openModal("editProjectModal");
 }
 
 
@@ -537,6 +789,11 @@ async function addProject() {
 
     if (!name) {
         showNotification("Введите название проекта");
+        return;
+    }
+
+    if (!projectStages.length) {
+        showNotification("Добавьте хотя бы один этап");
         return;
     }
 
@@ -554,7 +811,7 @@ async function addProject() {
         managerId: managerId && managerId > 0 ? managerId : null,
         memberIds,
         projectType: selectedProjectPreset,
-        stageNames: [...(projectPresets[selectedProjectPreset]?.stages || [])]
+        stageNames: [...projectStages]
     };
 
     try {
@@ -574,7 +831,10 @@ async function addProject() {
             return;
         }
 
-        const project = normalizeProject(data.project);
+        const project = normalizeProject({
+            ...data.project,
+            projectType: selectedProjectPreset
+        });
 
         projects.unshift(project);
         filteredProjects = [...projects];
@@ -584,7 +844,8 @@ async function addProject() {
         fillProjectFilter();
         fillProjectSelect("taskProjectSelect");
         fillProjectSelect("editTaskProject");
-        renderProjects();
+        refreshProjectsStats();
+        filterProjects();
         renderDashboard();
 
         showNotification("Проект сохранен");
@@ -647,7 +908,10 @@ async function saveProjectChanges() {
             return;
         }
 
-        const updatedProject = normalizeProject(data.project);
+        const updatedProject = normalizeProject({
+            ...data.project,
+            projectType: selectedEditProjectPreset
+        });
         const index = projects.findIndex(p => Number(p.id) === Number(updatedProject.id));
 
         if (index !== -1) {
@@ -661,7 +925,8 @@ async function saveProjectChanges() {
 
         editProjectStages = [];
 
-        renderProjects();
+        refreshProjectsStats();
+        filterProjects();
         fillProjectFilter();
         fillProjectSelect("taskProjectSelect");
         fillProjectSelect("editTaskProject");
@@ -673,6 +938,8 @@ async function saveProjectChanges() {
     }
 }
 function openDeleteProjectModal(id) {
+    if (isEmployee) return;
+
     const project = projects.find(p => Number(p.id) === Number(id));
 
     if (!project) {
@@ -685,12 +952,11 @@ function openDeleteProjectModal(id) {
     const deleteProjectId = document.getElementById("deleteProjectId");
     const deleteProjectName = document.getElementById("deleteProjectName");
     const deleteProjectTasksCount = document.getElementById("deleteProjectTasksCount");
-    const modal = document.getElementById("deleteProjectModal");
 
     if (deleteProjectId) deleteProjectId.value = project.id;
     if (deleteProjectName) deleteProjectName.textContent = project.name;
     if (deleteProjectTasksCount) deleteProjectTasksCount.textContent = linkedTasksCount;
-    if (modal) modal.classList.add("show");
+    openModal("deleteProjectModal");
 }
 
 async function confirmDeleteProject() {
@@ -723,10 +989,9 @@ async function confirmDeleteProject() {
         fillProjectSelect("taskProjectSelect");
         fillProjectSelect("editTaskProject");
         fillTaskSelects();
-       
 
         refreshProjectsStats();
-        renderProjects();
+        filterProjects();
         renderTasksTable();
         renderDashboard();
         renderDashboardTasks();
@@ -811,40 +1076,15 @@ function showProjectDetails(id) {
         return;
     }
 
-    const projectTasks = tasks.filter(t => Number(t.projectId) === Number(project.id));
-    const doneTasks = projectTasks.filter(t => t.status === "done").length;
-
-    let stageNames = Array.isArray(project.stageNames) && project.stageNames.length
-        ? project.stageNames
-        : [];
-
-    if (!stageNames.length) {
-        const projectName = (project.name || "").toLowerCase();
-
-        if (projectName.includes("студент")) {
-            stageNames = ["Backend", "Frontend", "UI/UX", "QA"];
-        } else if (projectName.includes("crm")) {
-            stageNames = ["Анализ", "Проектирование", "Разработка", "Тестирование", "Запуск"];
-        } else {
-            stageNames = ["Подготовка", "Разработка", "Тестирование", "Релиз"];
-        }
-    }
-
-    const tasksByStages = stageNames.map(stageName => {
-        const stageTasks = projectTasks.filter(t => (t.stageName || "") === stageName);
-        const stageDone = stageTasks.filter(t => t.status === "done").length;
-        const stageProgress = stageTasks.length > 0
-            ? Math.round((stageDone / stageTasks.length) * 100)
-            : 0;
-
-        return {
-            name: stageName,
-            tasks: stageTasks,
-            done: stageDone,
-            total: stageTasks.length,
-            progress: stageProgress
-        };
-    });
+    const {
+        projectTasks,
+        doneTasks,
+        tasksByStages,
+        projectTypeKey,
+        currentStage,
+        currentStageIndex,
+        nextStage
+    } = getProjectStageSnapshot(project);
 
     const hasSelectedStage = tasksByStages.some(x => x.name === selectedProjectStageFilter);
 
@@ -855,15 +1095,6 @@ function showProjectDetails(id) {
     const visibleStages = selectedProjectStageFilter
         ? tasksByStages.filter(x => x.name === selectedProjectStageFilter)
         : tasksByStages;
-
-    const currentStage = tasksByStages.find(x => x.progress < 100) || tasksByStages[0] || null;
-    const currentStageIndex = currentStage
-        ? tasksByStages.findIndex(x => x.name === currentStage.name)
-        : -1;
-
-    const nextStage = currentStageIndex >= 0 && currentStageIndex < tasksByStages.length - 1
-        ? tasksByStages[currentStageIndex + 1]
-        : null;
 
     const projectTypeName = project.projectTypeName || "Функциональный";
     const managerName = project.managerName || "Менеджер не указан";
@@ -876,13 +1107,13 @@ function showProjectDetails(id) {
                 <div class="summary-mini">
                     <div class="label">Общий прогресс</div>
                     <div class="value">${progress}%</div>
-                    <div class="sub">по этапам проекта</div>
+                    <div class="sub">по задачам проекта</div>
                 </div>
 
                 <div class="summary-mini">
                     <div class="label">Текущий этап</div>
-                    <div class="value">${currentStage ? currentStage.name : "—"}</div>
-                    <div class="sub">первый незавершённый</div>
+                    <div class="value">${currentStage ? `${currentStage.name} · ${currentStage.progress}%` : "—"}</div>
+                    <div class="sub">первый незавершённый этап</div>
                 </div>
 
                 <div class="summary-mini">
@@ -908,21 +1139,23 @@ function showProjectDetails(id) {
             </h3>
 
             <div class="action-grid">
-                <div class="action-card" onclick="showAddTaskModal(${project.id}, '${selectedProjectStageFilter ? selectedProjectStageFilter.replace(/'/g, "\\'") : ""}')" style="cursor:pointer;">
-                    <i class="fas fa-plus"></i>
-                    <div>
-                        <strong>Добавить задачу</strong>
-                        <span>Сразу в нужный этап проекта</span>
+                ${!isEmployee ? `
+                    <div class="action-card" onclick="showAddTaskModal(${project.id}, '${selectedProjectStageFilter ? selectedProjectStageFilter.replace(/'/g, "\\'") : ""}')" style="cursor:pointer;">
+                        <i class="fas fa-plus"></i>
+                        <div>
+                            <strong>Добавить задачу</strong>
+                            <span>Сразу в нужный этап проекта</span>
+                        </div>
                     </div>
-                </div>
 
-                <div class="action-card" onclick="openEditProjectModal(${project.id})" style="cursor:pointer;">
-                    <i class="fas fa-sitemap"></i>
-                    <div>
-                        <strong>Редактировать этапы</strong>
-                        <span>Добавить, удалить, переименовать</span>
+                    <div class="action-card" onclick="openEditProjectModal(${project.id})" style="cursor:pointer;">
+                        <i class="fas fa-sitemap"></i>
+                        <div>
+                            <strong>Редактировать этапы</strong>
+                            <span>Добавить, удалить, переименовать, перенести</span>
+                        </div>
                     </div>
-                </div>
+                ` : ""}
 
                 <div class="action-card" onclick="setProjectStageFilter(${project.id}, '')" style="cursor:pointer;">
                     <i class="fas fa-filter"></i>
@@ -932,7 +1165,7 @@ function showProjectDetails(id) {
                     </div>
                 </div>
 
-                <div class="action-card">
+                <div class="action-card future-action">
                     <i class="fas fa-users"></i>
                     <div>
                         <strong>Состав команды</strong>
@@ -940,7 +1173,7 @@ function showProjectDetails(id) {
                     </div>
                 </div>
 
-                <div class="action-card">
+                <div class="action-card future-action">
                     <i class="fas fa-file-export"></i>
                     <div>
                         <strong>Экспорт по проекту</strong>
@@ -948,11 +1181,27 @@ function showProjectDetails(id) {
                     </div>
                 </div>
 
-                <div class="action-card">
+                <div class="action-card future-action">
                     <i class="fas fa-arrows-up-down-left-right"></i>
                     <div>
                         <strong>Перенос задач</strong>
                         <span>Потом сюда можно добавить drag & drop</span>
+                    </div>
+                </div>
+
+                <div class="action-card future-action">
+                    <i class="fas fa-calendar-check"></i>
+                    <div>
+                        <strong>Календарь проекта</strong>
+                        <span>События, митапы и дедлайны</span>
+                    </div>
+                </div>
+
+                <div class="action-card future-action">
+                    <i class="fas fa-triangle-exclamation"></i>
+                    <div>
+                        <strong>Риски и просрочки</strong>
+                        <span>Сводка проблемных задач</span>
                     </div>
                 </div>
             </div>
@@ -988,19 +1237,36 @@ function showProjectDetails(id) {
                 ${tasksByStages.map((stage, index) => {
         let cls = "";
 
-        if (stage.progress === 100) {
+        if (stage.total > 0 && stage.progress === 100) {
             cls = "done";
         } else if (index === currentStageIndex) {
             cls = "current";
-        } else if (index === currentStageIndex + 1) {
+        } else if (projectTypeKey === "linear" && index === currentStageIndex + 1) {
             cls = "next";
+        } else if (stage.total === 0) {
+            cls = "empty";
+        } else {
+            cls = "waiting";
         }
 
+        const stageStatusText = cls === "done"
+            ? "Готов"
+            : cls === "current"
+                ? "Текущий"
+                : cls === "next"
+                    ? "Следующий"
+                    : cls === "empty"
+                        ? "Без задач"
+                        : "В очереди";
+
         return `
-                        <div class="timeline-step ${cls}">
+                        <div class="timeline-step ${cls}" style="cursor:pointer;" onclick="setProjectStageFilter(${project.id}, '${stage.name.replace(/'/g, "\\'")}')">
                             <div class="timeline-top">
                                 <div class="timeline-index">Этап ${index + 1}</div>
-                                <div class="timeline-percent">${stage.progress}%</div>
+                                <div class="timeline-meta">
+                                    <span class="timeline-status">${stageStatusText}</span>
+                                    <span class="timeline-percent">${stage.progress}%</span>
+                                </div>
                             </div>
 
                             <div class="timeline-name">${stage.name}</div>
@@ -1042,7 +1308,7 @@ function showProjectDetails(id) {
                             <div class="tasks-grid-in-stage">
                                 ${stage.tasks.length > 0
             ? stage.tasks.map(task => `
-                                        <div class="task-row">
+                                        <div class="task-row task-status-${task.status || "new"}">
                                             <div>
                                                 <div class="task-row-title">${task.name}</div>
                                                 <div class="task-row-sub">Исполнитель: ${task.assignee || "не назначен"}</div>
@@ -1106,9 +1372,11 @@ function showProjectDetails(id) {
                                     </span>
                                 </div>
 
-                                <button class="btn btn-outline" type="button" onclick="showAddTaskModal(${project.id}, '${stage.name.replace(/'/g, "\\'")}')">
-                                    Добавить задачу в этап
-                                </button>
+                                ${!isEmployee ? `
+                                    <button class="btn btn-outline" type="button" onclick="showAddTaskModal(${project.id}, '${stage.name.replace(/'/g, "\\'")}')">
+                                        Добавить задачу в этап
+                                    </button>
+                                ` : ""}
                             </div>
                         </div>
                     </div>
@@ -1125,9 +1393,11 @@ function showProjectDetails(id) {
                     <p>${project.description || "Без описания"}</p>
                 </div>
 
-                <button class="btn btn-outline" type="button" onclick="event.stopPropagation(); openEditProjectModal(${project.id})">
-                    <i class="fas fa-edit"></i> Редактировать
-                </button>
+                ${!isEmployee ? `
+                    <button class="btn btn-outline" type="button" onclick="event.stopPropagation(); openEditProjectModal(${project.id})">
+                        <i class="fas fa-edit"></i> Редактировать
+                    </button>
+                ` : ""}
             </div>
 
             <div class="detail-pills">
@@ -1185,7 +1455,11 @@ function showProjectDetails(id) {
         modal.classList.add("show");
     }
 
-    document.body.style.overflow = "hidden";
+    if (typeof lockBodyScroll === "function") {
+        lockBodyScroll();
+    } else {
+        document.body.style.overflow = "hidden";
+    }
 }
 
 function closeProjectViewModal() {
@@ -1205,7 +1479,11 @@ function closeProjectViewModal() {
         content.innerHTML = "";
     }
 
-    document.body.style.overflow = "";
+    if (typeof unlockBodyScroll === "function") {
+        unlockBodyScroll();
+    } else {
+        document.body.style.overflow = "";
+    }
 }
 
 
@@ -1259,6 +1537,8 @@ function fillProjectMembersSelect(selectedIds = []) {
     [...select.options].forEach(option => {
         option.selected = selectedIds.includes(Number(option.value));
     });
+
+    renderProjectMembersPicker("projectMembersSearch", "projectMembersSelect");
 }
 function fillEditProjectMembersSelect(selectedIds = []) {
     const select = document.getElementById("editProjectMembersSelect");
@@ -1278,17 +1558,100 @@ function fillEditProjectMembersSelect(selectedIds = []) {
     [...select.options].forEach(option => {
         option.selected = selectedIds.includes(Number(option.value));
     });
+
+    renderProjectMembersPicker("editProjectMembersSearch", "editProjectMembersSelect");
 }
 
 function filterProjectMembersOptions(searchInputId, selectId) {
+    renderProjectMembersPicker(searchInputId, selectId);
+}
+
+function getProjectMembersUiConfig(selectId) {
+    if (selectId === "projectMembersSelect") {
+        return {
+            pickerId: "projectMembersPicker",
+            selectedId: "projectMembersSelected",
+            searchId: "projectMembersSearch"
+        };
+    }
+
+    if (selectId === "editProjectMembersSelect") {
+        return {
+            pickerId: "editProjectMembersPicker",
+            selectedId: "editProjectMembersSelected",
+            searchId: "editProjectMembersSearch"
+        };
+    }
+
+    return null;
+}
+
+function toggleProjectMemberSelection(selectId, userId) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    const option = [...select.options].find(x => Number(x.value) === Number(userId));
+    if (!option) return;
+
+    option.selected = !option.selected;
+
+    const ui = getProjectMembersUiConfig(selectId);
+    if (!ui) return;
+
+    renderProjectMembersPicker(ui.searchId, selectId);
+}
+
+function renderProjectMembersPicker(searchInputId, selectId) {
     const searchInput = document.getElementById(searchInputId);
     const select = document.getElementById(selectId);
-    if (!searchInput || !select) return;
+    const ui = getProjectMembersUiConfig(selectId);
+    const picker = ui ? document.getElementById(ui.pickerId) : null;
+    const selectedContainer = ui ? document.getElementById(ui.selectedId) : null;
+
+    if (!searchInput || !select || !picker || !selectedContainer) return;
 
     const query = (searchInput.value || "").trim().toLowerCase();
+    const allOptions = [...select.options].map(option => ({
+        id: Number(option.value),
+        text: option.textContent || "",
+        selected: option.selected
+    }));
 
-    [...select.options].forEach(option => {
-        const text = (option.textContent || "").toLowerCase();
-        option.hidden = query && !text.includes(query);
-    });
+    const selectedOptions = allOptions.filter(option => option.selected);
+    const visibleOptions = allOptions.filter(option =>
+        !query || option.text.toLowerCase().includes(query)
+    );
+
+    selectedContainer.innerHTML = selectedOptions.length
+        ? selectedOptions.map(option => `
+            <button
+                class="member-chip"
+                type="button"
+                onclick="event.stopPropagation(); toggleProjectMemberSelection('${selectId}', ${option.id})">
+                <span>${option.text.split(" — ")[0]}</span>
+                <i class="fas fa-times"></i>
+            </button>
+        `).join("")
+        : `<div class="member-picker-empty">Пока никто не выбран</div>`;
+
+    picker.innerHTML = visibleOptions.length
+        ? visibleOptions.map(option => {
+            const [name, position] = option.text.split(" — ");
+
+            return `
+                <button
+                    class="member-picker-item ${option.selected ? "is-selected" : ""}"
+                    type="button"
+                    onclick="toggleProjectMemberSelection('${selectId}', ${option.id})">
+                    <div class="member-picker-info">
+                        <div class="member-picker-name">${name || "Сотрудник"}</div>
+                        <div class="member-picker-sub">${position || "без должности"}</div>
+                    </div>
+                    <span class="member-picker-check">
+                        <i class="fas ${option.selected ? "fa-check" : "fa-plus"}"></i>
+                    </span>
+                </button>
+            `;
+        }).join("")
+        : `<div class="member-picker-empty">По этому запросу никого не найдено</div>`;
 }

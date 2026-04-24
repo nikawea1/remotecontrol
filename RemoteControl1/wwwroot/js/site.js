@@ -1,15 +1,46 @@
-﻿//site.js
+﻿// Файл: RemoteControl1/wwwroot/js/site.js
 
+window.remoteControlData = window.remoteControlData || {};
 
-const remoteControlData = window.remoteControlData || {};
+function toRemoteBoolean(value) {
+    if (typeof value === "boolean") return value;
+    return String(value || "").toLowerCase() === "true";
+}
+
+function toNumber(value, fallback = 0) {
+    const num = Number(value);
+    return Number.isFinite(num) ? num : fallback;
+}
+
+function getProjectTypeLabel(value) {
+    const type = String(value || "").trim().toLowerCase();
+
+    if (type === "linear" || type === "линейный") return "Линейный";
+    if (type === "hybrid" || type === "гибридный") return "Гибридный";
+    if (type === "functional" || type === "функциональный") return "Функциональный";
+
+    return value || "Функциональный";
+}
+
+function getProjectTypeKey(value) {
+    const type = String(value || "").trim().toLowerCase();
+
+    if (type === "linear" || type.includes("линей")) return "linear";
+    if (type === "hybrid" || type.includes("гибрид")) return "hybrid";
+
+    return "functional";
+}
 
 function normalizeTask(task) {
+    if (!task) return task;
+
     return {
-        id: Number(task.id ?? task.Id ?? 0),
-        name: task.name ?? task.Name ?? "",
-        project: task.project ?? task.Project ?? "",
-        projectId: Number(task.projectId ?? task.ProjectId ?? 0),
-        userId: Number(task.userId ?? task.UserId ?? 0),
+        ...task,
+        id: toNumber(task.id ?? task.Id),
+        name: task.name ?? task.Name ?? task.title ?? task.Title ?? "",
+        project: task.project ?? task.Project ?? task.projectName ?? task.ProjectName ?? "",
+        projectId: toNumber(task.projectId ?? task.ProjectId),
+        userId: toNumber(task.userId ?? task.UserId),
         stageName: task.stageName ?? task.StageName ?? "",
         status: task.status ?? task.Status ?? "new",
         priority: task.priority ?? task.Priority ?? "medium",
@@ -17,129 +48,145 @@ function normalizeTask(task) {
         deadlineRaw: task.deadlineRaw ?? task.DeadlineRaw ?? "",
         description: task.description ?? task.Description ?? "",
         assignee: task.assignee ?? task.Assignee ?? "",
-        plannedTime: Number(task.plannedTime ?? task.PlannedTime ?? 0)
+        plannedTime: toNumber(task.plannedTime ?? task.PlannedTime ?? task.plannedTimeHours ?? task.PlannedTimeHours)
     };
 }
 
 function normalizeProject(project) {
+    if (!project) return project;
+
+    const rawMemberIds = project.memberIds ?? project.MemberIds ?? [];
+    const rawStageNames = project.stageNames ?? project.StageNames ?? [];
+    const rawType = project.projectType ?? project.ProjectType ?? project.projectTypeName ?? project.ProjectTypeName ?? "functional";
+    const projectType = getProjectTypeKey(rawType);
+
     return {
-        id: Number(project.id ?? project.Id ?? 0),
+        ...project,
+        id: toNumber(project.id ?? project.Id),
         name: project.name ?? project.Name ?? "",
         description: project.description ?? project.Description ?? "",
-        tasksCount: Number(project.tasksCount ?? project.TasksCount ?? 0),
-        progress: Number(project.progress ?? project.Progress ?? 0),
-        managerId: Number(project.managerId ?? project.ManagerId ?? 0),
+        createdAt: project.createdAt ?? project.CreatedAt ?? "",
+        tasksCount: toNumber(project.tasksCount ?? project.TasksCount),
+        progress: toNumber(project.progress ?? project.Progress),
+        managerId: project.managerId != null || project.ManagerId != null
+            ? toNumber(project.managerId ?? project.ManagerId)
+            : null,
         managerName: project.managerName ?? project.ManagerName ?? "",
-        memberIds: Array.isArray(project.memberIds ?? project.MemberIds)
-            ? (project.memberIds ?? project.MemberIds).map(Number)
-            : [],
-        membersCount: Number(project.membersCount ?? project.MembersCount ?? 0),
-        projectTypeName: project.projectTypeName ?? project.ProjectTypeName ?? "Проект",
-        stageNames: Array.isArray(project.stageNames ?? project.StageNames)
-            ? (project.stageNames ?? project.StageNames)
-            : []
+        memberIds: Array.isArray(rawMemberIds) ? rawMemberIds.map(Number) : [],
+        membersCount: toNumber(project.membersCount ?? project.MembersCount),
+        projectType,
+        projectTypeName: getProjectTypeLabel(projectType),
+        stageNames: Array.isArray(rawStageNames) ? rawStageNames : []
     };
 }
 
 function normalizeUser(user) {
+    if (!user) return user;
+
+    const isActiveValue = user.isActive ?? user.IsActive;
+    const statusValue = user.status ?? user.Status ?? (isActiveValue === false ? "blocked" : "active");
+
     return {
-        id: Number(user.id ?? user.Id ?? 0),
+        ...user,
+        id: toNumber(user.id ?? user.Id),
         fullName: user.fullName ?? user.FullName ?? "",
         login: user.login ?? user.Login ?? "",
         email: user.email ?? user.Email ?? "",
         phone: user.phone ?? user.Phone ?? "",
         position: user.position ?? user.Position ?? "",
-        role: user.role ?? user.Role ?? "employee",
-        hourlyRate: Number(user.hourlyRate ?? user.HourlyRate ?? 0),
-        status: user.status ?? user.Status ?? "active",
-        tasksInProgress: Number(user.tasksInProgress ?? user.TasksInProgress ?? 0),
-        completedTasks: Number(user.completedTasks ?? user.CompletedTasks ?? 0),
-        overdueTasks: Number(user.overdueTasks ?? user.OverdueTasks ?? 0),
-        totalHours: Number(user.totalHours ?? user.TotalHours ?? 0),
-        plannedHours: Number(user.plannedHours ?? user.PlannedHours ?? 0),
-
+        role: String(user.role ?? user.Role ?? "employee").toLowerCase(),
+        hourlyRate: toNumber(user.hourlyRate ?? user.HourlyRate ?? user.rate ?? user.Rate),
+        rate: toNumber(user.rate ?? user.Rate ?? user.hourlyRate ?? user.HourlyRate),
+        status: statusValue,
+        tasksInProgress: toNumber(user.tasksInProgress ?? user.TasksInProgress),
+        completedTasks: toNumber(user.completedTasks ?? user.CompletedTasks),
+        overdueTasks: toNumber(user.overdueTasks ?? user.OverdueTasks),
+        totalHours: toNumber(user.totalHours ?? user.TotalHours),
+        plannedHours: toNumber(user.plannedHours ?? user.PlannedHours),
         workMode: user.workMode ?? user.WorkMode ?? "fixed",
-        requiredDailyHours: Number(user.requiredDailyHours ?? user.RequiredDailyHours ?? 8),
+        requiredDailyHours: toNumber(user.requiredDailyHours ?? user.RequiredDailyHours, 8),
         plannedStartTime: user.plannedStartTime ?? user.PlannedStartTime ?? "",
         plannedEndTime: user.plannedEndTime ?? user.PlannedEndTime ?? "",
-
-        workDayHours: Number(user.workDayHours ?? user.WorkDayHours ?? 0),
-        trackedHours: Number(user.trackedHours ?? user.TrackedHours ?? 0),
-        idleHours: Number(user.idleHours ?? user.IdleHours ?? 0),
-        salaryHours: Number(user.salaryHours ?? user.SalaryHours ?? 0),
-
-        workloadDiff: Number(user.workloadDiff ?? user.WorkloadDiff ?? 0),
-        completionPercent: Number(user.completionPercent ?? user.CompletionPercent ?? 0),
+        workDayHours: toNumber(user.workDayHours ?? user.WorkDayHours),
+        trackedHours: toNumber(user.trackedHours ?? user.TrackedHours),
+        idleHours: toNumber(user.idleHours ?? user.IdleHours),
+        salaryHours: toNumber(user.salaryHours ?? user.SalaryHours),
+        workloadDiff: toNumber(user.workloadDiff ?? user.WorkloadDiff),
+        completionPercent: toNumber(user.completionPercent ?? user.CompletionPercent),
         productivityState: user.productivityState ?? user.ProductivityState ?? "normal",
-        bonusPercent: Number(user.bonusPercent ?? user.BonusPercent ?? 0),
-        bonusAmount: Number(user.bonusAmount ?? user.BonusAmount ?? 0)
+        bonusPercent: toNumber(user.bonusPercent ?? user.BonusPercent),
+        bonusAmount: toNumber(user.bonusAmount ?? user.BonusAmount)
     };
 }
 
 function normalizeActivity(item) {
+    if (!item) return item;
+
     return {
+        ...item,
         date: item.date ?? item.Date ?? "",
         task: item.task ?? item.Task ?? "",
-        hours: Number(item.hours ?? item.Hours ?? 0),
+        project: item.project ?? item.Project ?? "",
+        hours: toNumber(item.hours ?? item.Hours),
         comment: item.comment ?? item.Comment ?? ""
     };
 }
 
-let tasks = Array.isArray(remoteControlData.tasks)
-    ? remoteControlData.tasks.map(normalizeTask)
+window.currentUserId = toNumber(window.remoteControlData.currentUserId ?? window.remoteControlData.CurrentUserId);
+window.currentUserName = window.remoteControlData.currentUserName ?? "";
+window.currentUserEmail = window.remoteControlData.currentUserEmail ?? "";
+window.currentUserLogin = window.remoteControlData.currentUserLogin ?? "";
+window.currentUserPhone = window.remoteControlData.currentUserPhone ?? "";
+window.currentUserPosition = window.remoteControlData.currentUserPosition ?? "";
+window.currentUserRate = toNumber(window.remoteControlData.currentUserRate);
+window.currentUserIsActive = toRemoteBoolean(window.remoteControlData.currentUserIsActive);
+
+window.currentUserRole = String(window.remoteControlData.currentUserRole ?? "employee").toLowerCase();
+window.isAdmin = toRemoteBoolean(window.remoteControlData.isAdmin);
+window.isManager = toRemoteBoolean(window.remoteControlData.isManager);
+window.isEmployee = toRemoteBoolean(window.remoteControlData.isEmployee);
+
+window.tasks = Array.isArray(window.remoteControlData.tasks)
+    ? window.remoteControlData.tasks.map(normalizeTask)
     : [];
 
-let projects = Array.isArray(remoteControlData.projects)
-    ? remoteControlData.projects.map(normalizeProject)
+window.projects = Array.isArray(window.remoteControlData.projects)
+    ? window.remoteControlData.projects.map(normalizeProject)
     : [];
 
-let users = Array.isArray(remoteControlData.users)
-    ? remoteControlData.users.map(normalizeUser)
+window.users = Array.isArray(window.remoteControlData.users)
+    ? window.remoteControlData.users.map(normalizeUser)
     : [];
 
-let filteredProjects = [...projects];
-
-let timeEntries = Array.isArray(remoteControlData.activity)
-    ? remoteControlData.activity.map(normalizeActivity)
+window.activity = Array.isArray(window.remoteControlData.activity)
+    ? window.remoteControlData.activity.map(normalizeActivity)
     : [];
 
+window.workDays = Array.isArray(window.remoteControlData.workDays)
+    ? window.remoteControlData.workDays
+    : [];
 
-let manualTimeRequests = [];
+window.calendarEvents = Array.isArray(window.remoteControlData.calendarEvents)
+    ? window.remoteControlData.calendarEvents
+    : [];
 
+window.timeEntries = Array.isArray(window.remoteControlData.timeEntries)
+    ? window.remoteControlData.timeEntries.map(normalizeActivity)
+    : window.activity;
 
-const currentUserId = Number(remoteControlData.currentUserId || 0);
-const currentUserName = remoteControlData.currentUserName || "";
-const currentUserEmail = remoteControlData.currentUserEmail || "";
-const currentUserRole = (remoteControlData.currentUserRole || "").toLowerCase();
-const isAdmin = !!remoteControlData.isAdmin;
-const isManager = !!remoteControlData.isManager;
-const isEmployee = !!remoteControlData.isEmployee;
+window.manualTimeRequests = window.manualTimeRequests || [];
 
-const currentUserLogin = remoteControlData.currentUserLogin || "";
-const currentUserPhone = remoteControlData.currentUserPhone || "";
-const currentUserPosition = remoteControlData.currentUserPosition || "";
-const currentUserRate = Number(remoteControlData.currentUserRate || 0);
-const currentUserIsActive = !!remoteControlData.currentUserIsActive;
-
-let seconds = 0;
-let timerInterval = null;
-let isTracking = false;
-let isPaused = false;
-let isWorkDayStarted = false;
-let activeTaskId = null;
-let activeTaskName = "";
+window.seconds = window.seconds ?? 0;
+window.timerInterval = window.timerInterval ?? null;
+window.isTracking = window.isTracking ?? false;
+window.isPaused = window.isPaused ?? false;
+window.isWorkDayStarted = window.isWorkDayStarted ?? false;
+window.activeTaskId = window.activeTaskId ?? null;
+window.activeTaskName = window.activeTaskName ?? "";
 
 function getRequestVerificationToken() {
-    const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
-    return tokenInput ? tokenInput.value : "";
-}
-
-function closeModal(modalId) {
-    const el = document.getElementById(modalId);
-    if (!el) return;
-
-    el.classList.remove("show");
-    el.style.display = "none";
+    const input = document.querySelector('input[name="__RequestVerificationToken"]');
+    return input ? input.value : "";
 }
 
 function showNotification(message) {
@@ -155,48 +202,61 @@ function showNotification(message) {
         setTimeout(() => {
             notification.classList.add("hidden");
         }, 2000);
+    } else {
+        console.log(message);
     }
 }
 
 function toggleProfileDropdown() {
     const dropdown = document.getElementById("profileDropdown");
-    if (dropdown) {
-        dropdown.classList.toggle("show");
-    }
+    if (!dropdown) return;
+
+    dropdown.classList.toggle("show");
 }
 
-async function logout() {
-    if (!confirm("Вы уверены, что хотите выйти?")) {
-        return;
-    }
+document.addEventListener("click", function (e) {
+    const block = document.getElementById("headerUserBlock");
+    const dropdown = document.getElementById("profileDropdown");
 
+    if (!block || !dropdown) return;
+
+    if (!block.contains(e.target)) {
+        dropdown.classList.remove("show");
+    }
+});
+
+async function logout() {
     try {
+        const token = getRequestVerificationToken();
+
         const res = await fetch("/MainPage?handler=Logout", {
             method: "POST",
             headers: {
-                "RequestVerificationToken": getRequestVerificationToken()
+                "RequestVerificationToken": token
             }
         });
 
         const data = await res.json();
 
-        if (data.ok) {
+        if (res.ok && data.ok) {
             window.location.href = data.redirect || "/Auth";
             return;
         }
-
-        showNotification("Не удалось выйти из аккаунта");
-    } catch {
-        showNotification("Ошибка выхода");
+    } catch (e) {
+        console.error(e);
     }
+
+    window.location.href = "/Auth";
 }
 
 function getRoleBadge(role) {
-    if (role === "admin") {
+    const value = String(role || "").toLowerCase();
+
+    if (value === "admin") {
         return '<span class="task-status status-done">Администратор</span>';
     }
 
-    if (role === "manager") {
+    if (value === "manager") {
         return '<span class="task-status status-review">Руководитель</span>';
     }
 
@@ -210,46 +270,56 @@ function getUserStatusBadge(status) {
 }
 
 function getPriorityClass(priority) {
+    const value = String(priority || "").toLowerCase();
+
     return ({
         high: "badge-danger",
         medium: "badge-warning",
         low: "badge-success"
-    }[priority]) || "badge-warning";
+    }[value]) || "badge-warning";
 }
 
 function getStatusClass(status) {
+    const value = String(status || "").toLowerCase();
+
     return ({
         new: "badge-info",
         progress: "badge-warning",
         review: "badge-warning",
         done: "badge-success"
-    }[status]) || "badge-warning";
-}
-
-function getPriorityText(priority) {
-    return ({
-        high: "Высокий",
-        medium: "Средний",
-        low: "Низкий"
-    }[priority]) || priority;
-}
-
-function getStatusText(status) {
-    return ({
-        new: "Новая",
-        progress: "В работе",
-        review: "На проверке",
-        done: "Завершена"
-    }[status]) || status;
+    }[value]) || "badge-warning";
 }
 
 function getStatusBadgeClass(status) {
+    const value = String(status || "").toLowerCase();
+
     return ({
         new: "status-new",
         progress: "status-progress",
         review: "status-review",
         done: "status-done"
-    }[status]) || "status-new";
+    }[value]) || "status-new";
+}
+
+function getStatusText(status) {
+    const value = String(status || "").toLowerCase();
+
+    if (value === "new") return "Новая";
+    if (value === "progress") return "В работе";
+    if (value === "review") return "На проверке";
+    if (value === "done") return "Завершена";
+
+    return "—";
+}
+
+function getPriorityText(priority) {
+    const value = String(priority || "").toLowerCase();
+
+    if (value === "high") return "Высокий";
+    if (value === "medium") return "Средний";
+    if (value === "low") return "Низкий";
+
+    return "—";
 }
 
 function extractLastName(fullName) {
@@ -264,160 +334,11 @@ function extractMiddleName(fullName) {
     return (fullName || "").split(" ").slice(2).join(" ");
 }
 
-function showPage(pageId) {
-    document.querySelectorAll(".page-content").forEach(page => page.classList.add("hidden"));
-
-    const pageEl = document.getElementById(pageId + "Page");
-    if (pageEl) {
-        pageEl.classList.remove("hidden");
-    }
-
-    document.querySelectorAll(".nav-link").forEach(link => {
-        link.classList.remove("active");
-        const clickAttr = link.getAttribute("onclick");
-        if (clickAttr && clickAttr.includes(pageId)) {
-            link.classList.add("active");
-        }
-    });
-
-    const dropdown = document.getElementById("profileDropdown");
-    if (dropdown) {
-        dropdown.classList.remove("show");
-    }
-
-    if (pageId === "dashboard") {
-        renderDashboard();
-        renderDashboardTasks();
-    }
-
-    if (pageId === "tasks") {
-        renderTasksTable();
-    }
-
-    if (pageId === "projects") {
-        renderProjects();
-    }
-
-    if (pageId === "users") {
-        renderAdminStats();
-        renderUsersTable();
-        renderWorkloadTable();
-        renderProductivityTable();
-        renderSalaryTable();
-        renderBonusesTable();
-        renderControlTab();
-
-        loadManualTimeRequests();
-    }
-
-    if (pageId === "reports") {
-        initReportsPage();
-        showReport("daily");
-    }
-
-    if (pageId === "profile") {
-        document.getElementById("profileInfo")?.classList.remove("hidden");
-    }
-
-    if (pageId === "calendar") {
-        initCalendarPage();
-    }
-
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-    try {
-        if (typeof loadCaptureSettings === "function") {
-            loadCaptureSettings();
-        }
-    } catch (e) {
-        console.error("Ошибка loadCaptureSettings:", e);
-    }
-
-    refreshProjectsStats();
-    fillProjectFilter();
-    fillProjectSelect("taskProjectSelect");
-    fillProjectSelect("editTaskProject");
-
-    fillTaskStageSelect(0, "taskStageSelect", "");
-    fillTaskStageSelect(0, "editTaskStageSelect", "");
-
-    syncTrackerTaskSelects();
-    fillTaskSelects();
-
-    renderDashboard();
-    renderDashboardTasks();
-    renderProjects();
-    renderTasksTable();
-    renderActivityLog();
-
-    renderAdminStats();
-    renderUsersTable();
-    renderWorkloadTable();
-    renderProductivityTable();
-    renderSalaryTable();
-    renderBonusesTable();
-    renderControlTab();
-   
-
-    renderWorkDayHistory();
-    initProfilePage();
-
-   
-
-    loadWorkDayStatus();
-
-    document.addEventListener("click", function (event) {
-        const dropdown = document.getElementById("profileDropdown");
-        const avatar = document.getElementById("userAvatar");
-
-        if (avatar && dropdown && !avatar.contains(event.target) && !dropdown.contains(event.target)) {
-            dropdown.classList.remove("show");
-        }
-
-        if (!event.target.closest(".status-dropdown")) {
-            document.querySelectorAll(".status-menu").forEach(menu => {
-                menu.classList.add("hidden");
-            });
-        }
-    });
-
-    document.addEventListener("click", function (event) {
-        const modal = event.target.closest(".modal");
-
-        if (!modal) return;
-
-        if (event.target !== modal) return;
-
-        event.stopPropagation();
-        closeModal(modal.id);
-    });
-
-
-
-
-});
-
-
-
-function showProfileTab(tabId, btn) {
-    ["profileInfo", "profileContacts", "profileWork", "profileSecurity", "profilePrefs"].forEach(id => {
-        document.getElementById(id)?.classList.add("hidden");
-    });
-
-    document.querySelectorAll("#profilePage .admin-tab-btn").forEach(x => x.classList.remove("active"));
-
-    document.getElementById(tabId)?.classList.remove("hidden");
-    btn?.classList.add("active");
-
-    if (tabId === "profileWork") {
-        renderProfileWorkTab();
-    }
-}
-
 function getRoleText(role) {
-    if (role === "admin") return "Администратор";
-    if (role === "manager") return "Руководитель";
+    const value = String(role || "").toLowerCase();
+
+    if (value === "admin") return "Администратор";
+    if (value === "manager") return "Руководитель";
     return "Сотрудник";
 }
 
@@ -425,473 +346,101 @@ function getStatusTextFull(isActive) {
     return isActive ? "Активен" : "Заблокирован";
 }
 
-async function initProfilePage() {
-    const roleText = getRoleText(currentUserRole);
-    const statusText = getStatusTextFull(currentUserIsActive);
-    const rateText = currentUserRate > 0 ? `${currentUserRate.toLocaleString("ru-RU")} руб.` : "—";
+function safeCall(fnName) {
+    const fn = window[fnName];
 
-    const profileRole = document.getElementById("profileRole");
-    const profileStatus = document.getElementById("profileStatus");
-    const profileRate = document.getElementById("profileRate");
-
-    const profileRoleText = document.getElementById("profileRoleText");
-    const profileStatusText = document.getElementById("profileStatusText");
-    const profileRateText = document.getElementById("profileRateText");
-
-    if (profileRole) profileRole.value = roleText;
-    if (profileStatus) profileStatus.value = statusText;
-    if (profileRate) profileRate.value = rateText;
-
-    if (profileRoleText) profileRoleText.textContent = roleText;
-    if (profileStatusText) profileStatusText.textContent = statusText;
-    if (profileRateText) profileRateText.textContent = rateText;
-
-    try {
-        const res = await fetch("/MainPage?handler=Profile");
-        const data = await res.json();
-
-        if (res.ok && data.ok && data.profile) {
-            const profileContactNote = document.getElementById("profileContactNote");
-            const profilePersonalNote = document.getElementById("profilePersonalNote");
-            const profileNotifyUi = document.getElementById("profileNotifyUi");
-            const profileRememberTask = document.getElementById("profileRememberTask");
-            const profileUseScreens = document.getElementById("profileUseScreens");
-            const profileUseWebcam = document.getElementById("profileUseWebcam");
-
-            if (profileContactNote) profileContactNote.value = data.profile.contactNote || "";
-            if (profilePersonalNote) profilePersonalNote.value = data.profile.personalNote || "";
-            if (profileNotifyUi) profileNotifyUi.checked = !!data.profile.notifyInUi;
-            if (profileRememberTask) profileRememberTask.checked = !!data.profile.rememberLastTask;
-            if (profileUseScreens) profileUseScreens.checked = !!data.profile.allowScreenShots;
-            if (profileUseWebcam) profileUseWebcam.checked = !!data.profile.allowWebcamShots;
-
-            enableScreenShots = !!data.profile.allowScreenShots;
-            enableWebcamShots = !!data.profile.allowWebcamShots;
-
-            const screenCheckbox = document.getElementById("enableScreenShots");
-            const webcamCheckbox = document.getElementById("enableWebcamShots");
-
-            if (screenCheckbox) screenCheckbox.checked = enableScreenShots;
-            if (webcamCheckbox) webcamCheckbox.checked = enableWebcamShots;
-        }
-    } catch {
-        console.log("Не удалось загрузить профиль");
-    }
-
-    renderProfileWorkTab();
-}
-
-function renderProfileWorkTab() {
-    const activeTasks = tasks.filter(t => t.status?.toLowerCase() !== "done").length;
-    const doneTasks = tasks.filter(t => t.status?.toLowerCase() === "done").length;
-    const hours = timeEntries.reduce((sum, x) => sum + Number(x.hours || 0), 0);
-    const projectsCount = projects.length;
-
-    const profileActiveTasks = document.getElementById("profileActiveTasks");
-    const profileDoneTasks = document.getElementById("profileDoneTasks");
-    const profileHours = document.getElementById("profileHours");
-    const profileProjectsCount = document.getElementById("profileProjectsCount");
-
-    if (profileActiveTasks) profileActiveTasks.textContent = activeTasks;
-    if (profileDoneTasks) profileDoneTasks.textContent = doneTasks;
-    if (profileHours) profileHours.textContent = hours.toFixed(1).replace(".0", "");
-    if (profileProjectsCount) profileProjectsCount.textContent = projectsCount;
-
-    const body = document.getElementById("profileActivityBody");
-    if (!body) return;
-
-    if (!timeEntries.length) {
-        body.innerHTML = `
-            <tr>
-                <td colspan="4" style="text-align:center; color: var(--gray);">Активности пока нет</td>
-            </tr>
-        `;
+    if (typeof fn !== "function") {
         return;
     }
 
-    body.innerHTML = timeEntries.slice(0, 5).map(entry => `
-        <tr>
-            <td>${entry.date || "-"}</td>
-            <td>${entry.task || "-"}</td>
-            <td>${Number(entry.hours || 0).toFixed(1)} ч</td>
-            <td>${entry.comment || "-"}</td>
-        </tr>
-    `).join("");
-}
-
-
-
-function resetProfilePreferences() {
-    const profileNotifyUi = document.getElementById("profileNotifyUi");
-    const profileRememberTask = document.getElementById("profileRememberTask");
-    const profileUseScreens = document.getElementById("profileUseScreens");
-    const profileUseWebcam = document.getElementById("profileUseWebcam");
-    const profilePersonalNote = document.getElementById("profilePersonalNote");
-
-    if (profileNotifyUi) profileNotifyUi.checked = true;
-    if (profileRememberTask) profileRememberTask.checked = false;
-    if (profileUseScreens) profileUseScreens.checked = true;
-    if (profileUseWebcam) profileUseWebcam.checked = true;
-    if (profilePersonalNote) profilePersonalNote.value = "";
-
-    showNotification("Настройки сброшены. Не забудьте сохранить");
-}
-
-
-
-let workDays = Array.isArray(remoteControlData.workDays) ? remoteControlData.workDays : [];
-
-function renderWorkDayHistory() {
-    const body = document.getElementById("workDayHistory");
-    if (!body) return;
-
-    if (!workDays.length) {
-        body.innerHTML = `
-            <tr>
-                <td colspan="4" style="text-align:center; color: var(--gray);">История пока пуста</td>
-            </tr>
-        `;
-        return;
-    }
-
-    body.innerHTML = workDays.map(x => `
-        <tr>
-            <td>${x.date}</td>
-            <td>${x.start}</td>
-            <td>${x.end}</td>
-            <td>${x.hours} ч</td>
-        </tr>
-    `).join("");
-}
-
-async function loadManualTimeRequests() {
     try {
-        const res = await fetch("/MainPage?handler=ManualTimeRequests");
-        const data = await res.json();
-
-        if (!res.ok || !data.ok) {
-            showNotification(data?.error || "Не удалось загрузить заявки");
-            return;
-        }
-
-        manualTimeRequests = Array.isArray(data.items) ? data.items : [];
-        renderManualTimeRequests();
-    } catch {
-        showNotification("Ошибка загрузки заявок");
+        fn();
+    } catch (e) {
+        console.error(`Ошибка в ${fnName}:`, e);
     }
 }
 
-function renderManualTimeRequests() {
-    const body = document.getElementById("manualTimeRequestsBody");
-    if (!body) return;
+function initUsersPage() {
+    const employeeSearch = document.getElementById("employeeSearch");
+    if (employeeSearch) {
+        employeeSearch.setAttribute("autocomplete", "off");
+        employeeSearch.setAttribute("name", "users-filter-query");
+        employeeSearch.setAttribute("autocapitalize", "off");
+        employeeSearch.setAttribute("autocorrect", "off");
+        employeeSearch.setAttribute("spellcheck", "false");
+        employeeSearch.setAttribute("data-lpignore", "true");
 
-    if (!manualTimeRequests.length) {
-        body.innerHTML = `
-            <tr>
-                <td colspan="10" style="text-align:center; color: var(--gray);">Заявок пока нет</td>
-            </tr>
-        `;
-        return;
-    }
+        const unlockSearchField = () => {
+            if (employeeSearch.hasAttribute("readonly")) {
+                employeeSearch.removeAttribute("readonly");
+            }
+        };
 
-    const canReview = isAdmin || isManager;
+        const clearUnexpectedSearchAutofill = () => {
+            if (employeeSearch !== document.activeElement && employeeSearch.value) {
+                employeeSearch.value = "";
+            }
+        };
 
-    body.innerHTML = manualTimeRequests.map(x => {
-        const status = String(x.status || "pending").toLowerCase();
-        const canShowActions = canReview && status !== "approved" && status !== "rejected";
+        employeeSearch.addEventListener("focus", unlockSearchField, { once: true });
+        employeeSearch.addEventListener("pointerdown", unlockSearchField, { once: true });
 
-        return `
-            <tr>
-                <td>${x.id}</td>
-                <td>${x.employee || "-"}</td>
-                <td>${x.taskName || "-"}</td>
-                <td>${x.projectName || "-"}</td>
-                <td>${Number(x.hours || 0).toFixed(1)}</td>
-                <td>${x.comment || "-"}</td>
-               <td>
-    ${x.attachmentPath
-                ? `<a href="${x.attachmentPath}"
-              target="_blank"
-              class="btn btn-sm btn-outline manual-file-btn"
-              title="${x.attachmentName || "Файл"}">
-                <i class="fas fa-paperclip"></i>
-           </a>`
-                : `<span style="display:inline-block; width:100%; text-align:center;">-</span>`}
-</td>
-                <td>${renderManualTimeStatus(status)}</td>
-               <td title="${x.createdAt || "-"}">
-    ${formatManualRequestDate(x.createdAt)}
-</td>
-             <td>
-    ${canShowActions ? `
-        <div class="table-actions">
-            <button class="btn btn-sm btn-success" type="button" onclick="approveManualTimeRequest(${x.id})" title="Одобрить">
-                <i class="fas fa-check"></i>
-            </button>
-            <button class="btn btn-sm btn-danger" type="button" onclick="rejectManualTimeRequest(${x.id})" title="Отклонить">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    ` : `<span>-</span>`}
-</td>
-            </tr>
-        `;
-    }).join("");
-}
-
-
-
-function renderManualTimeStatus(status) {
-    if (status === "approved") {
-        return `<span class="task-status status-done">Одобрено</span>`;
-    }
-
-    if (status === "rejected") {
-        return `<span class="task-status status-new">Отклонено</span>`;
-    }
-
-    return `<span class="task-status status-review">Ожидание</span>`;
-}
-
-async function approveManualTimeRequest(id) {
-    try {
-        const res = await fetch("/MainPage?handler=ApproveManualTimeRequest", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "RequestVerificationToken": getRequestVerificationToken()
-            },
-            body: JSON.stringify({
-                id: id,
-                managerComment: ""
-            })
+        clearUnexpectedSearchAutofill();
+        [150, 500, 1200].forEach(delay => {
+            setTimeout(() => {
+                clearUnexpectedSearchAutofill();
+                safeCall("renderUsersTable");
+            }, delay);
         });
 
-        const data = await res.json();
-
-        if (!res.ok || !data.ok) {
-            showNotification(data?.error || "Не удалось одобрить заявку");
-            return;
-        }
-
-        showNotification("Заявка одобрена");
-        loadManualTimeRequests();
-    } catch {
-        showNotification("Ошибка сети/сервера");
+        window.addEventListener("pageshow", () => {
+            clearUnexpectedSearchAutofill();
+            safeCall("renderUsersTable");
+        }, { once: true });
     }
+
+    safeCall("renderAdminStats");
+    safeCall("renderUsersTable");
+    safeCall("renderWorkloadTable");
+    safeCall("renderProductivityTable");
+    safeCall("renderSalaryTable");
+    safeCall("renderBonusesTable");
+    safeCall("renderControlTab");
+    safeCall("loadManualTimeRequests");
 }
 
-async function rejectManualTimeRequest(id) {
-    try {
-        const res = await fetch("/MainPage?handler=RejectManualTimeRequest", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "RequestVerificationToken": getRequestVerificationToken()
-            },
-            body: JSON.stringify({
-                id: id,
-                managerComment: ""
-            })
-        });
-
-        const data = await res.json();
-
-        if (!res.ok || !data.ok) {
-            showNotification(data?.error || "Не удалось отклонить заявку");
-            return;
-        }
-
-        showNotification("Заявка отклонена");
-        loadManualTimeRequests();
-    } catch {
-        showNotification("Ошибка сети/сервера");
-    }
-}
-
-async function changePassword() {
-    const oldPassword = document.getElementById("profileCurrentPassword")?.value || "";
-    const newPassword = document.getElementById("profileNewPassword")?.value || "";
-    const confirmPassword = document.getElementById("profileConfirmPassword")?.value || "";
-
-    if (!oldPassword || !newPassword || !confirmPassword) {
-        showNotification("Заполните все поля");
-        return;
+document.addEventListener("DOMContentLoaded", function () {
+    if (document.getElementById("tasksPage")) {
+        safeCall("fillProjectFilter");
+        safeCall("filterTasks");
     }
 
-    if (newPassword !== confirmPassword) {
-        showNotification("Новый пароль и подтверждение не совпадают");
-        return;
+    if (document.getElementById("projectsPage")) {
+        safeCall("refreshProjectsStats");
+        safeCall("filterProjects");
     }
 
-    if (newPassword.length < 4) {
-        showNotification("Пароль слишком короткий");
-        return;
+    if (document.getElementById("reportsPage")) {
+        safeCall("initReportsPage");
     }
 
-    try {
-        const res = await fetch("/MainPage?handler=ChangePassword", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "RequestVerificationToken": getRequestVerificationToken()
-            },
-            body: JSON.stringify({
-                oldPassword: oldPassword,
-                newPassword: newPassword
-            })
-        });
-
-        const data = await res.json();
-
-        if (!res.ok || !data.ok) {
-            showNotification(data?.error || "Ошибка смены пароля");
-            return;
-        }
-
-        document.getElementById("profileCurrentPassword").value = "";
-        document.getElementById("profileNewPassword").value = "";
-        document.getElementById("profileConfirmPassword").value = "";
-
-        showNotification("Пароль успешно изменён");
-    } catch {
-        showNotification("Ошибка сети");
-    }
-}
-
-
-
-
-async function saveProfile() {
-    const email =
-        document.getElementById("profileEmail")?.value?.trim() ||
-        document.getElementById("profileContactEmail")?.value?.trim() ||
-        "";
-
-    const phone =
-        document.getElementById("profilePhone")?.value?.trim() ||
-        document.getElementById("profileContactPhone")?.value?.trim() ||
-        "";
-
-    const contactNote = document.getElementById("profileContactNote")?.value || "";
-    const personalNote = document.getElementById("profilePersonalNote")?.value || "";
-
-    const notifyInUi = !!document.getElementById("profileNotifyUi")?.checked;
-    const rememberLastTask = !!document.getElementById("profileRememberTask")?.checked;
-    const allowScreenShots = !!document.getElementById("profileUseScreens")?.checked;
-    const allowWebcamShots = !!document.getElementById("profileUseWebcam")?.checked;
-
-    if (!email) {
-        showNotification("Введите email");
-        return;
+    if (document.getElementById("calendarPage")) {
+        safeCall("initCalendarPage");
     }
 
-    try {
-        const res = await fetch("/MainPage?handler=SaveProfile", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "RequestVerificationToken": getRequestVerificationToken()
-            },
-            body: JSON.stringify({
-                email,
-                phone,
-                contactNote,
-                notifyInUi,
-                rememberLastTask,
-                allowScreenShots,
-                allowWebcamShots,
-                personalNote
-            })
-        });
-
-        const data = await res.json();
-
-        if (!res.ok || !data.ok) {
-            showNotification(data?.error || "Не удалось сохранить профиль");
-            return;
-        }
-
-        const profileEmail = document.getElementById("profileEmail");
-        const profilePhone = document.getElementById("profilePhone");
-        const profileContactEmail = document.getElementById("profileContactEmail");
-        const profileContactPhone = document.getElementById("profileContactPhone");
-        const profileContactNote = document.getElementById("profileContactNote");
-        const profilePersonalNote = document.getElementById("profilePersonalNote");
-        const profileNotifyUi = document.getElementById("profileNotifyUi");
-        const profileRememberTask = document.getElementById("profileRememberTask");
-        const profileUseScreens = document.getElementById("profileUseScreens");
-        const profileUseWebcam = document.getElementById("profileUseWebcam");
-        const profileCardEmail = document.getElementById("profileCardEmail");
-        const dropdownEmail = document.getElementById("dropdownEmail");
-
-        if (profileEmail) profileEmail.value = data.email || "";
-        if (profileContactEmail) profileContactEmail.value = data.email || "";
-        if (profilePhone) profilePhone.value = data.phone || "";
-        if (profileContactPhone) profileContactPhone.value = data.phone || "";
-        if (profileContactNote) profileContactNote.value = data.contactNote || "";
-        if (profilePersonalNote) profilePersonalNote.value = data.personalNote || "";
-        if (profileNotifyUi) profileNotifyUi.checked = !!data.notifyInUi;
-        if (profileRememberTask) profileRememberTask.checked = !!data.rememberLastTask;
-        if (profileUseScreens) profileUseScreens.checked = !!data.allowScreenShots;
-        if (profileUseWebcam) profileUseWebcam.checked = !!data.allowWebcamShots;
-        if (profileCardEmail) profileCardEmail.textContent = data.email || "";
-        if (dropdownEmail) dropdownEmail.textContent = data.email || "";
-
-        enableScreenShots = !!data.allowScreenShots;
-        enableWebcamShots = !!data.allowWebcamShots;
-
-        const screenCheckbox = document.getElementById("enableScreenShots");
-        const webcamCheckbox = document.getElementById("enableWebcamShots");
-
-        if (screenCheckbox) screenCheckbox.checked = enableScreenShots;
-        if (webcamCheckbox) webcamCheckbox.checked = enableWebcamShots;
-
-        showNotification("Изменения сохранены");
-    } catch {
-        showNotification("Ошибка сети");
+    if (document.getElementById("profilePage")) {
+        safeCall("initProfilePage");
     }
-}
 
-
-function toggleStatusMenu(el) {
-    const menu = el.nextElementSibling;
-    if (!menu) return;
-
-    const wasHidden = menu.classList.contains("hidden");
-
-    document.querySelectorAll(".status-menu").forEach(x => {
-        x.classList.add("hidden");
-    });
-
-    if (wasHidden) {
-        menu.classList.remove("hidden");
-    } else {
-        menu.classList.add("hidden");
+    if (document.getElementById("usersPage")) {
+        safeCall("initUsersPage");
     }
-}
 
-function changeStatus(el, status) {
-    const dropdown = el.closest(".status-dropdown");
-    if (!dropdown) return;
-        
-    const badge = dropdown.querySelector(".status-badge");
-    const statusInput = dropdown.querySelector(".employee-status-value");
-    const menu = dropdown.querySelector(".status-menu");
+    if (document.getElementById("trackerPage")) {
+        safeCall("initTrackerPage");
+    }
 
-    if (!badge || !statusInput || !menu) return;
-
-    statusInput.value = status;
-
-    badge.className = `status-badge ${getStatusBadgeClass(status)} task-status-badge`;
-    badge.innerHTML = `
-        <span class="status-badge-dot"></span>
-        <span class="status-badge-text">${getStatusText(status)}</span>
-        <i class="fas fa-chevron-down status-badge-arrow"></i>
-    `;
-
-    menu.classList.add("hidden");
-}
-
-
-
+    if (document.getElementById("dashboardPage")) {
+        safeCall("initDashboardPage");
+    }
+});

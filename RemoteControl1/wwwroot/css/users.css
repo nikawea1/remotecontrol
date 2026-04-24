@@ -1,0 +1,1840 @@
+﻿/* Файл: RemoteControl1/wwwroot/css/users.css */
+/* users.css */
+
+/* =========================================================
+   АДМИНСКИЕ ТАБЫ
+   ========================================================= */
+
+.admin-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.admin-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 16px;
+    border: 1px solid #dfe6ef;
+    border-radius: 14px;
+    background: #fff;
+    color: var(--dark);
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+    .admin-tab-btn:hover {
+        background: #f6f9fc;
+    }
+
+    .admin-tab-btn.active {
+        background: rgba(40, 53, 147, 0.10);
+        color: var(--primary);
+        border-color: rgba(40, 53, 147, 0.20);
+    }
+
+.admin-tab-content {
+    margin-top: 10px;
+}
+
+/* =========================================================
+   БЛОК СМЕНЫ СТАТУСА СОТРУДНИКА
+   ========================================================= */
+
+.employee-status-box {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    min-width: 0;
+}
+
+.employee-status-select:focus {
+    border-color: #4f8cff;
+    box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.15);
+}
+
+/* =========================================================
+   СПЕЦИАЛЬНЫЙ ФИКС СТРАНИЦЫ СОТРУДНИКОВ
+   ========================================================= */
+
+#usersPage {
+    width: 100%;
+    min-width: 0;
+}
+
+    #usersPage .card {
+        width: 100%;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    #usersPage .table-container {
+        overflow-x: hidden;
+    }
+
+    #usersPage .table {
+        width: 100%;
+        min-width: 0;
+        table-layout: fixed;
+    }
+
+        #usersPage .table th,
+        #usersPage .table td {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            vertical-align: middle;
+        }
+
+            #usersPage .table th:nth-child(1),
+            #usersPage .table td:nth-child(1) {
+                width: 70px;
+                text-align: center;
+                white-space: nowrap;
+            }
+
+            #usersPage .table th:nth-child(2),
+            #usersPage .table td:nth-child(2) {
+                width: 20%;
+                white-space: normal;
+                word-break: break-word;
+            }
+
+            #usersPage .table th:nth-child(3),
+            #usersPage .table td:nth-child(3) {
+                width: 11%;
+                white-space: nowrap;
+            }
+
+            #usersPage .table th:nth-child(4),
+            #usersPage .table td:nth-child(4) {
+                width: 13%;
+                white-space: normal;
+                word-break: break-word;
+            }
+
+            #usersPage .table th:nth-child(5),
+            #usersPage .table td:nth-child(5) {
+                width: 12%;
+                white-space: nowrap;
+            }
+
+            #usersPage .table th:nth-child(6),
+            #usersPage .table td:nth-child(6) {
+                width: 10%;
+                text-align: center;
+                white-space: nowrap;
+            }
+
+            #usersPage .table th:nth-child(7),
+            #usersPage .table td:nth-child(7) {
+                width: 10%;
+                text-align: center;
+                white-space: nowrap;
+            }
+
+            #usersPage .table th:nth-child(8),
+            #usersPage .table td:nth-child(8) {
+                width: 9%;
+                text-align: center;
+                white-space: nowrap;
+            }
+
+            #usersPage .table th:nth-child(9),
+            #usersPage .table td:nth-child(9) {
+                width: 11%;
+                text-align: center;
+                white-space: nowrap;
+            }
+
+            #usersPage .table th:nth-child(10),
+            #usersPage .table td:nth-child(10) {
+                width: 150px;
+                text-align: right;
+                white-space: nowrap;
+            }
+
+    /* финальный фикс админки */
+
+    #usersPage .table-actions {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: nowrap;
+    }
+
+    #usersPage .table .btn-sm {
+        width: 36px;
+        min-width: 36px;
+        height: 36px;
+        min-height: 36px;
+        padding: 0;
+        border-radius: 10px;
+        flex: 0 0 36px;
+    }
+
+    #usersPage .table {
+        table-layout: fixed;
+    }
+
+        #usersPage .table th:nth-child(1),
+        #usersPage .table td:nth-child(1) {
+            width: 7%;
+            white-space: nowrap;
+        }
+
+        #usersPage .table th:nth-child(2),
+        #usersPage .table td:nth-child(2) {
+            width: 22%;
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        #usersPage .table th:nth-child(3),
+        #usersPage .table td:nth-child(3) {
+            width: 10%;
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        #usersPage .table th:nth-child(4),
+        #usersPage .table td:nth-child(4) {
+            width: 11%;
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        #usersPage .table th:nth-child(5),
+        #usersPage .table td:nth-child(5) {
+            width: 10%;
+            white-space: nowrap;
+        }
+
+        #usersPage .table th:nth-child(6),
+        #usersPage .table td:nth-child(6) {
+            width: 10%;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        #usersPage .table th:nth-child(7),
+        #usersPage .table td:nth-child(7) {
+            width: 8%;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        #usersPage .table th:nth-child(8),
+        #usersPage .table td:nth-child(8) {
+            width: 8%;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        #usersPage .table th:nth-child(9),
+        #usersPage .table td:nth-child(9) {
+            width: 10%;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        #usersPage .table th:nth-child(10),
+        #usersPage .table td:nth-child(10) {
+            width: 12%;
+            white-space: nowrap;
+            text-align: right;
+            overflow: visible;
+        }
+
+    /* =========================================================
+   ВЫРАВНИВАНИЕ ВСЕХ ТАБЛИЦ АДМИНКИ
+   ========================================================= */
+
+    #usersPage .table,
+    #adminWorkloadTab .table,
+    #adminProductivityTab .table,
+    #adminSalaryTab .table,
+    #adminBonusesTab .table,
+    #adminControlTab .table {
+        width: 100%;
+        table-layout: fixed;
+        border-collapse: collapse;
+    }
+
+        #usersPage .table th,
+        #usersPage .table td,
+        #adminWorkloadTab .table th,
+        #adminWorkloadTab .table td,
+        #adminProductivityTab .table th,
+        #adminProductivityTab .table td,
+        #adminSalaryTab .table th,
+        #adminSalaryTab .table td,
+        #adminBonusesTab .table th,
+        #adminBonusesTab .table td,
+        #adminControlTab .table th,
+        #adminControlTab .table td {
+            padding: 12px 10px;
+            vertical-align: middle;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+    /* действия всегда в один ряд */
+    #usersPage .table-actions,
+    #adminControlTab .table-actions {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: nowrap;
+    }
+
+    #usersPage .table .btn-sm,
+    #adminControlTab .table .btn-sm {
+        width: 36px;
+        min-width: 36px;
+        height: 36px;
+        min-height: 36px;
+        padding: 0;
+        flex: 0 0 36px;
+        border-radius: 10px;
+    }
+
+    /* СОТРУДНИКИ */
+    #usersPage .table th:nth-child(1),
+    #usersPage .table td:nth-child(1) {
+        width: 7%;
+        text-align: center;
+    }
+
+    #usersPage .table th:nth-child(2),
+    #usersPage .table td:nth-child(2) {
+        width: 21%;
+        white-space: normal;
+        word-break: break-word;
+    }
+
+    #usersPage .table th:nth-child(3),
+    #usersPage .table td:nth-child(3) {
+        width: 10%;
+        white-space: normal;
+        word-break: break-word;
+    }
+
+    #usersPage .table th:nth-child(4),
+    #usersPage .table td:nth-child(4) {
+        width: 11%;
+        white-space: normal;
+        word-break: break-word;
+    }
+
+    #usersPage .table th:nth-child(5),
+    #usersPage .table td:nth-child(5) {
+        width: 11%;
+        text-align: center;
+    }
+
+    #usersPage .table th:nth-child(6),
+    #usersPage .table td:nth-child(6) {
+        width: 10%;
+        text-align: center;
+    }
+
+    #usersPage .table th:nth-child(7),
+    #usersPage .table td:nth-child(7) {
+        width: 8%;
+        text-align: center;
+    }
+
+    #usersPage .table th:nth-child(8),
+    #usersPage .table td:nth-child(8) {
+        width: 7%;
+        text-align: center;
+    }
+
+    #usersPage .table th:nth-child(9),
+    #usersPage .table td:nth-child(9) {
+        width: 9%;
+        text-align: center;
+    }
+
+    #usersPage .table th:nth-child(10),
+    #usersPage .table td:nth-child(10) {
+        width: 12%;
+        text-align: right;
+        overflow: visible;
+    }
+
+/* НАГРУЗКА */
+#adminWorkloadTab .table th:nth-child(1),
+#adminWorkloadTab .table td:nth-child(1) {
+    width: 23%;
+    white-space: normal;
+    word-break: break-word;
+}
+
+#adminWorkloadTab .table th:nth-child(2),
+#adminWorkloadTab .table td:nth-child(2),
+#adminWorkloadTab .table th:nth-child(3),
+#adminWorkloadTab .table td:nth-child(3),
+#adminWorkloadTab .table th:nth-child(4),
+#adminWorkloadTab .table td:nth-child(4) {
+    width: 11%;
+    text-align: center;
+}
+
+#adminWorkloadTab .table th:nth-child(5),
+#adminWorkloadTab .table td:nth-child(5),
+#adminWorkloadTab .table th:nth-child(6),
+#adminWorkloadTab .table td:nth-child(6),
+#adminWorkloadTab .table th:nth-child(7),
+#adminWorkloadTab .table td:nth-child(7) {
+    width: 14%;
+    text-align: center;
+}
+
+/* ПРОИЗВОДИТЕЛЬНОСТЬ */
+#adminProductivityTab .table th:nth-child(1),
+#adminProductivityTab .table td:nth-child(1) {
+    width: 24%;
+    white-space: normal;
+    word-break: break-word;
+}
+
+#adminProductivityTab .table th:nth-child(2),
+#adminProductivityTab .table td:nth-child(2),
+#adminProductivityTab .table th:nth-child(3),
+#adminProductivityTab .table td:nth-child(3),
+#adminProductivityTab .table th:nth-child(4),
+#adminProductivityTab .table td:nth-child(4),
+#adminProductivityTab .table th:nth-child(5),
+#adminProductivityTab .table td:nth-child(5) {
+    width: 14%;
+    text-align: center;
+}
+
+#adminProductivityTab .table th:nth-child(6),
+#adminProductivityTab .table td:nth-child(6) {
+    width: 20%;
+    text-align: center;
+}
+
+/* ОПЛАТА */
+#adminSalaryTab .table th:nth-child(1),
+#adminSalaryTab .table td:nth-child(1) {
+    width: 34%;
+    white-space: normal;
+    word-break: break-word;
+}
+
+#adminSalaryTab .table th:nth-child(2),
+#adminSalaryTab .table td:nth-child(2),
+#adminSalaryTab .table th:nth-child(3),
+#adminSalaryTab .table td:nth-child(3),
+#adminSalaryTab .table th:nth-child(4),
+#adminSalaryTab .table td:nth-child(4) {
+    width: 22%;
+    text-align: center;
+}
+
+/* БОНУСЫ */
+#adminBonusesTab .table th:nth-child(1),
+#adminBonusesTab .table td:nth-child(1) {
+    width: 28%;
+    white-space: normal;
+    word-break: break-word;
+}
+
+#adminBonusesTab .table th:nth-child(2),
+#adminBonusesTab .table td:nth-child(2),
+#adminBonusesTab .table th:nth-child(3),
+#adminBonusesTab .table td:nth-child(3),
+#adminBonusesTab .table th:nth-child(4),
+#adminBonusesTab .table td:nth-child(4) {
+    width: 16%;
+    text-align: center;
+}
+
+#adminBonusesTab .table th:nth-child(5),
+#adminBonusesTab .table td:nth-child(5) {
+    width: 24%;
+    text-align: center;
+    white-space: normal;
+}
+
+/* файл инпут */
+#quickAttachment {
+    width: 100%;
+    min-height: 44px;
+    padding: 8px 10px;
+    border: 1px solid #dbe3ee;
+    border-radius: 12px;
+    background: #fff;
+    color: var(--dark);
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+    #quickAttachment::file-selector-button {
+        margin-right: 10px;
+        padding: 8px 14px;
+        border: none;
+        border-radius: 10px;
+        background: var(--primary);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+        #quickAttachment::file-selector-button:hover {
+            background: var(--primary-light);
+        }
+
+    #quickAttachment::-webkit-file-upload-button {
+        margin-right: 10px;
+        padding: 8px 14px;
+        border: none;
+        border-radius: 10px;
+        background: var(--primary);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+        #quickAttachment::-webkit-file-upload-button:hover {
+            background: var(--primary-light);
+        }
+
+/* иконка файла */
+.manual-file-btn {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+    padding: 0;
+    border-radius: 10px;
+}
+
+    .manual-file-btn i {
+        font-size: 14px;
+    }
+
+/* =========================================================
+   MANUAL REQUESTS TABLE
+   ========================================================= */
+
+#manualRequestsTable {
+    width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+}
+
+    #manualRequestsTable th,
+    #manualRequestsTable td {
+        padding: 12px 4px !important;
+        vertical-align: middle !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        line-height: 1.15 !important;
+    }
+
+    #manualRequestsTable th {
+        font-size: 13px !important;
+    }
+
+        /* 1 ID */
+        #manualRequestsTable th:nth-child(1),
+        #manualRequestsTable td:nth-child(1) {
+            width: 4% !important;
+            text-align: center !important;
+        }
+
+        /* 2 Сотрудник */
+        #manualRequestsTable th:nth-child(2),
+        #manualRequestsTable td:nth-child(2) {
+            width: 8% !important;
+            text-align: left !important;
+        }
+
+        /* 3 Задача */
+        #manualRequestsTable th:nth-child(3),
+        #manualRequestsTable td:nth-child(3) {
+            width: 9% !important;
+            text-align: left !important;
+        }
+
+        /* 4 Проект */
+        #manualRequestsTable th:nth-child(4),
+        #manualRequestsTable td:nth-child(4) {
+            width: 8% !important;
+            text-align: left !important;
+        }
+
+        /* 5 Часы */
+        #manualRequestsTable th:nth-child(5),
+        #manualRequestsTable td:nth-child(5) {
+            width: 3% !important;
+            text-align: center !important;
+            padding-left: 1px !important;
+            padding-right: 10px !important;
+        }
+
+        /* 6 Комментарий */
+        #manualRequestsTable th:nth-child(6),
+        #manualRequestsTable td:nth-child(6) {
+            width: 13% !important;
+            text-align: left !important;
+            padding-left: 10px !important;
+        }
+
+        /* 7 Файл */
+        #manualRequestsTable th:nth-child(7),
+        #manualRequestsTable td:nth-child(7) {
+            width: 4% !important;
+            text-align: center !important;
+        }
+
+        /* 8 Статус */
+        #manualRequestsTable th:nth-child(8),
+        #manualRequestsTable td:nth-child(8) {
+            width: 6% !important;
+            text-align: center !important;
+        }
+
+        /* 9 Дата/время */
+        #manualRequestsTable th:nth-child(9),
+        #manualRequestsTable td:nth-child(9) {
+            width: 11% !important;
+            text-align: center !important;
+            padding-left: 1px !important;
+            padding-right: 1px !important;
+        }
+
+        /* 10 Действия */
+        #manualRequestsTable th:nth-child(10),
+        #manualRequestsTable td:nth-child(10) {
+            width: 6% !important;
+            white-space: nowrap !important;
+        }
+
+        #manualRequestsTable th:nth-child(10) {
+            text-align: left !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+
+    #manualRequestsTable td:nth-child(10) {
+        text-align: left !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    #manualRequestsTable td:nth-child(2) *,
+    #manualRequestsTable td:nth-child(3) *,
+    #manualRequestsTable td:nth-child(4) *,
+    #manualRequestsTable td:nth-child(6) *,
+    #manualRequestsTable td:nth-child(8) *,
+    #manualRequestsTable td:nth-child(9) * {
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        display: block !important;
+        max-width: 100% !important;
+    }
+
+    #manualRequestsTable .task-status {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 6px 6px !important;
+        border-radius: 999px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        font-size: 12px !important;
+        line-height: 1.05 !important;
+    }
+
+    #manualRequestsTable .manual-date {
+        display: inline-block !important;
+        width: 100% !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        font-size: 12px !important;
+        line-height: 1.05 !important;
+        text-align: center !important;
+    }
+
+    #manualRequestsTable .manual-file-btn,
+    #manualRequestsTable td:nth-child(7) a.btn {
+        width: 34px !important;
+        min-width: 34px !important;
+        height: 34px !important;
+        min-height: 34px !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 10px !important;
+    }
+
+    #manualRequestsTable .table-actions {
+        display: flex !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        gap: 6px !important;
+        flex-wrap: nowrap !important;
+        width: 100% !important;
+        margin: 0 !important;
+    }
+
+    #manualRequestsTable .btn-sm {
+        width: 34px !important;
+        min-width: 34px !important;
+        height: 34px !important;
+        min-height: 34px !important;
+        padding: 0 !important;
+        flex: 0 0 34px !important;
+        border-radius: 10px !important;
+    }
+
+@media (max-width: 992px) {
+    #usersPage .table-container {
+        overflow-x: auto;
+    }
+
+    #usersPage .table {
+        min-width: 980px;
+    }
+}
+
+@media (max-width: 768px) {
+    #usersPage .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    #usersPage .admin-tabs {
+        flex-direction: column;
+    }
+
+    #usersPage .admin-tab-btn {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    #usersPage .table-container {
+        overflow-x: auto;
+    }
+
+    #usersPage .table {
+        min-width: 980px;
+    }
+}
+
+/* =========================================================
+   ЭТАП 4: ЕДИНЫЙ РИТМ ТАБЛИЦ СОТРУДНИКОВ
+   ========================================================= */
+
+#usersPage .table-container {
+    overflow-x: auto !important;
+    border-color: #d9e2ee;
+}
+
+#usersPage .table th {
+    text-align: left !important;
+    white-space: normal !important;
+    line-height: 1.25;
+    border-bottom-color: #d9e2ee;
+}
+
+#usersPage .table td {
+    text-align: left !important;
+    border-bottom-color: #dfe6ef;
+}
+
+#usersPage .table tbody tr {
+    cursor: pointer;
+}
+
+#usersPage .table tbody tr.is-selected td {
+    background: #f7f9ff;
+}
+
+#usersPage .table tbody tr.is-selected td:first-child {
+    box-shadow: inset 3px 0 0 var(--primary);
+}
+
+#usersPage .admin-user-id {
+    display: inline-flex;
+    min-width: 34px;
+    color: #556575;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+
+#usersPage .admin-user-cell {
+    min-width: 0;
+    max-width: 100%;
+}
+
+#usersPage .admin-user-name {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#usersPage .admin-user-email {
+    display: none;
+    max-width: 100%;
+    margin-top: 4px;
+    color: #7b8b9b;
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#usersPage .table tbody tr.is-selected .admin-user-email {
+    display: block;
+}
+
+#usersPage .table-actions {
+    justify-content: flex-end !important;
+}
+
+#usersPage .table td:last-child,
+#usersPage .table th:last-child {
+    text-align: right !important;
+    overflow: visible !important;
+}
+
+#adminEmployeesTab .table th:nth-child(1),
+#adminEmployeesTab .table td:nth-child(1) {
+    width: 5% !important;
+}
+
+#adminEmployeesTab .table th:nth-child(2),
+#adminEmployeesTab .table td:nth-child(2) {
+    width: 15% !important;
+}
+
+#adminEmployeesTab .table th:nth-child(3),
+#adminEmployeesTab .table td:nth-child(3) {
+    width: 10% !important;
+}
+
+#adminEmployeesTab .table th:nth-child(4),
+#adminEmployeesTab .table td:nth-child(4) {
+    width: 12% !important;
+}
+
+#adminEmployeesTab .table th:nth-child(5),
+#adminEmployeesTab .table td:nth-child(5) {
+    width: 11% !important;
+}
+
+#adminEmployeesTab .table th:nth-child(6),
+#adminEmployeesTab .table td:nth-child(6) {
+    width: 10% !important;
+}
+
+#adminEmployeesTab .table th:nth-child(7),
+#adminEmployeesTab .table td:nth-child(7),
+#adminEmployeesTab .table th:nth-child(8),
+#adminEmployeesTab .table td:nth-child(8),
+#adminEmployeesTab .table th:nth-child(9),
+#adminEmployeesTab .table td:nth-child(9) {
+    width: 9% !important;
+}
+
+#adminEmployeesTab .table th:nth-child(10),
+#adminEmployeesTab .table td:nth-child(10) {
+    width: 12% !important;
+}
+
+#adminWorkloadTab .table th:nth-child(1),
+#adminWorkloadTab .table td:nth-child(1),
+#adminProductivityTab .table th:nth-child(1),
+#adminProductivityTab .table td:nth-child(1),
+#adminSalaryTab .table th:nth-child(1),
+#adminSalaryTab .table td:nth-child(1),
+#adminBonusesTab .table th:nth-child(1),
+#adminBonusesTab .table td:nth-child(1) {
+    width: 5% !important;
+}
+
+#adminWorkloadTab .table th:nth-child(2),
+#adminWorkloadTab .table td:nth-child(2),
+#adminProductivityTab .table th:nth-child(2),
+#adminProductivityTab .table td:nth-child(2),
+#adminSalaryTab .table th:nth-child(2),
+#adminSalaryTab .table td:nth-child(2) {
+    width: 18% !important;
+}
+
+#adminBonusesTab .table th:nth-child(2),
+#adminBonusesTab .table td:nth-child(2) {
+    width: 15% !important;
+}
+
+#adminBonusesTab .table th:nth-child(3),
+#adminBonusesTab .table td:nth-child(3),
+#adminBonusesTab .table th:nth-child(4),
+#adminBonusesTab .table td:nth-child(4) {
+    width: 10% !important;
+}
+
+#adminBonusesTab .table th:nth-child(5),
+#adminBonusesTab .table td:nth-child(5),
+#adminBonusesTab .table th:nth-child(6),
+#adminBonusesTab .table td:nth-child(6) {
+    width: 12% !important;
+}
+
+#adminBonusesTab .table th:nth-child(7),
+#adminBonusesTab .table td:nth-child(7) {
+    width: 36% !important;
+    white-space: normal !important;
+}
+
+#adminBonusesTab .bonus-recommendation {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    min-width: 0;
+}
+
+#adminBonusesTab .bonus-amount {
+    color: #7b8b9b;
+    font-size: 12px;
+}
+
+/* =========================================================
+   ЭТАП 4.1: ЖЁСТКОЕ ВЫРАВНИВАНИЕ АДМИНСКИХ ТАБЛИЦ
+   ========================================================= */
+
+#usersPage .table {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    table-layout: fixed !important;
+}
+
+#usersPage .table th {
+    padding: 12px 10px !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    line-height: 1.15 !important;
+    text-align: left !important;
+}
+
+#usersPage .table td {
+    padding: 12px 10px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    line-height: 1.2 !important;
+}
+
+#usersPage .table th:first-child,
+#usersPage .table td:first-child {
+    overflow: visible !important;
+    text-overflow: clip !important;
+    text-align: center !important;
+    padding-left: 10px !important;
+    padding-right: 8px !important;
+}
+
+#usersPage .table th:last-child {
+    text-align: center !important;
+}
+
+#usersPage .table td:last-child {
+    text-align: center !important;
+    overflow: visible !important;
+}
+
+#usersPage .admin-user-id {
+    min-width: 0 !important;
+    width: auto !important;
+    justify-content: center;
+}
+
+#usersPage .admin-user-cell {
+    overflow: hidden;
+}
+
+#usersPage .admin-user-name {
+    max-width: 100%;
+}
+
+#usersPage .badge,
+#usersPage .task-status {
+    max-width: 100%;
+    white-space: nowrap;
+}
+
+#adminEmployeesTab .table {
+    min-width: 1180px;
+}
+
+#adminEmployeesTab .table th:nth-child(1),
+#adminEmployeesTab .table td:nth-child(1) {
+    width: 58px !important;
+}
+
+#adminEmployeesTab .table th:nth-child(2),
+#adminEmployeesTab .table td:nth-child(2) {
+    width: 15% !important;
+}
+
+#adminEmployeesTab .table th:nth-child(3),
+#adminEmployeesTab .table td:nth-child(3) {
+    width: 10% !important;
+}
+
+#adminEmployeesTab .table th:nth-child(4),
+#adminEmployeesTab .table td:nth-child(4) {
+    width: 12% !important;
+}
+
+#adminEmployeesTab .table th:nth-child(5),
+#adminEmployeesTab .table td:nth-child(5) {
+    width: 13% !important;
+    overflow: visible !important;
+}
+
+#adminEmployeesTab .table th:nth-child(6),
+#adminEmployeesTab .table td:nth-child(6) {
+    width: 9% !important;
+}
+
+#adminEmployeesTab .table th:nth-child(7),
+#adminEmployeesTab .table td:nth-child(7),
+#adminEmployeesTab .table th:nth-child(8),
+#adminEmployeesTab .table td:nth-child(8),
+#adminEmployeesTab .table th:nth-child(9),
+#adminEmployeesTab .table td:nth-child(9) {
+    width: 9% !important;
+    text-align: center !important;
+}
+
+#adminEmployeesTab .table th:nth-child(10),
+#adminEmployeesTab .table td:nth-child(10) {
+    width: 126px !important;
+}
+
+#adminWorkloadTab .table {
+    min-width: 1120px;
+}
+
+#adminWorkloadTab .table th:nth-child(1),
+#adminWorkloadTab .table td:nth-child(1) {
+    width: 58px !important;
+}
+
+#adminWorkloadTab .table th:nth-child(2),
+#adminWorkloadTab .table td:nth-child(2) {
+    width: 18% !important;
+}
+
+#adminWorkloadTab .table th:nth-child(3),
+#adminWorkloadTab .table td:nth-child(3),
+#adminWorkloadTab .table th:nth-child(4),
+#adminWorkloadTab .table td:nth-child(4),
+#adminWorkloadTab .table th:nth-child(5),
+#adminWorkloadTab .table td:nth-child(5),
+#adminWorkloadTab .table th:nth-child(8),
+#adminWorkloadTab .table td:nth-child(8),
+#adminWorkloadTab .table th:nth-child(9),
+#adminWorkloadTab .table td:nth-child(9),
+#adminWorkloadTab .table th:nth-child(10),
+#adminWorkloadTab .table td:nth-child(10) {
+    width: 9% !important;
+    text-align: center !important;
+}
+
+#adminWorkloadTab .table th:nth-child(6),
+#adminWorkloadTab .table td:nth-child(6),
+#adminWorkloadTab .table th:nth-child(7),
+#adminWorkloadTab .table td:nth-child(7) {
+    width: 10% !important;
+    text-align: center !important;
+}
+
+#adminProductivityTab .table {
+    min-width: 980px;
+}
+
+#adminProductivityTab .table th:nth-child(1),
+#adminProductivityTab .table td:nth-child(1),
+#adminSalaryTab .table th:nth-child(1),
+#adminSalaryTab .table td:nth-child(1),
+#adminBonusesTab .table th:nth-child(1),
+#adminBonusesTab .table td:nth-child(1) {
+    width: 58px !important;
+}
+
+#adminProductivityTab .table th:nth-child(2),
+#adminProductivityTab .table td:nth-child(2) {
+    width: 20% !important;
+}
+
+#adminProductivityTab .table th:nth-child(3),
+#adminProductivityTab .table td:nth-child(3),
+#adminProductivityTab .table th:nth-child(4),
+#adminProductivityTab .table td:nth-child(4),
+#adminProductivityTab .table th:nth-child(5),
+#adminProductivityTab .table td:nth-child(5) {
+    width: 14% !important;
+    text-align: center !important;
+}
+
+#adminProductivityTab .table th:nth-child(6),
+#adminProductivityTab .table td:nth-child(6) {
+    width: 10% !important;
+    text-align: center !important;
+}
+
+#adminProductivityTab .table th:nth-child(7),
+#adminProductivityTab .table td:nth-child(7) {
+    width: 18% !important;
+    text-align: left !important;
+}
+
+#adminSalaryTab .table {
+    min-width: 960px;
+}
+
+#adminSalaryTab .table th:nth-child(2),
+#adminSalaryTab .table td:nth-child(2) {
+    width: 22% !important;
+}
+
+#adminSalaryTab .table th:nth-child(3),
+#adminSalaryTab .table td:nth-child(3),
+#adminSalaryTab .table th:nth-child(4),
+#adminSalaryTab .table td:nth-child(4),
+#adminSalaryTab .table th:nth-child(5),
+#adminSalaryTab .table td:nth-child(5) {
+    width: 13% !important;
+    text-align: center !important;
+}
+
+#adminSalaryTab .table th:nth-child(6),
+#adminSalaryTab .table td:nth-child(6),
+#adminSalaryTab .table th:nth-child(7),
+#adminSalaryTab .table td:nth-child(7) {
+    width: 14% !important;
+}
+
+#adminBonusesTab .table {
+    min-width: 960px;
+}
+
+#adminBonusesTab .table th:nth-child(2),
+#adminBonusesTab .table td:nth-child(2) {
+    width: 16% !important;
+}
+
+#adminBonusesTab .table th:nth-child(3),
+#adminBonusesTab .table td:nth-child(3),
+#adminBonusesTab .table th:nth-child(4),
+#adminBonusesTab .table td:nth-child(4) {
+    width: 8% !important;
+    text-align: center !important;
+}
+
+#adminBonusesTab .table th:nth-child(5),
+#adminBonusesTab .table td:nth-child(5),
+#adminBonusesTab .table th:nth-child(6),
+#adminBonusesTab .table td:nth-child(6) {
+    width: 11% !important;
+    text-align: center !important;
+}
+
+#adminBonusesTab .table th:nth-child(7),
+#adminBonusesTab .table td:nth-child(7) {
+    width: 38% !important;
+    text-align: left !important;
+    white-space: normal !important;
+}
+
+#adminControlTab .table,
+#manualRequestsTable {
+    min-width: 1280px !important;
+}
+
+#manualRequestsTable th,
+#manualRequestsTable td {
+    padding: 10px 8px !important;
+}
+
+#manualRequestsTable th:nth-child(1),
+#manualRequestsTable td:nth-child(1) {
+    width: 54px !important;
+    text-align: center !important;
+    padding-left: 8px !important;
+}
+
+#manualRequestsTable th:nth-child(2),
+#manualRequestsTable td:nth-child(2) {
+    width: 12% !important;
+}
+
+#manualRequestsTable th:nth-child(3),
+#manualRequestsTable td:nth-child(3) {
+    width: 14% !important;
+}
+
+#manualRequestsTable th:nth-child(4),
+#manualRequestsTable td:nth-child(4) {
+    width: 12% !important;
+}
+
+#manualRequestsTable th:nth-child(5),
+#manualRequestsTable td:nth-child(5),
+#manualRequestsTable th:nth-child(7),
+#manualRequestsTable td:nth-child(7) {
+    width: 6% !important;
+    text-align: center !important;
+}
+
+#manualRequestsTable th:nth-child(6),
+#manualRequestsTable td:nth-child(6) {
+    width: 18% !important;
+}
+
+#manualRequestsTable th:nth-child(8),
+#manualRequestsTable td:nth-child(8) {
+    width: 9% !important;
+    text-align: center !important;
+}
+
+#manualRequestsTable th:nth-child(9),
+#manualRequestsTable td:nth-child(9) {
+    width: 11% !important;
+    text-align: center !important;
+}
+
+#manualRequestsTable th:nth-child(10),
+#manualRequestsTable td:nth-child(10) {
+    width: 100px !important;
+    text-align: center !important;
+    overflow: visible !important;
+}
+
+#manualRequestsTable .task-status {
+    display: inline-flex !important;
+    width: auto !important;
+    min-width: 76px !important;
+    max-width: 96px !important;
+    padding: 6px 8px !important;
+}
+
+#manualRequestsTable .manual-date {
+    font-size: 12px !important;
+    text-align: center !important;
+}
+
+#manualRequestsTable .table-actions {
+    justify-content: center !important;
+    gap: 6px !important;
+}
+
+#manualRequestsTable .btn-sm,
+#manualRequestsTable .manual-file-btn,
+#manualRequestsTable td:nth-child(7) a.btn {
+    width: 32px !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    flex: 0 0 32px !important;
+}
+
+/* =========================================================
+   ЭТАП 4.2: БЕЗ ПРОКРУТКИ И С РАСКРЫТИЕМ СТРОК
+   ========================================================= */
+
+#usersPage .table tbody tr {
+    transition: background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+#usersPage .table tbody tr td {
+    transition: padding 0.18s ease, background-color 0.18s ease;
+}
+
+#usersPage .table tbody tr.is-selected td {
+    padding-top: 16px !important;
+    padding-bottom: 16px !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    vertical-align: top !important;
+}
+
+#usersPage .table tbody tr.is-selected td:first-child,
+#usersPage .table tbody tr.is-selected td:last-child,
+#usersPage .table tbody tr.is-selected td:has(.badge),
+#usersPage .table tbody tr.is-selected td:has(.task-status) {
+    white-space: nowrap !important;
+    vertical-align: middle !important;
+}
+
+#usersPage .table tbody tr.is-selected .admin-user-name,
+#usersPage .table tbody tr.is-selected .admin-user-email {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+}
+
+#usersPage .table tbody tr.is-selected .badge,
+#usersPage .table tbody tr.is-selected .task-status {
+    white-space: nowrap !important;
+}
+
+#adminEmployeesTab .table th:nth-child(2),
+#adminEmployeesTab .table td:nth-child(2),
+#adminWorkloadTab .table th:nth-child(2),
+#adminWorkloadTab .table td:nth-child(2),
+#adminProductivityTab .table th:nth-child(2),
+#adminProductivityTab .table td:nth-child(2),
+#adminSalaryTab .table th:nth-child(2),
+#adminSalaryTab .table td:nth-child(2),
+#adminBonusesTab .table th:nth-child(2),
+#adminBonusesTab .table td:nth-child(2) {
+    width: 13% !important;
+}
+
+#adminWorkloadTab .table th:nth-child(6),
+#adminWorkloadTab .table td:nth-child(6),
+#adminWorkloadTab .table th:nth-child(7),
+#adminWorkloadTab .table td:nth-child(7),
+#adminSalaryTab .table th:nth-child(3),
+#adminSalaryTab .table td:nth-child(3),
+#adminSalaryTab .table th:nth-child(4),
+#adminSalaryTab .table td:nth-child(4),
+#adminSalaryTab .table th:nth-child(5),
+#adminSalaryTab .table td:nth-child(5),
+#adminBonusesTab .table th:nth-child(3),
+#adminBonusesTab .table td:nth-child(3),
+#adminBonusesTab .table th:nth-child(4),
+#adminBonusesTab .table td:nth-child(4),
+#adminBonusesTab .table th:nth-child(5),
+#adminBonusesTab .table td:nth-child(5),
+#adminBonusesTab .table th:nth-child(6),
+#adminBonusesTab .table td:nth-child(6) {
+    width: 9% !important;
+}
+
+#adminBonusesTab .table {
+    width: 100% !important;
+    min-width: 0 !important;
+}
+
+#adminBonusesTab .table th:nth-child(1),
+#adminBonusesTab .table td:nth-child(1) {
+    width: 5% !important;
+}
+
+#adminBonusesTab .table th:nth-child(7),
+#adminBonusesTab .table td:nth-child(7) {
+    width: 46% !important;
+}
+
+#adminSalaryTab .table {
+    width: 100% !important;
+    min-width: 0 !important;
+}
+
+#adminControlTab .table-container {
+    overflow-x: hidden !important;
+}
+
+#manualRequestsTable {
+    width: 100% !important;
+    min-width: 0 !important;
+    table-layout: fixed !important;
+}
+
+#manualRequestsTable th,
+#manualRequestsTable td {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+#manualRequestsTable th {
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+}
+
+#manualRequestsTable th:nth-child(1),
+#manualRequestsTable td:nth-child(1) {
+    width: 4% !important;
+}
+
+#manualRequestsTable th:nth-child(2),
+#manualRequestsTable td:nth-child(2) {
+    width: 11% !important;
+}
+
+#manualRequestsTable th:nth-child(3),
+#manualRequestsTable td:nth-child(3) {
+    width: 14% !important;
+}
+
+#manualRequestsTable th:nth-child(4),
+#manualRequestsTable td:nth-child(4) {
+    width: 11% !important;
+}
+
+#manualRequestsTable th:nth-child(5),
+#manualRequestsTable td:nth-child(5) {
+    width: 5% !important;
+    text-align: center !important;
+}
+
+#manualRequestsTable th:nth-child(6),
+#manualRequestsTable td:nth-child(6) {
+    width: 14% !important;
+}
+
+#manualRequestsTable th:nth-child(7),
+#manualRequestsTable td:nth-child(7) {
+    width: 5% !important;
+    text-align: center !important;
+}
+
+#manualRequestsTable th:nth-child(8),
+#manualRequestsTable td:nth-child(8) {
+    width: 9% !important;
+    text-align: center !important;
+}
+
+#manualRequestsTable th:nth-child(9),
+#manualRequestsTable td:nth-child(9) {
+    width: 13% !important;
+    text-align: center !important;
+}
+
+#manualRequestsTable th:nth-child(10),
+#manualRequestsTable td:nth-child(10) {
+    width: 14% !important;
+    text-align: center !important;
+    overflow: visible !important;
+}
+
+#manualRequestsTable tbody tr.is-selected td {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+}
+
+#manualRequestsTable tbody tr.is-selected td:nth-child(1),
+#manualRequestsTable tbody tr.is-selected td:nth-child(5),
+#manualRequestsTable tbody tr.is-selected td:nth-child(7),
+#manualRequestsTable tbody tr.is-selected td:nth-child(8),
+#manualRequestsTable tbody tr.is-selected td:nth-child(9),
+#manualRequestsTable tbody tr.is-selected td:nth-child(10) {
+    white-space: nowrap !important;
+}
+
+/* =========================================================
+   ЭТАП 4.3: ФИНАЛЬНАЯ ГЕОМЕТРИЯ ПРОБЛЕМНЫХ ТАБЛИЦ
+   ========================================================= */
+
+#usersPage .table-container {
+    overflow-x: hidden !important;
+}
+
+#usersPage .table th,
+#usersPage .table td {
+    box-sizing: border-box !important;
+}
+
+#adminEmployeesTab .table,
+#adminSalaryTab .table,
+#adminBonusesTab .table,
+#manualRequestsTable {
+    width: 100% !important;
+    min-width: 0 !important;
+}
+
+#adminEmployeesTab .table th:nth-child(1),
+#adminEmployeesTab .table td:nth-child(1) {
+    width: 4% !important;
+}
+
+#adminEmployeesTab .table th:nth-child(2),
+#adminEmployeesTab .table td:nth-child(2) {
+    width: 10% !important;
+}
+
+#adminEmployeesTab .table th:nth-child(3),
+#adminEmployeesTab .table td:nth-child(3) {
+    width: 8% !important;
+}
+
+#adminEmployeesTab .table th:nth-child(4),
+#adminEmployeesTab .table td:nth-child(4) {
+    width: 10% !important;
+}
+
+#adminEmployeesTab .table th:nth-child(5),
+#adminEmployeesTab .table td:nth-child(5) {
+    width: 12% !important;
+}
+
+#adminEmployeesTab .table th:nth-child(6),
+#adminEmployeesTab .table td:nth-child(6) {
+    width: 8% !important;
+}
+
+#adminEmployeesTab .table th:nth-child(7),
+#adminEmployeesTab .table td:nth-child(7),
+#adminEmployeesTab .table th:nth-child(8),
+#adminEmployeesTab .table td:nth-child(8) {
+    width: 6% !important;
+    text-align: center !important;
+}
+
+#adminEmployeesTab .table th:nth-child(9),
+#adminEmployeesTab .table td:nth-child(9) {
+    width: 11% !important;
+    text-align: center !important;
+}
+
+#adminEmployeesTab .table th:nth-child(10),
+#adminEmployeesTab .table td:nth-child(10) {
+    width: 23% !important;
+    text-align: center !important;
+}
+
+#adminSalaryTab .table th:nth-child(1),
+#adminSalaryTab .table td:nth-child(1) {
+    width: 4% !important;
+}
+
+#adminSalaryTab .table th:nth-child(2),
+#adminSalaryTab .table td:nth-child(2) {
+    width: 16% !important;
+}
+
+#adminSalaryTab .table th:nth-child(3),
+#adminSalaryTab .table td:nth-child(3),
+#adminSalaryTab .table th:nth-child(4),
+#adminSalaryTab .table td:nth-child(4),
+#adminSalaryTab .table th:nth-child(5),
+#adminSalaryTab .table td:nth-child(5) {
+    width: 14% !important;
+    text-align: left !important;
+}
+
+#adminSalaryTab .table th:nth-child(6),
+#adminSalaryTab .table td:nth-child(6) {
+    width: 16% !important;
+    text-align: left !important;
+}
+
+#adminSalaryTab .table th:nth-child(7),
+#adminSalaryTab .table td:nth-child(7) {
+    width: 22% !important;
+    text-align: left !important;
+}
+
+#adminBonusesTab .table th:nth-child(1),
+#adminBonusesTab .table td:nth-child(1) {
+    width: 4% !important;
+}
+
+#adminBonusesTab .table th:nth-child(2),
+#adminBonusesTab .table td:nth-child(2) {
+    width: 12% !important;
+}
+
+#adminBonusesTab .table th:nth-child(3),
+#adminBonusesTab .table td:nth-child(3),
+#adminBonusesTab .table th:nth-child(4),
+#adminBonusesTab .table td:nth-child(4) {
+    width: 10% !important;
+    text-align: center !important;
+}
+
+#adminBonusesTab .table th:nth-child(5),
+#adminBonusesTab .table td:nth-child(5),
+#adminBonusesTab .table th:nth-child(6),
+#adminBonusesTab .table td:nth-child(6) {
+    width: 12% !important;
+    text-align: center !important;
+}
+
+#adminBonusesTab .table th:nth-child(7),
+#adminBonusesTab .table td:nth-child(7) {
+    width: 40% !important;
+}
+
+#adminBonusesTab .bonus-recommendation {
+    width: 100%;
+}
+
+#manualRequestsTable th,
+#manualRequestsTable td {
+    padding-left: 7px !important;
+    padding-right: 7px !important;
+}
+
+#manualRequestsTable th:nth-child(1),
+#manualRequestsTable td:nth-child(1) {
+    width: 4% !important;
+}
+
+#manualRequestsTable th:nth-child(2),
+#manualRequestsTable td:nth-child(2) {
+    width: 10% !important;
+}
+
+#manualRequestsTable th:nth-child(3),
+#manualRequestsTable td:nth-child(3) {
+    width: 13% !important;
+}
+
+#manualRequestsTable th:nth-child(4),
+#manualRequestsTable td:nth-child(4) {
+    width: 12% !important;
+}
+
+#manualRequestsTable th:nth-child(5),
+#manualRequestsTable td:nth-child(5) {
+    width: 5% !important;
+}
+
+#manualRequestsTable th:nth-child(6),
+#manualRequestsTable td:nth-child(6) {
+    width: 9% !important;
+}
+
+#manualRequestsTable th:nth-child(7),
+#manualRequestsTable td:nth-child(7) {
+    width: 5% !important;
+}
+
+#manualRequestsTable th:nth-child(8),
+#manualRequestsTable td:nth-child(8) {
+    width: 9% !important;
+}
+
+#manualRequestsTable th:nth-child(9),
+#manualRequestsTable td:nth-child(9) {
+    width: 13% !important;
+}
+
+#manualRequestsTable th:nth-child(10),
+#manualRequestsTable td:nth-child(10) {
+    width: 20% !important;
+    text-align: center !important;
+}
+
+#manualRequestsTable td:nth-child(6) {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+#manualRequestsTable tbody tr.is-selected td:nth-child(6) {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+}
+
+/* =========================================================
+   ТОЧНАЯ СЕТКА: СОТРУДНИКИ И БОНУСЫ
+   ========================================================= */
+
+#usersPage .admin-employees-table,
+#usersPage .admin-bonuses-table {
+    display: table !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    table-layout: fixed !important;
+}
+
+#usersPage .admin-employees-table th,
+#usersPage .admin-employees-table td,
+#usersPage .admin-bonuses-table th,
+#usersPage .admin-bonuses-table td {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+}
+
+#usersPage .admin-employees-table th:nth-child(1),
+#usersPage .admin-employees-table td:nth-child(1),
+#usersPage .admin-bonuses-table th:nth-child(1),
+#usersPage .admin-bonuses-table td:nth-child(1) {
+    width: 5% !important;
+    text-align: center !important;
+}
+
+#usersPage .admin-employees-table th:nth-child(2),
+#usersPage .admin-employees-table td:nth-child(2) {
+    width: 12% !important;
+}
+
+#usersPage .admin-employees-table th:nth-child(3),
+#usersPage .admin-employees-table td:nth-child(3) {
+    width: 9% !important;
+}
+
+#usersPage .admin-employees-table th:nth-child(4),
+#usersPage .admin-employees-table td:nth-child(4) {
+    width: 11% !important;
+}
+
+#usersPage .admin-employees-table th:nth-child(5),
+#usersPage .admin-employees-table td:nth-child(5) {
+    width: 13% !important;
+    overflow: visible !important;
+}
+
+#usersPage .admin-employees-table th:nth-child(6),
+#usersPage .admin-employees-table td:nth-child(6) {
+    width: 10% !important;
+}
+
+#usersPage .admin-employees-table th:nth-child(7),
+#usersPage .admin-employees-table td:nth-child(7) {
+    width: 8% !important;
+    text-align: center !important;
+}
+
+#usersPage .admin-employees-table th:nth-child(8),
+#usersPage .admin-employees-table td:nth-child(8) {
+    width: 9% !important;
+    text-align: center !important;
+}
+
+#usersPage .admin-employees-table th:nth-child(9),
+#usersPage .admin-employees-table td:nth-child(9) {
+    width: 10% !important;
+    text-align: center !important;
+}
+
+#usersPage .admin-employees-table th:nth-child(10),
+#usersPage .admin-employees-table td:nth-child(10) {
+    width: 13% !important;
+    text-align: center !important;
+    overflow: visible !important;
+}
+
+#usersPage .admin-employees-table .table-actions {
+    justify-content: center !important;
+    gap: 6px !important;
+}
+
+#usersPage .admin-employees-table .btn-sm {
+    width: 32px !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    flex: 0 0 32px !important;
+}
+
+#usersPage .admin-bonuses-table th:nth-child(2),
+#usersPage .admin-bonuses-table td:nth-child(2) {
+    width: 14% !important;
+}
+
+#usersPage .admin-bonuses-table th:nth-child(3),
+#usersPage .admin-bonuses-table td:nth-child(3),
+#usersPage .admin-bonuses-table th:nth-child(4),
+#usersPage .admin-bonuses-table td:nth-child(4) {
+    width: 10% !important;
+    text-align: center !important;
+}
+
+#usersPage .admin-bonuses-table th:nth-child(5),
+#usersPage .admin-bonuses-table td:nth-child(5),
+#usersPage .admin-bonuses-table th:nth-child(6),
+#usersPage .admin-bonuses-table td:nth-child(6) {
+    width: 12% !important;
+    text-align: center !important;
+}
+
+#usersPage .admin-bonuses-table th:nth-child(7),
+#usersPage .admin-bonuses-table td:nth-child(7) {
+    width: 37% !important;
+    text-align: left !important;
+    white-space: normal !important;
+}
+
+#usersPage .admin-bonuses-table .bonus-recommendation {
+    max-width: 100%;
+}
+
+/* Final table polish: salary, bonuses and manual requests */
+#usersPage .admin-salary-table th:nth-child(2),
+#usersPage .admin-salary-table td:nth-child(2),
+#usersPage .admin-bonuses-table th:nth-child(2),
+#usersPage .admin-bonuses-table td:nth-child(2) {
+    padding-left: 22px !important;
+}
+
+#usersPage .admin-bonuses-table .bonus-recommendation {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    min-height: 0 !important;
+    line-height: 1.2 !important;
+    flex-wrap: nowrap !important;
+}
+
+#usersPage .admin-bonuses-table .bonus-recommendation .badge {
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+    justify-content: center !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+}
+
+#usersPage .admin-bonuses-table .bonus-amount {
+    flex: 0 0 auto !important;
+    text-align: left !important;
+    white-space: nowrap !important;
+    color: var(--gray) !important;
+}
+
+#manualRequestsTable th:nth-child(6),
+#manualRequestsTable td:nth-child(6) {
+    width: 8% !important;
+}
+
+#manualRequestsTable th:nth-child(9),
+#manualRequestsTable td:nth-child(9) {
+    width: 15% !important;
+}
+
+#manualRequestsTable th:nth-child(10),
+#manualRequestsTable td:nth-child(10) {
+    width: 19% !important;
+}

@@ -1,0 +1,1558 @@
+﻿/* Файл: RemoteControl1/wwwroot/css/projects.css */
+
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(345px, 1fr));
+    gap: 20px;
+}
+
+.project-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid #dfe7f1;
+    border-radius: 24px;
+    padding: 22px;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+    overflow: hidden;
+    min-height: 100%;
+}
+
+    .project-card:hover {
+        transform: translateY(-2px);
+        border-color: #cad6ea;
+        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+    }
+
+.project-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.project-title-wrap {
+    min-width: 0;
+    flex: 1;
+}
+
+.project-name {
+    color: var(--primary-dark);
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1.3;
+    margin-bottom: 6px;
+}
+
+.project-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(40, 53, 147, 0.08);
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.project-header-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.project-desc {
+    color: var(--gray);
+    font-size: 13px;
+    line-height: 1.5;
+    min-height: 58px;
+    margin-bottom: 18px;
+}
+
+.project-main-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.metric-box {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 12px;
+    border-radius: 16px;
+    background: #f7f9fc;
+    border: 1px solid #e3eaf3;
+    min-width: 0;
+    min-height: 88px;
+}
+
+    .metric-box .label {
+        color: var(--gray);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+
+    .metric-box .value {
+        color: var(--primary-dark);
+        font-size: 15px;
+        font-weight: 800;
+        line-height: 1.3;
+        word-break: break-word;
+    }
+
+    .metric-box .sub {
+        color: var(--gray);
+        font-size: 12px;
+        margin-top: 6px;
+        line-height: 1.35;
+    }
+
+.project-progress-box {
+    margin-bottom: 16px;
+}
+
+.project-progress-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.project-progress-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gray);
+}
+
+.project-progress-value {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--primary);
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    background: #e8edf5;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--primary);
+    transition: width 0.3s ease;
+}
+
+.project-stages-preview {
+    margin-bottom: 16px;
+}
+
+.stages-preview-title {
+    color: var(--gray);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.stages-preview-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.stage-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--dark);
+}
+
+.project-card-bottom {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: auto;
+    padding-top: 14px;
+    border-top: 1px solid #e8edf5;
+}
+
+.project-card-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.inline-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.tiny-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    background: #f8fafc;
+    color: var(--dark);
+    border: 1px solid #e2e8f0;
+}
+
+.tiny-pill.is-secondary {
+    background: #fff;
+    color: var(--gray-dark);
+    border-color: #dfe7f1;
+    font-weight: 600;
+}
+
+.project-open-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid #dfe7f1;
+    background: #f8fafc;
+    color: var(--primary);
+    font-size: 16px;
+    flex: 0 0 34px;
+}
+
+    .project-open-indicator i {
+        line-height: 1;
+    }
+
+.project-view-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.38);
+    z-index: 2500;
+    display: none;
+}
+
+    .project-view-overlay.show {
+        display: block;
+    }
+
+.project-view-shell {
+    display: none;
+    position: fixed;
+    inset: 24px;
+    z-index: 3000;
+    align-items: center;
+    justify-content: center;
+}
+
+    .project-view-shell.show {
+        display: flex;
+    }
+
+.project-view-frame {
+    width: 100%;
+    max-width: 1220px;
+    max-height: calc(100vh - 48px);
+    overflow: hidden;
+    background: #f5f7fa;
+    border: 1px solid #dfe7f1;
+    border-radius: 30px;
+    box-shadow: 0 14px 40px rgba(15, 23, 42, 0.12);
+}
+
+.project-view-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 22px;
+    background: #fff;
+    border-bottom: 1px solid #e8edf5;
+}
+
+.project-view-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    color: var(--primary-dark);
+    font-size: 22px;
+}
+
+.project-view-close {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #d9e3ef;
+    border-radius: 999px;
+    background: #f8fafc;
+    color: transparent;
+    font-size: 0;
+    line-height: 0;
+    cursor: pointer;
+    flex: 0 0 40px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .project-view-close:hover {
+        background: #eef2f7;
+    }
+
+    .project-view-close::before {
+        content: "\00d7";
+        display: inline-block;
+        color: var(--gray);
+        font-size: 24px;
+        line-height: 1;
+        transform: translateY(-1px);
+    }
+
+    .project-view-close:hover::before {
+        color: var(--primary-dark);
+    }
+
+.project-view-scroll {
+    max-height: calc(100vh - 124px);
+    overflow-y: auto;
+    padding: 22px;
+}
+
+.detail-hero {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+    color: #fff;
+    border-radius: 28px;
+    padding: 24px;
+    margin-bottom: 22px;
+    box-shadow: var(--shadow-lg);
+}
+
+.detail-hero-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.detail-hero h2 {
+    margin: 0 0 10px;
+    font-size: 28px;
+}
+
+.detail-hero p {
+    margin: 0;
+    color: rgba(255,255,255,.86);
+    max-width: 680px;
+}
+
+.detail-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.detail-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.14);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.detail-block {
+    background: #fff;
+    border: 1px solid #e8edf5;
+    border-radius: 24px;
+    box-shadow: var(--shadow-sm);
+    padding: 20px;
+    margin-bottom: 20px;
+    min-width: 0;
+}
+
+.detail-block-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--primary-dark);
+    font-size: 18px;
+    font-weight: 800;
+    margin: 0 0 14px;
+}
+
+.summary-grid {
+    display: grid;
+    gap: 14px;
+}
+
+    .summary-grid.grid-4 {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+.summary-mini {
+    padding: 16px;
+    border-radius: 18px;
+    background: #fff;
+    border: 1px solid #e8edf5;
+    box-shadow: var(--shadow-sm);
+}
+
+    .summary-mini .label {
+        color: var(--gray);
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+    }
+
+    .summary-mini .value {
+        color: var(--primary-dark);
+        font-size: 22px;
+        font-weight: 800;
+        line-height: 1.2;
+    }
+
+    .summary-mini .sub {
+        color: var(--gray);
+        font-size: 12px;
+        margin-top: 4px;
+    }
+
+.stage-timeline {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.timeline-step {
+    border: 1px solid #dfe7f1;
+    border-radius: 18px;
+    padding: 14px;
+    background: #fff;
+    box-shadow: var(--shadow-sm);
+}
+
+    .timeline-step.done {
+        background: #e8f5e9;
+        border-color: #c8e6c9;
+    }
+
+    .timeline-step.current {
+        background: #e3f2fd;
+        border-color: #bbdefb;
+    }
+
+    .timeline-step.next {
+        background: #fff8e1;
+        border-color: #ffe082;
+    }
+
+.timeline-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.timeline-index {
+    color: var(--gray);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.timeline-percent {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--primary-dark);
+}
+
+.timeline-name {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--dark);
+    word-break: break-word;
+}
+
+.stage-sections {
+    display: grid;
+    gap: 16px;
+}
+
+.stage-section {
+    border: 1px solid #dfe7f1;
+    border-radius: 22px;
+    background: #f8fafc;
+    padding: 16px;
+}
+
+.stage-section-inner {
+    border: 1px solid #e6edf5;
+    border-radius: 18px;
+    background: #fff;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.stage-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 12px;
+}
+
+.stage-section-name {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--primary-dark);
+}
+
+.stage-section-sub {
+    color: var(--gray);
+    font-size: 13px;
+}
+
+.local-progress-pill {
+    min-width: 72px;
+    text-align: center;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(40,53,147,.10);
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.tasks-grid-in-stage {
+    display: grid;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.task-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 12px;
+    align-items: center;
+    border: 1px solid #e9eef6;
+    border-radius: 16px;
+    padding: 12px 14px;
+    background: #fbfdff;
+    min-width: 0;
+}
+
+    .task-row > div:first-child {
+        min-width: 0;
+    }
+
+.task-row-title {
+    font-weight: 700;
+    color: var(--dark);
+    word-break: break-word;
+}
+
+.task-row-sub {
+    color: var(--gray);
+    font-size: 12px;
+    margin-top: 4px;
+    word-break: break-word;
+}
+
+.mini-tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    background: #fff;
+    color: var(--dark);
+    border: 1px solid #dfe7f1;
+}
+
+.project-create-modal .modal-content {
+    max-width: 1080px;
+    width: 100%;
+    max-height: 88vh;
+    overflow-y: auto;
+    padding: 0;
+    background: #f5f7fa;
+    border-radius: 30px;
+    border: 1px solid #dfe7f1;
+    box-shadow: var(--shadow-lg);
+}
+
+.project-create-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 22px;
+    background: #fff;
+    border-bottom: 1px solid #e8edf5;
+    margin-bottom: 0;
+}
+
+.project-create-body {
+    padding: 22px;
+}
+
+.project-create-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 20px;
+}
+
+.project-create-sidebar,
+.project-create-main {
+    min-width: 0;
+}
+
+.project-create-main {
+    display: grid;
+    gap: 20px;
+}
+
+.project-create-card {
+    background: #fff;
+    border: 1px solid #e8edf5;
+    border-radius: 24px;
+    box-shadow: var(--shadow-sm);
+    padding: 20px;
+}
+
+.template-list {
+    display: grid;
+    gap: 12px;
+}
+
+.template-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 16px;
+    cursor: pointer;
+    transition: var(--transition);
+    background: #fff;
+}
+
+    .template-card:hover,
+    .template-card.active {
+        border-color: rgba(40, 53, 147, 0.22);
+        background: rgba(40, 53, 147, 0.05);
+    }
+
+.template-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.template-name {
+    font-weight: 800;
+    color: var(--primary-dark);
+    font-size: 16px;
+}
+
+.template-badge {
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--primary);
+    background: rgba(40, 53, 147, 0.10);
+}
+
+.template-description {
+    color: var(--gray);
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+
+.template-stages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.stage-editor-list {
+    display: grid;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.stage-editor-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid #edf2f7;
+    border-radius: 14px;
+    padding: 12px 14px;
+    background: #fbfdff;
+}
+
+.stage-editor-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    justify-content: flex-end;
+}
+
+.stage-editor-item > div:first-child {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.stage-editor-item .form-control {
+    min-width: 0;
+}
+
+.helper-note {
+    margin-top: 10px;
+    color: var(--gray);
+    font-size: 13px;
+}
+
+.member-selected-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.member-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(40, 53, 147, 0.18);
+    background: rgba(40, 53, 147, 0.06);
+    color: var(--primary-dark);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.member-chip i {
+    font-size: 11px;
+}
+
+.member-picker-list {
+    display: grid;
+    gap: 8px;
+    margin-top: 10px;
+    max-height: 240px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.member-picker-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px solid #e3eaf3;
+    background: #fbfdff;
+    cursor: pointer;
+    text-align: left;
+    transition: var(--transition);
+}
+
+.member-picker-item:hover {
+    border-color: #cad6ea;
+    background: #f7f9fc;
+}
+
+.member-picker-item.is-selected {
+    border-color: rgba(40, 53, 147, 0.24);
+    background: rgba(40, 53, 147, 0.06);
+}
+
+.member-picker-info {
+    min-width: 0;
+}
+
+.member-picker-name {
+    color: var(--primary-dark);
+    font-weight: 800;
+    line-height: 1.3;
+    word-break: break-word;
+}
+
+.member-picker-sub {
+    margin-top: 4px;
+    color: var(--gray);
+    font-size: 12px;
+}
+
+.member-picker-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    border: 1px solid #dfe7f1;
+    background: #fff;
+    color: var(--primary);
+    flex: 0 0 28px;
+}
+
+.member-picker-item.is-selected .member-picker-check {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+}
+
+.member-picker-empty {
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px dashed #dfe7f1;
+    color: var(--gray);
+    font-size: 13px;
+    background: #fbfdff;
+}
+
+@media (max-width: 1200px) {
+    .project-create-layout,
+    .summary-grid.grid-4 {
+        grid-template-columns: 1fr;
+    }
+
+    .project-view-frame {
+        max-width: calc(100vw - 48px);
+    }
+}
+
+@media (max-width: 768px) {
+    .project-view-shell {
+        inset: 10px;
+    }
+
+    .project-view-frame {
+        border-radius: 20px;
+    }
+
+    .detail-hero-top {
+        flex-direction: column;
+    }
+
+    .project-create-modal .modal-content {
+        max-width: 100%;
+        border-radius: 20px;
+    }
+
+    .project-create-body {
+        padding: 16px;
+    }
+
+    .stage-editor-item {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .task-row,
+    .project-main-metrics,
+    .summary-grid.grid-4 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Файл: RemoteControl1/wwwroot/css/projects.css */
+/* Доправка в конец файла: возвращает старое выравнивание модалки просмотра проекта */
+
+.project-view-main-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.project-view-left-column,
+.project-view-right-column {
+    min-width: 0;
+}
+
+.split-layout > div,
+.detail-block,
+.project-section,
+.project-stage,
+.project-stage-inner,
+.project-task,
+.action-grid,
+.action-card {
+    min-width: 0;
+}
+
+.action-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+}
+
+.action-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 14px;
+    border: 1px solid #e9eef6;
+    border-radius: 18px;
+    background: #fbfdff;
+    min-width: 0;
+    overflow: hidden;
+}
+
+    .action-card i {
+        width: 38px;
+        height: 38px;
+        border-radius: 14px;
+        background: rgba(40, 53, 147, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+        flex: 0 0 38px;
+    }
+
+    .action-card strong {
+        display: block;
+        color: var(--primary-dark);
+    }
+
+    .action-card span {
+        color: var(--gray);
+        font-size: 12px;
+    }
+
+@media (max-width: 1200px) {
+    .project-create-layout,
+    .project-view-main-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .action-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Файл: RemoteControl1/wwwroot/css/projects.css */
+/* Финальная доправка просмотра проекта: этапы, быстрые действия, длинный текст */
+
+#projectViewModal,
+#projectViewModal * {
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+.project-view-frame {
+    max-width: min(1220px, calc(100vw - 48px));
+}
+
+.project-view-scroll {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.project-view-main-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+    gap: 20px;
+    align-items: start;
+    margin-bottom: 20px;
+}
+
+.project-view-left-column,
+.project-view-right-column,
+.detail-block,
+.stage-section,
+.stage-section-inner,
+.tasks-grid-in-stage,
+.action-grid,
+.action-card {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.detail-block,
+.stage-section,
+.stage-section-inner,
+.action-card {
+    overflow: hidden;
+}
+
+    .project-view-title,
+    .detail-hero h2,
+    .detail-hero p,
+    .detail-pill,
+    .summary-mini .value,
+    .summary-mini .sub,
+    .timeline-name,
+    .stage-section-name,
+    .stage-section-sub,
+    .task-row-title,
+    .task-row-sub,
+    .mini-tag,
+    .action-card strong,
+    .action-card span {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+.stage-section-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: start;
+}
+
+.local-progress-pill {
+    max-width: 100%;
+    flex-shrink: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.task-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(74px, max-content) minmax(74px, max-content);
+    gap: 12px;
+    align-items: center;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+    .task-row > div:first-child {
+        min-width: 0;
+    }
+
+.mini-tag {
+    white-space: normal;
+    text-align: center;
+    line-height: 1.25;
+}
+
+.action-card {
+    align-items: center;
+}
+
+    .action-card > div {
+        min-width: 0;
+        overflow: hidden;
+    }
+
+@media (max-width: 1200px) {
+    .project-create-layout,
+    .project-view-main-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .project-view-shell {
+        inset: 10px;
+    }
+
+    .project-view-frame {
+        max-width: calc(100vw - 20px);
+        border-radius: 20px;
+    }
+
+    .project-view-scroll {
+        padding: 16px;
+    }
+
+    .detail-hero-top,
+    .stage-section-header {
+        grid-template-columns: 1fr;
+        flex-direction: column;
+    }
+
+    .local-progress-pill {
+        justify-self: start;
+    }
+
+    .task-row,
+    .action-grid,
+    .summary-grid.grid-4,
+    .project-main-metrics,
+    .project-secondary {
+        grid-template-columns: 1fr;
+    }
+}
+/* Файл: RemoteControl1/wwwroot/css/projects.css */
+/* Доправка: раздвигает кнопки и счетчик в этапах просмотра проекта */
+
+.stage-tools {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: 100%;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #edf2f7;
+}
+
+.stage-tools .inline-pills {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+    .stage-tools .btn,
+    .stage-tools .mini-tag,
+    .stage-tools .tiny-pill,
+    .stage-tools .local-progress-pill {
+        margin: 0;
+        flex: 0 0 auto;
+        white-space: normal;
+        line-height: 1.25;
+    }
+
+    .stage-tools .btn {
+        min-height: 38px;
+        max-width: 100%;
+        padding: 9px 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .stage-tools .mini-tag,
+    .stage-tools .tiny-pill {
+        min-height: 34px;
+        padding: 7px 11px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+.stage-section-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px;
+    align-items: start;
+}
+
+    .stage-section-header > div:first-child {
+        min-width: 0;
+    }
+
+.stage-section-name,
+.stage-section-sub {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+@media (max-width: 900px) {
+    .stage-section-header {
+        grid-template-columns: 1fr;
+    }
+
+    .stage-tools {
+        justify-content: flex-start;
+        width: 100%;
+    }
+}
+
+@media (max-width: 520px) {
+    .stage-tools {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+        .stage-tools .btn,
+        .stage-tools .mini-tag,
+        .stage-tools .tiny-pill {
+            width: 100%;
+        }
+}
+
+/* Project modal unified view: easy to remove if we roll the design back */
+#projectViewModal .project-view-main-layout {
+    align-items: start;
+    gap: 18px;
+}
+
+#projectViewModal .project-view-left-column {
+    display: grid;
+    gap: 16px;
+}
+
+#projectViewModal .project-view-right-column {
+    align-self: start;
+}
+
+#projectViewModal .project-view-right-column > .detail-block {
+    width: 100%;
+}
+
+#projectViewModal .detail-block {
+    border-color: var(--border);
+    background: #ffffff;
+    box-shadow: var(--shadow-sm);
+}
+
+#projectViewModal .stage-sections {
+    gap: 18px;
+}
+
+#projectViewModal .stage-section {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+#projectViewModal .stage-section-inner {
+    padding: 0 18px 18px;
+    border: 1px solid #cfd8e3;
+    border-left: 4px solid var(--primary);
+    border-radius: 18px;
+    background: #f8fafc;
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.045);
+}
+
+#projectViewModal .stage-section-header {
+    margin: 0 -18px 14px;
+    padding: 16px 18px;
+    border-bottom: 1px solid #dce3ee;
+    background: #ffffff;
+}
+
+#projectViewModal .stage-section-name {
+    color: #1f2d3d;
+}
+
+#projectViewModal .stage-section-sub {
+    color: #596b80;
+}
+
+#projectViewModal .local-progress-pill {
+    color: var(--primary-dark);
+    background: rgba(40, 53, 147, 0.08);
+    border: 1px solid rgba(40, 53, 147, 0.16);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.72);
+}
+
+#projectViewModal .stage-section-inner > .progress-bar {
+    margin: 0 0 14px;
+    background: #e8edf5;
+}
+
+#projectViewModal .tasks-grid-in-stage {
+    position: relative;
+    gap: 10px;
+    padding: 36px 12px 12px;
+    background: #eef3f8;
+    border: 1px solid #d6dee9;
+    border-radius: 14px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+#projectViewModal .tasks-grid-in-stage::before {
+    content: "Задачи этапа";
+    position: absolute;
+    top: 11px;
+    left: 12px;
+    color: #5f6f82;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+#projectViewModal .task-row {
+    border: 1px solid #d5deea;
+    border-left: 4px solid var(--primary);
+    background: #ffffff;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.04);
+    padding: 10px 12px;
+    transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+}
+
+#projectViewModal .task-row:hover {
+    border-color: #b7c3d4;
+    background: #ffffff;
+    box-shadow: 0 7px 16px rgba(15, 23, 42, 0.075);
+}
+
+#projectViewModal .task-row.task-status-done {
+    border-left-color: #43a047;
+}
+
+#projectViewModal .task-row.task-status-progress {
+    border-left-color: #1e88e5;
+}
+
+#projectViewModal .task-row.task-status-review {
+    border-left-color: #7e57c2;
+}
+
+#projectViewModal .task-row.task-status-new {
+    border-left-color: #78909c;
+}
+
+#projectViewModal .task-row-title {
+    color: #17202b;
+}
+
+#projectViewModal .task-row-sub {
+    color: #64748b;
+}
+
+#projectViewModal .task-row .mini-tag {
+    background: #f8fafc;
+    border-color: #d5deea;
+    color: #223044;
+}
+
+#projectViewModal .task-row .btn.btn-sm {
+    min-width: 34px;
+    min-height: 34px;
+    padding: 0 10px;
+    border-width: 1px;
+    box-shadow: none;
+}
+
+#projectViewModal .task-row .btn.btn-success {
+    background: #2f9e44;
+    border-color: #2f9e44;
+    color: #ffffff;
+}
+
+#projectViewModal .task-row .btn.btn-danger {
+    background: #e53935;
+    border-color: #e53935;
+    color: #ffffff;
+}
+
+#projectViewModal .task-row .btn.btn-outline {
+    background: #ffffff;
+    border-color: #b7c3d4;
+    color: #223044;
+}
+
+#projectViewModal .stage-section .btn.btn-outline {
+    color: #17202b;
+    background: #ffffff;
+    border-color: var(--border-dark);
+    box-shadow: none;
+}
+
+#projectViewModal .stage-section .btn.btn-outline:hover {
+    color: var(--primary-dark);
+    background: #eef2ff;
+    border-color: var(--primary);
+}
+
+#projectViewModal .stage-tools {
+    margin-top: 14px;
+    padding: 14px 0 0;
+    border-top: 1px solid #dce3ee;
+    border-radius: 0;
+    background: transparent;
+}
+
+#projectViewModal .stage-tools .btn {
+    border-color: #b7c3d4;
+    box-shadow: none;
+}
+
+#projectViewModal .stage-tools .btn-primary {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: #ffffff;
+}
+
+#projectViewModal .stage-tools .tiny-pill {
+    border: 1px solid var(--border);
+    background: #f8fafc;
+    color: #2e3d50;
+}
+
+#projectViewModal .timeline-step {
+    border-color: var(--border);
+    background: #ffffff;
+    box-shadow: none;
+    border-left-width: 4px;
+    border-left-color: #cbd5e1;
+}
+
+#projectViewModal .timeline-step.done {
+    background: #ffffff;
+    border-color: var(--border);
+    border-left-color: var(--success);
+}
+
+#projectViewModal .timeline-step.current {
+    background: #ffffff;
+    border-color: var(--border);
+    border-left-color: var(--primary);
+}
+
+#projectViewModal .timeline-step.next {
+    background: #ffffff;
+    border-color: var(--border);
+    border-left-color: var(--warning);
+}
+
+#projectViewModal .timeline-step.empty,
+#projectViewModal .timeline-step.waiting {
+    background: #ffffff;
+    border-color: var(--border);
+    border-left-color: #cbd5e1;
+}
+
+#projectViewModal .timeline-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+#projectViewModal .timeline-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 22px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #304156;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+#projectViewModal .timeline-step.done .timeline-status {
+    background: rgba(67, 160, 71, 0.12);
+    color: #256029;
+}
+
+#projectViewModal .timeline-step.current .timeline-status {
+    background: rgba(40, 53, 147, 0.10);
+    color: var(--primary-dark);
+}
+
+#projectViewModal .timeline-step.next .timeline-status {
+    background: rgba(233, 178, 26, 0.18);
+    color: #7a5600;
+}
+
+#projectViewModal .action-grid {
+    gap: 9px;
+    align-content: start;
+    grid-auto-rows: minmax(50px, max-content);
+}
+
+#projectViewModal .action-card {
+    min-height: 50px;
+    padding: 9px 11px;
+    border-color: var(--border);
+    background: #ffffff;
+    box-shadow: none;
+    transition: border-color 0.16s ease, background 0.16s ease;
+}
+
+#projectViewModal .action-card[onclick]:hover {
+    border-color: var(--border-dark);
+    background: #f8fafc;
+}
+
+#projectViewModal .action-card i {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+    border-radius: 10px;
+    background: rgba(40, 53, 147, 0.08);
+}
+
+#projectViewModal .action-card strong {
+    font-size: 13px;
+    line-height: 1.2;
+}
+
+#projectViewModal .action-card span {
+    display: block;
+    margin-top: 2px;
+    line-height: 1.25;
+}
+
+#projectViewModal .action-card.future-action {
+    background: #f8fafc;
+    color: #475569;
+}
+
+#projectViewModal .action-card.future-action i {
+    background: #edf2f7;
+    color: #596b80;
+}
+
+#projectViewModal .action-card.future-action strong {
+    color: #344255;
+}
+
+.stage-input-locked {
+    background: #f8fafc;
+    border-color: var(--border);
+    color: #475569;
+    cursor: not-allowed;
+}
+
+.stage-editor-actions .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+}
