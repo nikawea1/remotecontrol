@@ -524,22 +524,42 @@ async function stopTracker() {
 }
 
 async function addTimeEntry() {
+    const requestId = Number(document.getElementById("quickManualRequestId")?.value || "0");
     const taskId = Number(document.getElementById("quickTask")?.value);
+    const workDate = document.getElementById("quickWorkDate")?.value || "";
     const hoursRaw = document.getElementById("quickHours")?.value || "0";
     const hours = parseFloat(hoursRaw.replace(",", "."));
+    const reason = document.getElementById("quickReason")?.value || "";
     const comment = document.getElementById("quickComment")?.value.trim() || "";
     const fileInput = document.getElementById("quickAttachment");
     const file = fileInput?.files?.[0] || null;
+    const existingRequest = requestId > 0 && Array.isArray(window.manualTimeRequests)
+        ? window.manualTimeRequests.find(x => Number(x.id) === requestId)
+        : null;
+    const hasExistingAttachment = Boolean(existingRequest?.attachmentPath);
 
-    if (!taskId || !hours || hours <= 0) {
-        showNotification("Заполните задачу и часы");
+    if (!taskId || !hours || hours <= 0 || !workDate || !reason) {
+        showNotification("Заполните задачу, дату, причину и часы");
+        return;
+    }
+
+    if (!comment) {
+        showNotification("Комментарий к заявке обязателен");
+        return;
+    }
+
+    if (!file && !hasExistingAttachment) {
+        showNotification("Прикрепите файл-подтверждение");
         return;
     }
 
     try {
         const formData = new FormData();
+        formData.append("requestId", String(requestId));
         formData.append("taskId", String(taskId));
+        formData.append("workDate", workDate);
         formData.append("hours", String(hours));
+        formData.append("reason", reason);
         formData.append("comment", comment);
 
         if (file) {
@@ -561,16 +581,96 @@ async function addTimeEntry() {
             return;
         }
 
-        document.getElementById("quickHours").value = "1";
-        document.getElementById("quickComment").value = "";
-
-        if (fileInput) {
-            fileInput.value = "";
+        if (typeof resetQuickManualRequestForm === "function") {
+            resetQuickManualRequestForm();
         }
 
-        showNotification("Заявка на ручное время отправлена");
+        if (typeof loadManualTimeRequests === "function") {
+            loadManualTimeRequests();
+        }
+
+        showNotification(requestId > 0 ? "Заявка повторно отправлена на проверку" : "Заявка на ручное время отправлена");
     } catch {
         showNotification("Ошибка сети/сервера");
+    }
+}
+
+function getCurrentLocalDateForInput() {
+    const now = new Date();
+    const offset = now.getTimezoneOffset() * 60000;
+    return new Date(now.getTime() - offset).toISOString().slice(0, 10);
+}
+
+function startManualRequestEdit(id) {
+    const request = Array.isArray(window.manualTimeRequests)
+        ? window.manualTimeRequests.find(x => Number(x.id) === Number(id))
+        : null;
+
+    if (!request || !request.canResubmit) {
+        showNotification("Эту заявку нельзя редактировать");
+        return;
+    }
+
+    const requestIdField = document.getElementById("quickManualRequestId");
+    const taskField = document.getElementById("quickTask");
+    const workDateField = document.getElementById("quickWorkDate");
+    const hoursField = document.getElementById("quickHours");
+    const reasonField = document.getElementById("quickReason");
+    const commentField = document.getElementById("quickComment");
+    const submitButton = document.getElementById("quickTimeSubmitButton");
+    const resetButton = document.getElementById("quickTimeResetButton");
+
+    if (!requestIdField || !taskField || !workDateField || !hoursField || !reasonField || !commentField) {
+        showNotification("Форма ручного времени не найдена");
+        return;
+    }
+
+    requestIdField.value = String(request.id);
+    taskField.value = String(request.taskId || "");
+    workDateField.value = request.workDateValue || "";
+    hoursField.value = String(request.hours || 1);
+    reasonField.value = request.reason || "";
+    commentField.value = request.comment || "";
+
+    if (submitButton) {
+        submitButton.innerHTML = '<i class="fas fa-redo"></i> Отправить повторно';
+    }
+
+    if (resetButton) {
+        resetButton.classList.remove("hidden");
+    }
+
+    const quickCard = document.getElementById("quickTask");
+    if (quickCard) {
+        quickCard.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+}
+
+function resetQuickManualRequestForm() {
+    const requestIdField = document.getElementById("quickManualRequestId");
+    const taskField = document.getElementById("quickTask");
+    const workDateField = document.getElementById("quickWorkDate");
+    const hoursField = document.getElementById("quickHours");
+    const reasonField = document.getElementById("quickReason");
+    const commentField = document.getElementById("quickComment");
+    const fileField = document.getElementById("quickAttachment");
+    const submitButton = document.getElementById("quickTimeSubmitButton");
+    const resetButton = document.getElementById("quickTimeResetButton");
+
+    if (requestIdField) requestIdField.value = "0";
+    if (taskField) taskField.value = "";
+    if (workDateField) workDateField.value = getCurrentLocalDateForInput();
+    if (hoursField) hoursField.value = "1";
+    if (reasonField) reasonField.value = "";
+    if (commentField) commentField.value = "";
+    if (fileField) fileField.value = "";
+
+    if (submitButton) {
+        submitButton.innerHTML = '<i class="fas fa-paper-plane"></i> Отправить заявку';
+    }
+
+    if (resetButton) {
+        resetButton.classList.add("hidden");
     }
 }
 

@@ -113,6 +113,8 @@
                 <h3 class="card-title">Быстрый учет времени</h3>
             </div>
 
+            <input type="hidden" id="quickManualRequestId" value="0">
+
             <div class="form-row quick-time-row" style="align-items: flex-end;">
                 <div class="form-group" style="flex: 2;">
                     <label class="form-label">Задача</label>
@@ -121,26 +123,81 @@
                     </select>
                 </div>
 
+                <div class="form-group" style="flex: 1.1;">
+                    <label class="form-label">Дата работы</label>
+                    <input type="date" class="form-control" id="quickWorkDate" value="@DateTime.Today.ToString("yyyy-MM-dd")">
+                </div>
+
                 <div class="form-group" style="flex: 1;">
                     <label class="form-label">Часы</label>
                     <input type="number" class="form-control" id="quickHours" step="0.5" min="0.5" value="1">
                 </div>
 
-                <div class="form-group" style="flex: 2;">
+                <div class="form-group" style="flex: 1.4;">
+                    <label class="form-label">Причина</label>
+                    <select class="form-control" id="quickReason">
+                        <option value="">Выберите причину</option>
+                        <option value="forgot_timer">Забыл запустить таймер</option>
+                        <option value="after_completion">После завершения</option>
+                        <option value="technical_issue">Техническая проблема</option>
+                        <option value="external_work">Созвон / внешняя работа</option>
+                        <option value="meeting">Встреча / митап</option>
+                        <option value="offline_work">Оффлайн работа</option>
+                        <option value="fix_after_pause">Доработка после паузы</option>
+                        <option value="customer_help">Помощь клиенту</option>
+                        <option value="review_help">Проверка / помощь коллеге</option>
+                        <option value="migration">Перенос / настройка</option>
+                        <option value="other">Другое</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row quick-time-row quick-time-row-secondary" style="align-items: flex-end;">
+                <div class="form-group" style="flex: 2.4;">
                     <label class="form-label">Комментарий</label>
-                    <input type="text" class="form-control" id="quickComment" placeholder="Что сделано?">
+                    <input type="text" class="form-control" id="quickComment" placeholder="Что сделано, почему время внесено вручную?">
                 </div>
 
-                <div class="form-group" style="flex: 2;">
-                    <label class="form-label">Файл-пруф</label>
+                <div class="form-group" style="flex: 1.6;">
+                    <label class="form-label">Файл-подтверждение</label>
                     <input type="file" class="form-control" id="quickAttachment">
                 </div>
 
-                <div class="form-group">
-                    <button class="btn btn-primary" onclick="addTimeEntry()" style="height: 42px;">
-                        <i class="fas fa-plus"></i> Добавить
+                <div class="form-group quick-time-actions">
+                    <button class="btn btn-primary" id="quickTimeSubmitButton" onclick="addTimeEntry()" style="height: 42px;">
+                        <i class="fas fa-paper-plane"></i> Отправить заявку
+                    </button>
+                    <button class="btn btn-outline hidden" id="quickTimeResetButton" type="button" onclick="resetQuickManualRequestForm()" style="height: 42px;">
+                        Отменить
                     </button>
                 </div>
+            </div>
+
+            <div class="quick-time-hint">
+                Комментарий и файл обязательны. Если заявку вернули на доработку, её можно исправить и отправить повторно из списка ниже.
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Мои заявки времени</h3>
+            </div>
+
+            <div class="table-container">
+                <table class="table dashboard-manual-requests-table" id="dashboardManualRequestsTable">
+                    <thead>
+                        <tr>
+                            <th>Дата работы</th>
+                            <th>Задача</th>
+                            <th>Часы</th>
+                            <th>Детали</th>
+                            <th>Статус</th>
+                            <th>Файл</th>
+                            <th>Действие</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dashboardManualTimeRequestsBody"></tbody>
+                </table>
             </div>
         </div>
 

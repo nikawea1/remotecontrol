@@ -1312,6 +1312,65 @@
     white-space: nowrap !important;
 }
 
+.quick-time-row-secondary {
+    margin-top: 10px;
+}
+
+.quick-time-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.quick-time-hint {
+    margin-top: 10px;
+    color: var(--gray);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.manual-request-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
+}
+
+.manual-request-meta {
+    font-size: 12px;
+    color: var(--gray);
+    line-height: 1.35;
+}
+
+.manual-request-text {
+    line-height: 1.45;
+    color: var(--text);
+}
+
+.manual-status-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.manual-status-note {
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--gray);
+    max-width: 220px;
+    white-space: normal;
+}
+
+#dashboardManualRequestsTable .task-status {
+    min-width: 104px;
+}
+
+#dashboardManualRequestsTable .table-actions,
+#dashboardManualRequestsTable td:last-child {
+    white-space: nowrap;
+}
+
 #adminEmployeesTab .table th:nth-child(2),
 #adminEmployeesTab .table td:nth-child(2),
 #adminWorkloadTab .table th:nth-child(2),
@@ -1837,4 +1896,772 @@
 #manualRequestsTable th:nth-child(10),
 #manualRequestsTable td:nth-child(10) {
     width: 19% !important;
+}
+
+/* =========================================================
+   MANUAL REQUESTS / BONUSES FINAL POLISH
+   ========================================================= */
+
+#usersPage .manual-requests-filters {
+    display: grid;
+    grid-template-columns: minmax(260px, 1.5fr) repeat(4, minmax(160px, 1fr)) auto;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+#usersPage .manual-requests-filters .filter-group,
+#usersPage .manual-requests-filters .filter-select,
+#usersPage .manual-requests-filters .filter-input {
+    min-width: 0;
+}
+
+#usersPage .manual-requests-filters .filter-select {
+    width: 100%;
+    font-size: 13px;
+}
+
+#usersPage #manualRequestsTable.admin-manual-requests-table {
+    width: 100% !important;
+    table-layout: fixed !important;
+}
+
+#usersPage #manualRequestsTable.admin-manual-requests-table th,
+#usersPage #manualRequestsTable.admin-manual-requests-table td {
+    padding: 12px 10px !important;
+    vertical-align: middle !important;
+    box-sizing: border-box !important;
+}
+
+#usersPage #manualRequestsTable.admin-manual-requests-table th {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    line-height: 1.25 !important;
+}
+
+#usersPage #manualRequestsTable.admin-manual-requests-table td {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+#usersPage #manualRequestsTable.admin-manual-requests-table th:nth-child(1),
+#usersPage #manualRequestsTable.admin-manual-requests-table td:nth-child(1) {
+    width: 4% !important;
+    text-align: center !important;
+}
+
+#usersPage #manualRequestsTable.admin-manual-requests-table th:nth-child(2),
+#usersPage #manualRequestsTable.admin-manual-requests-table td:nth-child(2) {
+    width: 9% !important;
+}
+
+#usersPage #manualRequestsTable.admin-manual-requests-table th:nth-child(3),
+#usersPage #manualRequestsTable.admin-manual-requests-table td:nth-child(3) {
+    width: 11% !important;
+}
+
+#usersPage #manualRequestsTable.admin-manual-requests-table th:nth-child(4),
+#usersPage #manualRequestsTable.admin-manual-requests-table td:nth-child(4) {
+    width: 10% !important;
+}
+
+#usersPage #manualRequestsTable.admin-manual-requests-table th:nth-child(5),
+#usersPage #manualRequestsTable.admin-manual-requests-table td:nth-child(5) {
+    width: 6% !important;
+    text-align: center !important;
+}
+
+#usersPage #manualRequestsTable.admin-manual-requests-table th:nth-child(6),
+#usersPage #manualRequestsTable.admin-manual-requests-table td:nth-child(6) {
+    width: 15% !important;
+}
+
+#usersPage #manualRequestsTable.admin-manual-requests-table th:nth-child(7),
+#usersPage #manualRequestsTable.admin-manual-requests-table td:nth-child(7) {
+    width: 6% !important;
+    text-align: center !important;
+}
+
+#usersPage #manualRequestsTable.admin-manual-requests-table th:nth-child(8),
+#usersPage #manualRequestsTable.admin-manual-requests-table td:nth-child(8) {
+    width: 9% !important;
+    text-align: center !important;
+}
+
+#usersPage #manualRequestsTable.admin-manual-requests-table th:nth-child(9),
+#usersPage #manualRequestsTable.admin-manual-requests-table td:nth-child(9) {
+    width: 9% !important;
+    text-align: center !important;
+}
+
+#usersPage #manualRequestsTable.admin-manual-requests-table th:nth-child(10),
+#usersPage #manualRequestsTable.admin-manual-requests-table td:nth-child(10) {
+    width: 19% !important;
+    text-align: center !important;
+    overflow: visible !important;
+}
+
+#usersPage #manualRequestsTable .manual-request-row {
+    cursor: pointer;
+}
+
+#usersPage #manualRequestsTable .manual-request-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+#usersPage #manualRequestsTable .manual-request-preview-reason,
+#usersPage #manualRequestsTable .manual-request-preview-comment {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#usersPage #manualRequestsTable .manual-request-preview-reason {
+    color: #56677a;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+#usersPage #manualRequestsTable .manual-request-preview-comment {
+    color: var(--text);
+    font-size: 13px;
+}
+
+#usersPage #manualRequestsTable .manual-request-file-cell {
+    text-align: center !important;
+}
+
+#usersPage #manualRequestsTable .manual-file-btn,
+#usersPage #manualRequestsTable .manual-request-file-cell .manual-request-muted {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    vertical-align: middle !important;
+}
+
+#usersPage #manualRequestsTable .manual-file-btn {
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    border-radius: 10px !important;
+}
+
+#usersPage #manualRequestsTable .manual-request-status-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 98px !important;
+    max-width: 96% !important;
+    width: auto !important;
+    padding: 7px 9px !important;
+    font-size: 12px !important;
+    line-height: 1.1 !important;
+    white-space: nowrap !important;
+}
+
+#usersPage #manualRequestsTable .manual-date {
+    display: inline-flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 3px !important;
+    width: 100% !important;
+    line-height: 1.2 !important;
+}
+
+#usersPage #manualRequestsTable .manual-date-day,
+#usersPage #manualRequestsTable .manual-date-time {
+    display: block !important;
+    font-size: 13px !important;
+    color: var(--text) !important;
+    white-space: nowrap !important;
+}
+
+#usersPage #manualRequestsTable .manual-date-time {
+    color: #64748b !important;
+}
+
+#usersPage #manualRequestsTable .manual-request-actions {
+    justify-content: center !important;
+    gap: 6px !important;
+    width: 100% !important;
+}
+
+#usersPage #manualRequestsTable .manual-request-actions .btn-sm {
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    flex: 0 0 34px !important;
+}
+
+#usersPage #manualRequestsTable .manual-request-expanded-row td {
+    padding: 0 !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    background: #f8fbff !important;
+    border-bottom-color: #d9e6f3 !important;
+}
+
+#usersPage #manualRequestsTable .manual-request-expanded-card {
+    padding: 18px 20px !important;
+}
+
+#usersPage #manualRequestsTable .manual-request-expanded-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+#usersPage #manualRequestsTable .manual-request-inline-panel {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 18px;
+    background: #f8fbff;
+}
+
+#usersPage #manualRequestsTable .manual-request-inline-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+#usersPage #manualRequestsTable .manual-request-inline-line {
+    white-space: normal;
+    line-height: 1.45;
+    color: var(--text);
+}
+
+#usersPage #manualRequestsTable .manual-request-inline-actions {
+    flex: 0 0 auto;
+}
+
+#usersPage #manualRequestsTable .manual-request-inline-actions .btn {
+    white-space: nowrap;
+}
+
+#usersPage #manualRequestsTable .manual-request-expanded-block {
+    border: 1px solid #d9e4f1;
+    border-radius: 12px;
+    background: #fff;
+    padding: 14px 16px;
+}
+
+#usersPage #manualRequestsTable .manual-request-expanded-block h4 {
+    margin: 0 0 12px;
+    font-size: 14px;
+    color: var(--primary);
+}
+
+#usersPage #manualRequestsTable .manual-request-detail-pair {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 12px;
+}
+
+#usersPage #manualRequestsTable .manual-request-detail-pair:last-child {
+    margin-bottom: 0;
+}
+
+#usersPage #manualRequestsTable .manual-request-detail-pair > span {
+    font-size: 12px;
+    color: #64748b;
+}
+
+#usersPage #manualRequestsTable .manual-request-detail-text {
+    white-space: normal;
+    line-height: 1.5;
+}
+
+#usersPage #manualRequestsTable .manual-request-history {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+#usersPage #manualRequestsTable .manual-request-history-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: baseline;
+}
+
+#usersPage #manualRequestsTable .manual-request-history-label {
+    font-size: 12px;
+    color: #64748b;
+}
+
+#usersPage #manualRequestsTable .manual-request-history-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    text-align: right;
+}
+
+#usersPage .manual-expanded-file-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#usersPage .manual-request-muted {
+    color: #94a3b8;
+}
+
+#usersPage .manual-action-hint {
+    margin-top: 10px;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+#usersPage .manual-request-details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+#usersPage .admin-bonuses-table {
+    width: 100% !important;
+    table-layout: fixed !important;
+}
+
+#usersPage .admin-bonuses-table th,
+#usersPage .admin-bonuses-table td {
+    padding: 12px 10px !important;
+}
+
+#usersPage .admin-bonuses-table th {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    line-height: 1.25 !important;
+}
+
+#usersPage .admin-bonuses-table td:nth-child(1),
+#usersPage .admin-bonuses-table th:nth-child(1) {
+    width: 4% !important;
+    text-align: center !important;
+}
+
+#usersPage .admin-bonuses-table td:nth-child(2),
+#usersPage .admin-bonuses-table th:nth-child(2) {
+    width: 12% !important;
+}
+
+#usersPage .admin-bonuses-table td:nth-child(3),
+#usersPage .admin-bonuses-table th:nth-child(3),
+#usersPage .admin-bonuses-table td:nth-child(4),
+#usersPage .admin-bonuses-table th:nth-child(4) {
+    width: 8% !important;
+    text-align: center !important;
+}
+
+#usersPage .admin-bonuses-table td:nth-child(5),
+#usersPage .admin-bonuses-table th:nth-child(5),
+#usersPage .admin-bonuses-table td:nth-child(6),
+#usersPage .admin-bonuses-table th:nth-child(6) {
+    width: 10% !important;
+    text-align: center !important;
+}
+
+#usersPage .admin-bonuses-table td:nth-child(7),
+#usersPage .admin-bonuses-table th:nth-child(7) {
+    width: 12% !important;
+    text-align: left !important;
+}
+
+#usersPage .admin-bonuses-table td:nth-child(8),
+#usersPage .admin-bonuses-table th:nth-child(8) {
+    width: 24% !important;
+    text-align: left !important;
+}
+
+#usersPage .admin-bonuses-table td:nth-child(9),
+#usersPage .admin-bonuses-table th:nth-child(9) {
+    width: 12% !important;
+    text-align: left !important;
+}
+
+#usersPage .admin-bonuses-table .bonus-reason-cell {
+    white-space: normal !important;
+    line-height: 1.45 !important;
+}
+
+#usersPage .admin-bonuses-table .bonus-amount-cell {
+    white-space: nowrap !important;
+    color: #475569 !important;
+}
+
+@media (max-width: 1180px) {
+    #usersPage .manual-requests-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #usersPage #manualRequestsTable .manual-request-inline-panel {
+        flex-direction: column;
+    }
+
+    #usersPage #manualRequestsTable .manual-request-expanded-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* =========================================================
+   MANUAL REQUESTS: calmer row expansion + structured details modal
+   ========================================================= */
+
+#usersPage .table tbody tr td {
+    transition: background-color 0.18s ease, padding 0.18s ease, box-shadow 0.18s ease, color 0.18s ease;
+}
+
+#usersPage .table tbody tr.is-selected td {
+    animation: tableRowSelectIn 0.18s ease;
+}
+
+#usersPage #manualRequestsTable .manual-request-row.is-selected .manual-request-preview-reason,
+#usersPage #manualRequestsTable .manual-request-row.is-selected .manual-request-preview-comment {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+}
+
+#usersPage #manualRequestsTable .manual-request-row.is-selected td:nth-child(2),
+#usersPage #manualRequestsTable .manual-request-row.is-selected td:nth-child(3),
+#usersPage #manualRequestsTable .manual-request-row.is-selected td:nth-child(4),
+#usersPage #manualRequestsTable .manual-request-row.is-selected td:nth-child(6) {
+    vertical-align: top !important;
+}
+
+#usersPage #manualRequestsTable .manual-request-expanded-row td {
+    padding: 0 !important;
+    background: #f8fbff !important;
+    border-top: 0 !important;
+}
+
+#usersPage #manualRequestsTable .manual-request-expand-strip {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 10px 18px 14px;
+}
+
+#usersPage #manualRequestsTable .manual-request-expand-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    min-width: 220px;
+    padding: 10px 14px !important;
+    border-radius: 12px !important;
+}
+
+#usersPage #manualRequestsTable .manual-request-expand-icon {
+    color: var(--primary);
+}
+
+.row-expand-animate {
+    animation: rowExpandFadeIn 0.2s ease;
+}
+
+@keyframes tableRowSelectIn {
+    from {
+        opacity: 0.78;
+        transform: translateY(-2px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes rowExpandFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#manualRequestDetailsModal .modal-content {
+    max-width: 940px;
+}
+
+#manualRequestDetailsModal .modal-body {
+    padding-top: 18px;
+}
+
+#manualRequestDetailsModal .manual-request-modal-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+#manualRequestDetailsModal .manual-request-modal-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+#manualRequestDetailsModal .manual-request-modal-heading {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+#manualRequestDetailsModal .manual-request-modal-kicker {
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+#manualRequestDetailsModal .manual-request-modal-heading h4 {
+    margin: 0;
+    font-size: 22px;
+    line-height: 1.2;
+    color: var(--primary);
+}
+
+#manualRequestDetailsModal .manual-request-modal-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    color: #64748b;
+    font-size: 14px;
+}
+
+#manualRequestDetailsModal .manual-request-modal-meta span {
+    position: relative;
+}
+
+#manualRequestDetailsModal .manual-request-modal-meta span + span::before {
+    content: "•";
+    margin-right: 12px;
+    color: #c0cedd;
+}
+
+#manualRequestDetailsModal .manual-request-modal-status {
+    flex: 0 0 auto;
+}
+
+#manualRequestDetailsModal .manual-request-modal-tabs {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px;
+    border: 1px solid #d9e4f1;
+    border-radius: 12px;
+    background: #f8fbff;
+    width: fit-content;
+    max-width: 100%;
+}
+
+#manualRequestDetailsModal .manual-request-modal-tab {
+    border: 0;
+    background: transparent;
+    color: #64748b;
+    padding: 9px 14px;
+    border-radius: 9px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+
+#manualRequestDetailsModal .manual-request-modal-tab.is-active {
+    background: #fff;
+    color: var(--primary);
+    box-shadow: 0 4px 12px rgba(23, 52, 135, 0.08);
+}
+
+#manualRequestDetailsModal .manual-request-modal-panel {
+    display: none;
+    animation: rowExpandFadeIn 0.18s ease;
+}
+
+#manualRequestDetailsModal .manual-request-modal-panel.is-active {
+    display: block;
+}
+
+#manualRequestDetailsModal .manual-request-modal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+#manualRequestDetailsModal .manual-request-modal-card {
+    border: 1px solid #d9e4f1;
+    border-radius: 14px;
+    background: #fff;
+    padding: 18px;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+}
+
+#manualRequestDetailsModal .manual-request-modal-card h5 {
+    margin: 0 0 14px;
+    font-size: 15px;
+    color: var(--primary);
+}
+
+#manualRequestDetailsModal .manual-request-modal-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#manualRequestDetailsModal .manual-request-modal-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    line-height: 1.45;
+}
+
+#manualRequestDetailsModal .manual-request-modal-item span {
+    color: #64748b;
+    font-size: 13px;
+}
+
+#manualRequestDetailsModal .manual-request-modal-item strong,
+#manualRequestDetailsModal .manual-request-modal-item > div {
+    text-align: right;
+    color: var(--text);
+    min-width: 0;
+}
+
+#manualRequestDetailsModal .manual-request-modal-notes {
+    margin-top: 16px;
+}
+
+#manualRequestDetailsModal .manual-request-note-block {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 12px;
+    margin-top: 12px;
+    border-top: 1px solid #e2e8f0;
+}
+
+#manualRequestDetailsModal .manual-request-note-block:first-of-type {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+}
+
+#manualRequestDetailsModal .manual-request-note-block > span {
+    font-size: 13px;
+    font-weight: 700;
+    color: #64748b;
+}
+
+#manualRequestDetailsModal .manual-request-note-block > div {
+    line-height: 1.55;
+    color: var(--text);
+    white-space: pre-wrap;
+}
+
+#manualRequestDetailsModal .manual-request-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+#manualRequestDetailsModal .manual-request-timeline-item {
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 14px;
+}
+
+#manualRequestDetailsModal .manual-request-timeline-marker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#manualRequestDetailsModal .manual-request-timeline-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--primary);
+    box-shadow: 0 0 0 4px rgba(23, 52, 135, 0.12);
+    margin-top: 5px;
+}
+
+#manualRequestDetailsModal .manual-request-timeline-line {
+    width: 2px;
+    flex: 1 1 auto;
+    background: #d6e2ef;
+    margin-top: 8px;
+}
+
+#manualRequestDetailsModal .manual-request-timeline-content {
+    padding-bottom: 18px;
+}
+
+#manualRequestDetailsModal .manual-request-timeline-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+
+#manualRequestDetailsModal .manual-request-timeline-head strong {
+    color: var(--text);
+}
+
+#manualRequestDetailsModal .manual-request-timeline-head span {
+    color: #64748b;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+#manualRequestDetailsModal .manual-request-timeline-text {
+    color: var(--text);
+    line-height: 1.55;
+}
+
+@media (max-width: 900px) {
+    #manualRequestDetailsModal .manual-request-modal-top {
+        flex-direction: column;
+    }
+
+    #manualRequestDetailsModal .manual-request-modal-grid {
+        grid-template-columns: 1fr;
+    }
+
+    #manualRequestDetailsModal .manual-request-modal-item {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    #manualRequestDetailsModal .manual-request-modal-item strong,
+    #manualRequestDetailsModal .manual-request-modal-item > div {
+        text-align: left;
+    }
+
+    #manualRequestDetailsModal .manual-request-timeline-head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }

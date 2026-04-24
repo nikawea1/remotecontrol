@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using RemoteControl1.Data;
 using RemoteControl1.Models;
+using System.Globalization;
 using System.Text.Json;
 
 namespace RemoteControl1.Services
@@ -9,11 +10,49 @@ namespace RemoteControl1.Services
     public class TaskService
     {
         private readonly AppDbContext _db;
+        private const string ManualRequestMetaPrefix = "__RCMT__";
 
 
         public TaskService(AppDbContext db)
         {
             _db = db;
+        }
+
+        private sealed class ManualTimeRequestMeta
+        {
+            public string? WorkDate { get; set; }
+            public string? Reason { get; set; }
+            public string? Comment { get; set; }
+        }
+
+        private sealed class ManualTimeRequestData
+        {
+            public DateTime? WorkDate { get; set; }
+            public string? WorkDateValue { get; set; }
+            public string Reason { get; set; } = "";
+            public string Comment { get; set; } = "";
+        }
+
+        private sealed class PerformanceMetrics
+        {
+            public decimal PlannedHours { get; set; }
+            public decimal TrackedHours { get; set; }
+            public decimal WorkDayHours { get; set; }
+            public decimal IdleHours { get; set; }
+            public decimal SalaryHours { get; set; }
+            public decimal WorkloadDiff { get; set; }
+            public decimal TimeCompletionPercent { get; set; }
+            public int TaskCompletionPercent { get; set; }
+            public int Efficiency { get; set; }
+            public int OpenTasks { get; set; }
+            public int NewTasks { get; set; }
+            public int ProgressTasks { get; set; }
+            public int ReviewTasks { get; set; }
+            public int DoneTasks { get; set; }
+            public int OverdueTasks { get; set; }
+            public string ProductivityState { get; set; } = "normal";
+            public int BonusPercent { get; set; }
+            public string BonusReason { get; set; } = "Нет данных";
         }
 
         public async Task<PageDataResult> GetPageDataAsync(int userId)
@@ -211,12 +250,6 @@ namespace RemoteControl1.Services
     .OrderByDescending(a => a.EndedAtUtc ?? a.StartedAtUtc)
     .ToListAsync();
 
-            var trackedHours = Math.Round(logs.Sum(x => x.DurationHours), 2);
-            var workDayHours = Math.Round(workDays.Sum(x => x.DurationHours), 2);
-            var idleHours = Math.Round(workDays.Sum(x => x.IdleHours), 2);
-            var overtimeHours = Math.Round(workDays.Sum(x => x.OvertimeHours), 2);
-            var totalHours = trackedHours;
-
             var tasksQuery = _db.Tasks
                 .Include(t => t.Project)
                 .Where(t => t.UserId == userId);
@@ -224,28 +257,19 @@ namespace RemoteControl1.Services
             if (projectId.HasValue)
                 tasksQuery = tasksQuery.Where(t => t.ProjectId == projectId.Value);
 
+            if (to.HasValue)
+                tasksQuery = tasksQuery.Where(t => t.CreatedAtUtc <= to.Value);
+
             var tasks = await tasksQuery.ToListAsync();
 
-            
+            if (projectId.HasValue)
+                workDays = new List<ActivityLog>();
 
-            var completedTasks = tasks.Count(t => (t.Status ?? "") == "done");
-
-            var overdueTasks = tasks
-                .Where(t => t.Deadline.HasValue &&
-                            t.Deadline.Value.Date < DateTime.Today &&
-                            (t.Status ?? "") != "done")
-                .Select(t => new OverdueTaskVm
-                {
-                    Name = t.Title,
-                    Project = t.Project?.Name ?? "Без проекта",
-                    Assignee = t.Assignee ?? "",
-                    Deadline = t.Deadline.HasValue ? t.Deadline.Value.ToString("dd.MM.yyyy") : "",
-                    DelayDays = t.Deadline.HasValue
-                        ? Math.Max(0, (DateTime.Today - t.Deadline.Value.Date).Days)
-                        : 0
-                })
-                .OrderByDescending(x => x.DelayDays)
-                .ToList();
+            var referenceDate = to?.Date ?? DateTime.Today;
+            var metrics = CalculatePerformanceMetrics(tasks, logs, workDays, referenceDate);
+            var completedTasks = metrics.DoneTasks;
+            var overtimeHours = Math.Round(workDays.Sum(x => x.OvertimeHours), 2);
+            var overdueTasks = BuildOverdueItems(tasks, referenceDate);
 
             var byProjects = logs
                 .GroupBy(x => x.TaskItem?.Project?.Name ?? "Без проекта")
@@ -259,12 +283,12 @@ namespace RemoteControl1.Services
 
             var byDays = logs
            .GroupBy(x => (x.EndedAtUtc ?? x.StartedAtUtc).ToLocalTime().Date)
+           .OrderBy(g => g.Key)
            .Select(g => new ChartItemVm
            {
                Label = g.Key.ToString("dd.MM"),
                Value = Math.Round(g.Sum(x => x.DurationHours), 2)
            })
-           .OrderBy(x => DateTime.ParseExact(x.Label, "dd.MM", null))
            .ToList();
 
             var entries = logs.Select(a => new ReportEntryVm
@@ -278,53 +302,22 @@ namespace RemoteControl1.Services
                 Status = a.TaskItem?.Status ?? "-"
             }).ToList();
 
-            var plannedHours = Math.Round((decimal)tasks.Sum(t => t.PlannedTimeHours), 2);
-            var actualHours = trackedHours;
-
-
-            var doneCount = tasks.Count(t => (t.Status ?? "") == "done");
-            var allCount = tasks.Count;
-
-            var completionRate = allCount > 0
-                ? (int)Math.Round((double)doneCount / allCount * 100)
-                : 0;
-
-            var hourRate = plannedHours > 0
-                ? Math.Min(100, (int)Math.Round((double)(actualHours / plannedHours * 100m)))
-                : 0;
-
-            var efficiency = (int)Math.Round((completionRate + hourRate) / 2.0, 0);
-
-            var bonusPercent = 0;
-            var bonusReason = "Нет";
-
-            if (efficiency >= 85 && overdueTasks.Count == 0)
-            {
-                bonusPercent = 15;
-                bonusReason = "Высокая эффективность";
-            }
-            else if (efficiency >= 70)
-            {
-                bonusPercent = 10;
-                bonusReason = "Хорошие показатели";
-            }
-            else if (efficiency >= 50)
-            {
-                bonusPercent = 5;
-                bonusReason = "Базовый бонус";
-            }
-
+            var plannedHours = metrics.PlannedHours;
+            var actualHours = metrics.TrackedHours;
+            var efficiency = metrics.Efficiency;
+            var bonusPercent = metrics.BonusPercent;
+            var bonusReason = metrics.BonusReason;
             var bonusAmount = Math.Round(actualHours * user.HourlyRate * bonusPercent / 100m, 2);
 
             var result = new ReportDataVm
             {
                 UserName = string.Join(" ", new[] { user.LastName, user.FirstName, user.MiddleName }
                     .Where(x => !string.IsNullOrWhiteSpace(x))),
-                TotalHours = (decimal)totalHours,
+                TotalHours = actualHours,
                 CompletedTasks = completedTasks,
                 OvertimeHours = overtimeHours,
-                PlannedHours = (decimal)plannedHours,
-                ActualHours = (decimal)actualHours,
+                PlannedHours = plannedHours,
+                ActualHours = actualHours,
                 Efficiency = efficiency,
                 OverdueCount = overdueTasks.Count,
                 BonusPercent = bonusPercent,
@@ -407,12 +400,11 @@ namespace RemoteControl1.Services
                 AverageRate = userItems.Count > 0
                     ? Math.Round(userItems.Average(x => (double)x.HourlyRate), 0)
                     : 0,
-                OverloadedCount = userItems.Count(x =>
-                    x.TasksInProgress >= 5 ||
-                    (x.PlannedHours > 0 && x.TrackedHours > x.PlannedHours * 1.1m)),
-                UnderloadedCount = userItems.Count(x =>
-                    x.PlannedHours > 0 && x.TrackedHours < x.PlannedHours * 0.6m),
-                NoActivityCount = userItems.Count(x => x.TrackedHours <= 0)
+                OverloadedCount = userItems.Count(x => x.ProductivityState == "overloaded"),
+                UnderloadedCount = userItems.Count(x => x.ProductivityState == "underloaded"),
+                NoActivityCount = userItems.Count(x =>
+                    x.TrackedHours <= 0 &&
+                    (x.TasksInProgress > 0 || x.PlannedHours > 0 || x.WorkDayHours > 0))
             };
         }
 
@@ -512,6 +504,8 @@ namespace RemoteControl1.Services
                 logsQuery = logsQuery.Where(a => a.ProjectId == projectId.Value);
             }
 
+            tasksQuery = tasksQuery.Where(t => t.CreatedAtUtc <= range.To);
+
             logsQuery = logsQuery.Where(a =>
             {
                 var d = a.EndedAtUtc ?? a.StartedAtUtc;
@@ -534,6 +528,9 @@ namespace RemoteControl1.Services
                 .OrderByDescending(a => a.EndedAtUtc ?? a.StartedAtUtc)
                 .ToList();
 
+            if (projectId.HasValue)
+                scopedWorkDays = new List<ActivityLog>();
+
             var dayLogs = scopedLogs
                 .Where(a => SameDay((a.EndedAtUtc ?? a.StartedAtUtc).ToLocalTime(), range.To.ToLocalTime()))
                 .ToList();
@@ -548,7 +545,8 @@ namespace RemoteControl1.Services
                 })
                 .ToList();
 
-            var overdueItems = BuildOverdueItems(scopedTasks);
+            var referenceDate = range.To.Date;
+            var overdueItems = BuildOverdueItems(scopedTasks, referenceDate);
 
             var selectedUser = employeeId.HasValue
                 ? allUsers.FirstOrDefault(x => x.Id == employeeId.Value)
@@ -578,40 +576,12 @@ namespace RemoteControl1.Services
             var weeklyCompleted = CountCompletedWorkedTasks(weekLogs, scopedTasks);
             var monthlyCompleted = CountCompletedWorkedTasks(scopedLogs, scopedTasks);
 
-            var plannedHours = Math.Round((decimal)scopedTasks.Sum(t => t.PlannedTimeHours), 2);
-            var actualHours = monthlyHours;
-
-            var doneCount = scopedTasks.Count(t => (t.Status ?? "") == "done");
-            var allCount = scopedTasks.Count;
-
-            var completionRate = allCount > 0
-                ? (int)Math.Round((double)doneCount / allCount * 100)
-                : 0;
-
-            var hourRate = plannedHours > 0
-                ? Math.Min(100, (int)Math.Round((double)(actualHours / plannedHours * 100m)))
-                : 0;
-
-            var efficiency = (int)Math.Round((completionRate + hourRate) / 2.0);
-
-            var bonusPercent = 0;
-            var bonusReason = "Нет";
-
-            if (efficiency >= 85 && overdueItems.Count == 0)
-            {
-                bonusPercent = 15;
-                bonusReason = "Высокая эффективность";
-            }
-            else if (efficiency >= 70)
-            {
-                bonusPercent = 10;
-                bonusReason = "Хорошие показатели";
-            }
-            else if (efficiency >= 50)
-            {
-                bonusPercent = 5;
-                bonusReason = "Базовый бонус";
-            }
+            var metrics = CalculatePerformanceMetrics(scopedTasks, scopedLogs, scopedWorkDays, referenceDate);
+            var plannedHours = metrics.PlannedHours;
+            var actualHours = metrics.TrackedHours;
+            var efficiency = metrics.Efficiency;
+            var bonusPercent = metrics.BonusPercent;
+            var bonusReason = metrics.BonusReason;
 
             var rate = selectedUser?.HourlyRate ?? 0;
             var bonusAmount = Math.Round(actualHours * rate * bonusPercent / 100m, 2);
@@ -646,14 +616,14 @@ namespace RemoteControl1.Services
                 Performance = new PerformanceReportVm
                 {
                     Efficiency = efficiency,
-                    OverdueCount = overdueItems.Count,
+                    OverdueCount = metrics.OverdueTasks,
                     Overtime = monthlyOvertime,
                     PlannedHours = plannedHours,
                     ActualHours = actualHours,
-                    NewCount = scopedTasks.Count(t => (t.Status ?? "") == "new"),
-                    ProgressCount = scopedTasks.Count(t => (t.Status ?? "") == "progress"),
-                    ReviewCount = scopedTasks.Count(t => (t.Status ?? "") == "review"),
-                    DoneCount = scopedTasks.Count(t => (t.Status ?? "") == "done")
+                    NewCount = metrics.NewTasks,
+                    ProgressCount = metrics.ProgressTasks,
+                    ReviewCount = metrics.ReviewTasks,
+                    DoneCount = metrics.DoneTasks
                 },
                 Overdue = new OverdueReportVm
                 {
@@ -1244,6 +1214,171 @@ namespace RemoteControl1.Services
             });
         }
 
+        private static DateTime? ParseManualRequestWorkDate(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return null;
+
+            if (DateTime.TryParseExact(
+                value.Trim(),
+                "yyyy-MM-dd",
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out var parsed))
+            {
+                return parsed.Date;
+            }
+
+            return null;
+        }
+
+        private static string BuildManualRequestCommentPayload(DateTime workDate, string reason, string comment)
+        {
+            var payload = new ManualTimeRequestMeta
+            {
+                WorkDate = workDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                Reason = reason.Trim(),
+                Comment = comment.Trim()
+            };
+
+            return ManualRequestMetaPrefix + JsonSerializer.Serialize(payload);
+        }
+
+        private static ManualTimeRequestData ParseManualRequestData(string? storedComment)
+        {
+            if (!string.IsNullOrWhiteSpace(storedComment) && storedComment.StartsWith(ManualRequestMetaPrefix, StringComparison.Ordinal))
+            {
+                var rawJson = storedComment[ManualRequestMetaPrefix.Length..];
+
+                try
+                {
+                    var payload = JsonSerializer.Deserialize<ManualTimeRequestMeta>(rawJson);
+                    var workDate = ParseManualRequestWorkDate(payload?.WorkDate);
+
+                    return new ManualTimeRequestData
+                    {
+                        WorkDate = workDate,
+                        WorkDateValue = workDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                        Reason = payload?.Reason?.Trim() ?? "",
+                        Comment = payload?.Comment?.Trim() ?? ""
+                    };
+                }
+                catch (JsonException)
+                {
+                }
+            }
+
+            return new ManualTimeRequestData
+            {
+                Comment = storedComment?.Trim() ?? ""
+            };
+        }
+
+        private static (DateTime startedAtUtc, DateTime endedAtUtc) BuildManualTimeRangeUtc(User user, DateTime workDate, decimal hours)
+        {
+            var startTime = user.PlannedStartTime ?? new TimeSpan(9, 0, 0);
+            var localStart = DateTime.SpecifyKind(workDate.Date.Add(startTime), DateTimeKind.Local);
+            var localEnd = localStart.AddHours((double)hours);
+
+            return (localStart.ToUniversalTime(), localEnd.ToUniversalTime());
+        }
+
+        private static ManualTimeRequestVm MapManualTimeRequestVm(ManualTimeRequest request)
+        {
+            var parsed = ParseManualRequestData(request.Comment);
+
+            return new ManualTimeRequestVm
+            {
+                Id = request.Id,
+                Employee = request.User == null ? "" : BuildFullName(request.User.LastName, request.User.FirstName, request.User.MiddleName),
+                UserId = request.UserId,
+                TaskId = request.TaskItemId,
+                TaskName = request.TaskItem?.Title ?? "Без задачи",
+                ProjectName = request.TaskItem?.Project?.Name ?? "Без проекта",
+                Hours = request.Hours,
+                Comment = parsed.Comment,
+                Reason = parsed.Reason,
+                WorkDate = parsed.WorkDate?.ToString("dd.MM.yyyy") ?? "-",
+                WorkDateValue = parsed.WorkDateValue,
+                Status = request.Status,
+                CreatedAt = request.CreatedAtUtc.ToLocalTime().ToString("dd.MM.yyyy HH:mm"),
+                ReviewedAt = request.ReviewedAtUtc.HasValue ? request.ReviewedAtUtc.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm") : "",
+                ManagerComment = request.ManagerComment,
+                AttachmentPath = request.AttachmentPath,
+                AttachmentName = request.AttachmentName,
+                CanResubmit = string.Equals(request.Status, "needs_revision", StringComparison.OrdinalIgnoreCase)
+            };
+        }
+
+        private async Task RecalculateWorkDaySummariesAsync(int userId, DateTime fromUtc, DateTime toUtc)
+        {
+            var workDays = await _db.ActivityLogs
+                .Where(a =>
+                    a.UserId == userId &&
+                    a.ActivityType == "workday" &&
+                    !a.IsActive &&
+                    a.StartedAtUtc <= toUtc &&
+                    (a.EndedAtUtc ?? a.StartedAtUtc) >= fromUtc)
+                .ToListAsync();
+
+            if (!workDays.Any())
+                return;
+
+            var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == userId);
+
+            foreach (var workDay in workDays)
+            {
+                var workDayEnd = workDay.EndedAtUtc ?? workDay.StartedAtUtc;
+
+                var trackedLogs = await _db.ActivityLogs
+                    .Where(a =>
+                        a.UserId == userId &&
+                        (a.ActivityType == "task_timer" || a.ActivityType == "manual_time") &&
+                        a.StartedAtUtc <= workDayEnd &&
+                        (a.EndedAtUtc ?? a.StartedAtUtc) >= workDay.StartedAtUtc)
+                    .ToListAsync();
+
+                decimal trackedHours = 0m;
+
+                foreach (var trackedLog in trackedLogs)
+                {
+                    var trackedLogEnd = trackedLog.EndedAtUtc ?? trackedLog.StartedAtUtc;
+                    var overlapStart = trackedLog.StartedAtUtc > workDay.StartedAtUtc
+                        ? trackedLog.StartedAtUtc
+                        : workDay.StartedAtUtc;
+                    var overlapEnd = trackedLogEnd < workDayEnd
+                        ? trackedLogEnd
+                        : workDayEnd;
+
+                    if (overlapEnd > overlapStart)
+                    {
+                        trackedHours += Math.Round((decimal)(overlapEnd - overlapStart).TotalHours, 2);
+                    }
+                }
+
+                var totalDayHours = workDay.DurationHours > 0
+                    ? workDay.DurationHours
+                    : Math.Round((decimal)(workDayEnd - workDay.StartedAtUtc).TotalHours, 2);
+
+                var plannedHours = workDay.PlannedHours > 0
+                    ? workDay.PlannedHours
+                    : (user?.RequiredDailyHours > 0 ? user.RequiredDailyHours : 8m);
+
+                trackedHours = Math.Round(trackedHours, 2);
+
+                workDay.TrackedHours = trackedHours;
+                workDay.IdleHours = Math.Max(0m, Math.Round(totalDayHours - trackedHours, 2));
+                workDay.OvertimeHours = totalDayHours > plannedHours
+                    ? Math.Round(totalDayHours - plannedHours, 2)
+                    : 0m;
+                workDay.UnderworkHours = totalDayHours < plannedHours
+                    ? Math.Round(plannedHours - totalDayHours, 2)
+                    : 0m;
+            }
+
+            await _db.SaveChangesAsync();
+        }
+
         public async Task<ServiceResult<ManualTimeRequestVm>> CreateManualTimeRequestAsync(int userId, AddManualTimeDto dto)
         {
             var task = await _db.Tasks
@@ -1259,6 +1394,21 @@ namespace RemoteControl1.Services
             if (dto.Hours <= 0)
                 return ServiceResult<ManualTimeRequestVm>.Fail("Введите корректное количество часов");
 
+            var workDate = ParseManualRequestWorkDate(dto.WorkDate);
+            if (!workDate.HasValue)
+                return ServiceResult<ManualTimeRequestVm>.Fail("Укажите дату выполненной работы");
+
+            var reason = (dto.Reason ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(reason))
+                return ServiceResult<ManualTimeRequestVm>.Fail("Укажите причину ручного добавления времени");
+
+            var comment = (dto.Comment ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(comment))
+                return ServiceResult<ManualTimeRequestVm>.Fail("Комментарий к заявке обязателен");
+
+            if (string.IsNullOrWhiteSpace(dto.AttachmentPath) || string.IsNullOrWhiteSpace(dto.AttachmentName))
+                return ServiceResult<ManualTimeRequestVm>.Fail("К заявке нужно прикрепить файл-подтверждение");
+
             var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == userId);
             if (user == null)
                 return ServiceResult<ManualTimeRequestVm>.Fail("Пользователь не найден");
@@ -1269,32 +1419,89 @@ namespace RemoteControl1.Services
                 TaskItemId = task.Id,
                 ProjectId = task.ProjectId,
                 Hours = dto.Hours,
-                Comment = dto.Comment?.Trim() ?? "",
+                Comment = BuildManualRequestCommentPayload(workDate.Value, reason, comment),
                 Status = "pending",
                 CreatedAtUtc = DateTime.UtcNow,
                 AttachmentPath = dto.AttachmentPath,
                 AttachmentName = dto.AttachmentName
             };
 
+            request.User = user;
+            request.TaskItem = task;
             _db.ManualTimeRequests.Add(request);
             await _db.SaveChangesAsync();
 
-            return ServiceResult<ManualTimeRequestVm>.Success(new ManualTimeRequestVm
+            return ServiceResult<ManualTimeRequestVm>.Success(MapManualTimeRequestVm(request));
+        }
+
+        public async Task<ServiceResult<ManualTimeRequestVm>> UpdateManualTimeRequestAsync(int userId, AddManualTimeDto dto)
+        {
+            if (dto.RequestId <= 0)
+                return ServiceResult<ManualTimeRequestVm>.Fail("Заявка не найдена");
+
+            var request = await _db.ManualTimeRequests
+                .Include(x => x.User)
+                .Include(x => x.TaskItem)
+                    .ThenInclude(t => t!.Project)
+                .FirstOrDefaultAsync(x => x.Id == dto.RequestId);
+
+            if (request == null)
+                return ServiceResult<ManualTimeRequestVm>.Fail("Заявка не найдена");
+
+            if (request.UserId != userId)
+                return ServiceResult<ManualTimeRequestVm>.Fail("Нельзя изменять чужую заявку");
+
+            if (!string.Equals(request.Status, "needs_revision", StringComparison.OrdinalIgnoreCase))
+                return ServiceResult<ManualTimeRequestVm>.Fail("Редактировать можно только заявку, возвращённую на доработку");
+
+            var task = await _db.Tasks
+                .Include(t => t.Project)
+                .FirstOrDefaultAsync(t => t.Id == dto.TaskId);
+
+            if (task == null)
+                return ServiceResult<ManualTimeRequestVm>.Fail("Задача не найдена");
+
+            if (task.UserId != userId)
+                return ServiceResult<ManualTimeRequestVm>.Fail("Нельзя отправлять время по чужой задаче");
+
+            if (dto.Hours <= 0)
+                return ServiceResult<ManualTimeRequestVm>.Fail("Введите корректное количество часов");
+
+            var workDate = ParseManualRequestWorkDate(dto.WorkDate);
+            if (!workDate.HasValue)
+                return ServiceResult<ManualTimeRequestVm>.Fail("Укажите дату выполненной работы");
+
+            var reason = (dto.Reason ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(reason))
+                return ServiceResult<ManualTimeRequestVm>.Fail("Укажите причину ручного добавления времени");
+
+            var comment = (dto.Comment ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(comment))
+                return ServiceResult<ManualTimeRequestVm>.Fail("Комментарий к заявке обязателен");
+
+            var hasAttachment = !string.IsNullOrWhiteSpace(dto.AttachmentPath) || !string.IsNullOrWhiteSpace(request.AttachmentPath);
+            if (!hasAttachment)
+                return ServiceResult<ManualTimeRequestVm>.Fail("К заявке нужно прикрепить файл-подтверждение");
+
+            request.TaskItemId = task.Id;
+            request.ProjectId = task.ProjectId;
+            request.Hours = dto.Hours;
+            request.Comment = BuildManualRequestCommentPayload(workDate.Value, reason, comment);
+            request.Status = "pending";
+            request.CreatedAtUtc = DateTime.UtcNow;
+            request.ReviewedAtUtc = null;
+            request.ReviewedByUserId = null;
+
+            if (!string.IsNullOrWhiteSpace(dto.AttachmentPath) && !string.IsNullOrWhiteSpace(dto.AttachmentName))
             {
-                Id = request.Id,
-                Employee = BuildFullName(user.LastName, user.FirstName, user.MiddleName),
-                UserId = userId,
-                TaskId = task.Id,
-                TaskName = task.Title,
-                ProjectName = task.Project?.Name ?? "Без проекта",
-                Hours = request.Hours,
-                Comment = request.Comment,
-                Status = request.Status,
-                CreatedAt = request.CreatedAtUtc.ToLocalTime().ToString("dd.MM.yyyy HH:mm"),
-                ManagerComment = request.ManagerComment,
-                AttachmentPath = request.AttachmentPath,
-                AttachmentName = request.AttachmentName
-            });
+                request.AttachmentPath = dto.AttachmentPath;
+                request.AttachmentName = dto.AttachmentName;
+            }
+
+            request.TaskItem = task;
+            await _db.SaveChangesAsync();
+
+            return ServiceResult<ManualTimeRequestVm>.Success(MapManualTimeRequestVm(request));
         }
 
         public async Task<List<ManualTimeRequestVm>> GetManualTimeRequestsAsync(int currentUserId, string currentUserRole)
@@ -1325,22 +1532,7 @@ namespace RemoteControl1.Services
 
             var list = await query.ToListAsync();
 
-            return list.Select(x => new ManualTimeRequestVm
-            {
-                Id = x.Id,
-                Employee = x.User == null ? "" : BuildFullName(x.User.LastName, x.User.FirstName, x.User.MiddleName),
-                UserId = x.UserId,
-                TaskId = x.TaskItemId,
-                TaskName = x.TaskItem?.Title ?? "Без задачи",
-                ProjectName = x.TaskItem?.Project?.Name ?? "Без проекта",
-                Hours = x.Hours,
-                Comment = x.Comment ?? "",
-                Status = x.Status,
-                CreatedAt = x.CreatedAtUtc.ToLocalTime().ToString("dd.MM.yyyy HH:mm"),
-                ManagerComment = x.ManagerComment,
-                AttachmentPath = x.AttachmentPath,
-                AttachmentName = x.AttachmentName
-            }).ToList();
+            return list.Select(MapManualTimeRequestVm).ToList();
         }
 
         public async Task<ServiceResult> ApproveManualTimeRequestAsync(int currentUserId, string currentUserRole, ApproveManualTimeDto dto)
@@ -1374,7 +1566,14 @@ namespace RemoteControl1.Services
             request.ReviewedAtUtc = DateTime.UtcNow;
             request.ReviewedByUserId = currentUserId;
 
-            var now = DateTime.UtcNow;
+            var requestData = ParseManualRequestData(request.Comment);
+            var workDate = requestData.WorkDate ?? request.CreatedAtUtc.ToLocalTime().Date;
+            var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == request.UserId);
+
+            if (user == null)
+                return ServiceResult.Fail("Пользователь не найден");
+
+            var (startedAtUtc, endedAtUtc) = BuildManualTimeRangeUtc(user, workDate, request.Hours);
 
             var log = new ActivityLog
             {
@@ -1382,17 +1581,56 @@ namespace RemoteControl1.Services
                 TaskItemId = request.TaskItemId,
                 ProjectId = request.ProjectId,
                 ActivityType = "manual_time",
-                StartedAtUtc = now.AddHours(-(double)request.Hours),
-                EndedAtUtc = now,
+                StartedAtUtc = startedAtUtc,
+                EndedAtUtc = endedAtUtc,
                 DurationHours = Math.Round((decimal)request.Hours, 2),
-                Comment = string.IsNullOrWhiteSpace(request.Comment)
+                Comment = string.IsNullOrWhiteSpace(requestData.Comment)
                     ? "Ручное время одобрено менеджером"
-                    : request.Comment,
+                    : requestData.Comment,
                 IsActive = false,
                 IsIdle = false
             };
 
             _db.ActivityLogs.Add(log);
+            await _db.SaveChangesAsync();
+            await RecalculateWorkDaySummariesAsync(request.UserId, startedAtUtc, endedAtUtc);
+
+            return ServiceResult.Success();
+        }
+
+        public async Task<ServiceResult> ReturnManualTimeRequestForRevisionAsync(int currentUserId, string currentUserRole, NeedsRevisionManualTimeDto dto)
+        {
+            var role = (currentUserRole ?? "").ToLower();
+            if (role != "manager" && role != "admin")
+                return ServiceResult.Fail("Нет прав");
+
+            var request = await _db.ManualTimeRequests.FirstOrDefaultAsync(x => x.Id == dto.Id);
+
+            if (request == null)
+                return ServiceResult.Fail("Заявка не найдена");
+
+            if (request.Status != "pending")
+                return ServiceResult.Fail("На доработку можно вернуть только новую заявку");
+
+            if (role == "manager")
+            {
+                var allowed = await _db.Projects.AnyAsync(p =>
+                    p.Id == request.ProjectId &&
+                    p.ManagerId == currentUserId);
+
+                if (!allowed)
+                    return ServiceResult.Fail("Нет прав");
+            }
+
+            var managerComment = dto.ManagerComment?.Trim() ?? "";
+            if (string.IsNullOrWhiteSpace(managerComment))
+                return ServiceResult.Fail("Укажите, что нужно исправить");
+
+            request.Status = "needs_revision";
+            request.ManagerComment = managerComment;
+            request.ReviewedAtUtc = DateTime.UtcNow;
+            request.ReviewedByUserId = currentUserId;
+
             await _db.SaveChangesAsync();
 
             return ServiceResult.Success();
@@ -1422,8 +1660,12 @@ namespace RemoteControl1.Services
                     return ServiceResult.Fail("Нет прав");
             }
 
+            var managerComment = dto.ManagerComment?.Trim() ?? "";
+            if (string.IsNullOrWhiteSpace(managerComment))
+                return ServiceResult.Fail("Укажите причину отклонения");
+
             request.Status = "rejected";
-            request.ManagerComment = dto.ManagerComment?.Trim();
+            request.ManagerComment = managerComment;
             request.ReviewedAtUtc = DateTime.UtcNow;
             request.ReviewedByUserId = currentUserId;
 
@@ -1883,53 +2125,11 @@ namespace RemoteControl1.Services
                 .Where(a => a.ActivityType == "task_timer" || a.ActivityType == "manual_time")
                 .ToList();
 
-            var totalTrackedHours = Math.Round(taskLogs.Sum(a => a.DurationHours), 2);
-            var totalPlannedHours = Math.Round((decimal)userTasks.Sum(t => t.PlannedTimeHours), 2);
-
-            var workDayHours = Math.Round(workDayLogs.Sum(x => x.DurationHours), 2);
-            var trackedHoursFromWorkDays = Math.Round(workDayLogs.Sum(a => a.TrackedHours), 2);
-            var idleHours = Math.Round(workDayLogs.Sum(a => a.IdleHours), 2);
-
-            var trackedHours = trackedHoursFromWorkDays > 0
-                ? trackedHoursFromWorkDays
-                : totalTrackedHours;
-
-            var salaryHours = trackedHours;
-
-            var completedTasks = userTasks.Count(t => (t.Status ?? "") == "done");
-            var activeTasks = userTasks.Count(t => (t.Status ?? "") == "progress");
-            var overdueTasks = userTasks.Count(t =>
-                t.Deadline.HasValue &&
-                t.Deadline.Value.Date < DateTime.Today &&
-                (t.Status ?? "") != "done");
-
-            decimal completionPercent = 0m;
-            if (totalPlannedHours > 0)
-            {
-                completionPercent = Math.Round((trackedHours / totalPlannedHours) * 100m, 0);
-                if (completionPercent > 999m)
-                    completionPercent = 999m;
-            }
-
-            string productivityState;
-            if (totalPlannedHours > 0 && trackedHours < totalPlannedHours * 0.6m)
-                productivityState = "underloaded";
-            else if (activeTasks >= 5 || (totalPlannedHours > 0 && trackedHours > totalPlannedHours * 1.1m))
-                productivityState = "overloaded";
-            else
-                productivityState = "normal";
-
-            decimal workloadDiff = Math.Round(trackedHours - totalPlannedHours, 2);
-
-            int bonusPercent = 0;
-            if (totalPlannedHours > 0 && trackedHours >= totalPlannedHours * 1.1m && overdueTasks == 0)
-                bonusPercent = 15;
-            else if (totalPlannedHours > 0 && trackedHours >= totalPlannedHours && overdueTasks == 0)
-                bonusPercent = 10;
-            else if (totalPlannedHours > 0 && trackedHours >= totalPlannedHours * 0.8m)
-                bonusPercent = 5;
-
-            decimal bonusAmount = Math.Round(salaryHours * u.HourlyRate * bonusPercent / 100m, 2);
+            var metrics = CalculatePerformanceMetrics(userTasks, taskLogs, workDayLogs, DateTime.Today);
+            var completionPercent = metrics.TimeCompletionPercent > 999m
+                ? 999m
+                : metrics.TimeCompletionPercent;
+            var bonusAmount = Math.Round(metrics.SalaryHours * u.HourlyRate * metrics.BonusPercent / 100m, 2);
 
             return new UserVm
             {
@@ -1943,27 +2143,28 @@ namespace RemoteControl1.Services
                 Email = u.Email ?? "",
                 Phone = u.Phone ?? "",
 
-                TasksInProgress = activeTasks,
-                CompletedTasks = completedTasks,
-                OverdueTasks = overdueTasks,
+                TasksInProgress = metrics.OpenTasks,
+                CompletedTasks = metrics.DoneTasks,
+                OverdueTasks = metrics.OverdueTasks,
 
-                PlannedHours = totalPlannedHours,
-                TotalHours = totalTrackedHours,
+                PlannedHours = metrics.PlannedHours,
+                TotalHours = metrics.TrackedHours,
 
                 WorkMode = u.WorkMode ?? "fixed",
                 RequiredDailyHours = u.RequiredDailyHours,
                 PlannedStartTime = u.PlannedStartTime?.ToString(@"hh\:mm") ?? "",
                 PlannedEndTime = u.PlannedEndTime?.ToString(@"hh\:mm") ?? "",
 
-                WorkDayHours = workDayHours,
-                TrackedHours = trackedHours,
-                IdleHours = idleHours,
-                SalaryHours = salaryHours,
+                WorkDayHours = metrics.WorkDayHours,
+                TrackedHours = metrics.TrackedHours,
+                IdleHours = metrics.IdleHours,
+                SalaryHours = metrics.SalaryHours,
 
-                WorkloadDiff = workloadDiff,
+                WorkloadDiff = metrics.WorkloadDiff,
                 CompletionPercent = completionPercent,
-                ProductivityState = productivityState,
-                BonusPercent = bonusPercent,
+                ProductivityState = metrics.ProductivityState,
+                BonusPercent = metrics.BonusPercent,
+                BonusReason = metrics.BonusReason,
                 BonusAmount = bonusAmount
             };
         }
@@ -2062,17 +2263,180 @@ namespace RemoteControl1.Services
             return days.Count > 0 ? (decimal)days.Max(x => x.Value) : 0m;
         }
 
-        private static int CountCompletedWorkedTasks(List<ActivityLog> logs, List<TaskItem> tasks)
+        private static string NormalizeTaskStatusKey(string? value)
         {
-            var taskNames = logs
-                .Select(x => (x.TaskItem?.Title ?? "").Trim().ToLower())
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .Distinct()
+            return (value ?? "").Trim().ToLowerInvariant();
+        }
+
+        private static bool IsTaskDone(string? value)
+        {
+            return NormalizeTaskStatusKey(value) == "done";
+        }
+
+        private static bool IsOpenTaskStatus(string? value)
+        {
+            return NormalizeTaskStatusKey(value) switch
+            {
+                "new" => true,
+                "progress" => true,
+                "review" => true,
+                _ => false
+            };
+        }
+
+        private static string GetProductivityState(
+            decimal plannedHours,
+            decimal timeCompletionPercent,
+            int openTasks,
+            decimal trackedHours)
+        {
+            if (openTasks <= 0 && trackedHours <= 0m && plannedHours <= 0m)
+                return "no_data";
+
+            if (openTasks >= 6 || (plannedHours > 0m && timeCompletionPercent > 120m))
+                return "overloaded";
+
+            if (plannedHours > 0m && timeCompletionPercent < 70m)
+                return "underloaded";
+
+            return "normal";
+        }
+
+        private static (int Percent, string Reason) CalculateBonusRecommendation(
+            decimal plannedHours,
+            decimal trackedHours,
+            int taskCompletionPercent,
+            int overdueTasks)
+        {
+            if (plannedHours <= 0m)
+                return (0, "Нет плана по задачам");
+
+            if (trackedHours <= 0m)
+                return (0, "Нет фактически учтённого времени");
+
+            var timeCompletionPercent = (trackedHours / plannedHours) * 100m;
+
+            if (overdueTasks > 0)
+            {
+                if (timeCompletionPercent >= 100m && taskCompletionPercent >= 70)
+                    return (5, "Есть просрочки: бонус ограничен");
+
+                return (0, "Есть просроченные задачи");
+            }
+
+            if (timeCompletionPercent >= 110m && taskCompletionPercent >= 70)
+                return (15, "План перевыполнен без просрочек");
+
+            if (timeCompletionPercent >= 100m && taskCompletionPercent >= 50)
+                return (10, "План выполнен без просрочек");
+
+            if (timeCompletionPercent >= 80m)
+                return (5, "План близок к выполнению");
+
+            return (0, "План по задачам не выполнен");
+        }
+
+        private static PerformanceMetrics CalculatePerformanceMetrics(
+            IEnumerable<TaskItem> taskSource,
+            IEnumerable<ActivityLog> taskLogSource,
+            IEnumerable<ActivityLog> workDayLogSource,
+            DateTime referenceDate)
+        {
+            var tasks = taskSource.ToList();
+            var taskLogs = taskLogSource
+                .Where(a => a.ActivityType == "task_timer" || a.ActivityType == "manual_time")
+                .ToList();
+            var workDayLogs = workDayLogSource
+                .Where(a => a.ActivityType == "workday" && !a.IsActive)
                 .ToList();
 
+            var plannedHours = Math.Round(tasks.Sum(t => t.PlannedTimeHours), 2);
+            var trackedFromLogs = Math.Round(taskLogs.Sum(a => a.DurationHours), 2);
+            var trackedFromWorkDays = Math.Round(workDayLogs.Sum(a => a.TrackedHours), 2);
+            var trackedHours = Math.Max(trackedFromLogs, trackedFromWorkDays);
+
+            var workDayHours = Math.Round(workDayLogs.Sum(a => a.DurationHours), 2);
+            var idleStored = Math.Round(workDayLogs.Sum(a => a.IdleHours), 2);
+            var idleHours = workDayHours > 0m
+                ? Math.Round(Math.Max(0m, workDayHours - trackedHours), 2)
+                : idleStored;
+
+            var newTasks = tasks.Count(t => NormalizeTaskStatusKey(t.Status) == "new");
+            var progressTasks = tasks.Count(t => NormalizeTaskStatusKey(t.Status) == "progress");
+            var reviewTasks = tasks.Count(t => NormalizeTaskStatusKey(t.Status) == "review");
+            var doneTasks = tasks.Count(t => IsTaskDone(t.Status));
+            var openTasks = tasks.Count(t => IsOpenTaskStatus(t.Status));
+            var totalTasks = tasks.Count;
+
+            var overdueTasks = tasks.Count(t =>
+                t.Deadline.HasValue &&
+                t.Deadline.Value.Date < referenceDate.Date &&
+                !IsTaskDone(t.Status));
+
+            var timeCompletionPercent = plannedHours > 0m
+                ? Math.Round((trackedHours / plannedHours) * 100m, 0)
+                : 0m;
+
+            var taskCompletionPercent = totalTasks > 0
+                ? (int)Math.Round((double)doneTasks / totalTasks * 100d)
+                : 0;
+
+            var hourRateForEfficiency = plannedHours > 0m
+                ? (int)Math.Min(100m, timeCompletionPercent)
+                : 0;
+
+            var efficiency = totalTasks > 0 && plannedHours > 0m
+                ? (int)Math.Round((taskCompletionPercent + hourRateForEfficiency) / 2d)
+                : plannedHours > 0m
+                    ? hourRateForEfficiency
+                    : taskCompletionPercent;
+
+            var productivityState = GetProductivityState(
+                plannedHours,
+                timeCompletionPercent,
+                openTasks,
+                trackedHours);
+
+            var bonus = CalculateBonusRecommendation(
+                plannedHours,
+                trackedHours,
+                taskCompletionPercent,
+                overdueTasks);
+
+            return new PerformanceMetrics
+            {
+                PlannedHours = plannedHours,
+                TrackedHours = trackedHours,
+                WorkDayHours = workDayHours,
+                IdleHours = idleHours,
+                SalaryHours = trackedHours,
+                WorkloadDiff = Math.Round(trackedHours - plannedHours, 2),
+                TimeCompletionPercent = timeCompletionPercent,
+                TaskCompletionPercent = taskCompletionPercent,
+                Efficiency = efficiency,
+                OpenTasks = openTasks,
+                NewTasks = newTasks,
+                ProgressTasks = progressTasks,
+                ReviewTasks = reviewTasks,
+                DoneTasks = doneTasks,
+                OverdueTasks = overdueTasks,
+                ProductivityState = productivityState,
+                BonusPercent = bonus.Percent,
+                BonusReason = bonus.Reason
+            };
+        }
+
+        private static int CountCompletedWorkedTasks(List<ActivityLog> logs, List<TaskItem> tasks)
+        {
+            var workedTaskIds = logs
+                .Where(x => x.TaskItemId.HasValue)
+                .Select(x => x.TaskItemId!.Value)
+                .Distinct()
+                .ToHashSet();
+
             return tasks.Count(t =>
-                (t.Status ?? "") == "done" &&
-                taskNames.Contains((t.Title ?? "").Trim().ToLower()));
+                IsTaskDone(t.Status) &&
+                workedTaskIds.Contains(t.Id));
         }
 
         private static List<ChartItemVm> GroupLogsByDays(List<ActivityLog> logs)
@@ -2148,15 +2512,15 @@ namespace RemoteControl1.Services
                 .ToList();
         }
 
-        private static List<OverdueTaskVm> BuildOverdueItems(List<TaskItem> tasks)
+        private static List<OverdueTaskVm> BuildOverdueItems(List<TaskItem> tasks, DateTime referenceDate)
         {
-            var today = DateTime.Today;
+            var targetDate = referenceDate.Date;
 
             return tasks
-                .Where(t => t.Deadline.HasValue && (t.Status ?? "") != "done")
+                .Where(t => t.Deadline.HasValue && !IsTaskDone(t.Status))
                 .Select(t =>
                 {
-                    var delay = (today - t.Deadline!.Value.Date).Days;
+                    var delay = (targetDate - t.Deadline!.Value.Date).Days;
 
                     return new OverdueTaskVm
                     {
@@ -2482,13 +2846,18 @@ namespace RemoteControl1.Services
         public int TaskId { get; set; }
         public string TaskName { get; set; } = "";
         public string ProjectName { get; set; } = "";
+        public string WorkDate { get; set; } = "";
+        public string? WorkDateValue { get; set; }
         public decimal Hours { get; set; }
+        public string Reason { get; set; } = "";
         public string Comment { get; set; } = "";
         public string Status { get; set; } = "";
         public string CreatedAt { get; set; } = "";
+        public string ReviewedAt { get; set; } = "";
         public string? ManagerComment { get; set; }
         public string? AttachmentPath { get; set; }
         public string? AttachmentName { get; set; }
+        public bool CanResubmit { get; set; }
     }
 
 
@@ -2558,8 +2927,11 @@ namespace RemoteControl1.Services
 
     public class AddManualTimeDto
     {
+        public int RequestId { get; set; }
         public int TaskId { get; set; }
         public decimal Hours { get; set; }
+        public string? WorkDate { get; set; }
+        public string? Reason { get; set; }
         public string? Comment { get; set; }
         public string? AttachmentPath { get; set; }
         public string? AttachmentName { get; set; }
@@ -2572,6 +2944,12 @@ namespace RemoteControl1.Services
     }
 
     public class RejectManualTimeDto
+    {
+        public int Id { get; set; }
+        public string? ManagerComment { get; set; }
+    }
+
+    public class NeedsRevisionManualTimeDto
     {
         public int Id { get; set; }
         public string? ManagerComment { get; set; }
@@ -2623,11 +3001,12 @@ namespace RemoteControl1.Services
         public decimal IdleHours { get; set; }
         public decimal SalaryHours { get; set; }
 
-        public decimal WorkloadDiff { get; set; }
-        public decimal CompletionPercent { get; set; }
-        public string ProductivityState { get; set; } = "normal";
-        public int BonusPercent { get; set; }
-        public decimal BonusAmount { get; set; }
+          public decimal WorkloadDiff { get; set; }
+          public decimal CompletionPercent { get; set; }
+          public string ProductivityState { get; set; } = "normal";
+          public int BonusPercent { get; set; }
+          public string BonusReason { get; set; } = "";
+          public decimal BonusAmount { get; set; }
 
 
     }

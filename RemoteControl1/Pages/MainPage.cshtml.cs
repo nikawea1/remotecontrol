@@ -159,7 +159,7 @@ namespace RemoteControl1.Pages
                 return new JsonResult(new { ok = false, error = "Пользователь не найден" });
 
             var form = Request.Form;
-
+            int.TryParse(form["requestId"], out var requestId);
             int.TryParse(form["taskId"], out var taskId);
             decimal.TryParse(
                 form["hours"],
@@ -169,8 +169,11 @@ namespace RemoteControl1.Pages
 
             var dto = new AddManualTimeDto
             {
+                RequestId = requestId,
                 TaskId = taskId,
                 Hours = hours,
+                WorkDate = form["workDate"].ToString(),
+                Reason = form["reason"].ToString(),
                 Comment = form["comment"].ToString()
             };
 
@@ -194,7 +197,9 @@ namespace RemoteControl1.Pages
                 dto.AttachmentName = file.FileName;
             }
 
-            var result = await _taskService.CreateManualTimeRequestAsync(userId.Value, dto);
+            var result = requestId > 0
+                ? await _taskService.UpdateManualTimeRequestAsync(userId.Value, dto)
+                : await _taskService.CreateManualTimeRequestAsync(userId.Value, dto);
 
             return new JsonResult(new
             {
@@ -241,6 +246,22 @@ namespace RemoteControl1.Pages
                 return new JsonResult(new { ok = false, error = "Пользователь не найден" });
 
             var result = await _taskService.RejectManualTimeRequestAsync(userId.Value, GetCurrentRole(), dto);
+
+            return new JsonResult(new
+            {
+                ok = result.Ok,
+                error = result.Error
+            });
+        }
+
+
+        public async Task<JsonResult> OnPostNeedsRevisionManualTimeRequestAsync([FromBody] NeedsRevisionManualTimeDto dto)
+        {
+            var userId = await GetCurrentUserIdAsync();
+            if (userId == null)
+                return new JsonResult(new { ok = false, error = "Требуется вход" });
+
+            var result = await _taskService.ReturnManualTimeRequestForRevisionAsync(userId.Value, GetCurrentRole(), dto);
 
             return new JsonResult(new
             {

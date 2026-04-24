@@ -111,13 +111,14 @@ function normalizeUser(user) {
         trackedHours: toNumber(user.trackedHours ?? user.TrackedHours),
         idleHours: toNumber(user.idleHours ?? user.IdleHours),
         salaryHours: toNumber(user.salaryHours ?? user.SalaryHours),
-        workloadDiff: toNumber(user.workloadDiff ?? user.WorkloadDiff),
-        completionPercent: toNumber(user.completionPercent ?? user.CompletionPercent),
-        productivityState: user.productivityState ?? user.ProductivityState ?? "normal",
-        bonusPercent: toNumber(user.bonusPercent ?? user.BonusPercent),
-        bonusAmount: toNumber(user.bonusAmount ?? user.BonusAmount)
-    };
-}
+          workloadDiff: toNumber(user.workloadDiff ?? user.WorkloadDiff),
+          completionPercent: toNumber(user.completionPercent ?? user.CompletionPercent),
+          productivityState: user.productivityState ?? user.ProductivityState ?? "normal",
+          bonusPercent: toNumber(user.bonusPercent ?? user.BonusPercent),
+          bonusReason: user.bonusReason ?? user.BonusReason ?? "",
+          bonusAmount: toNumber(user.bonusAmount ?? user.BonusAmount)
+      };
+  }
 
 function normalizeActivity(item) {
     if (!item) return item;
