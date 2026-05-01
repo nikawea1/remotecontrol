@@ -1,4 +1,4 @@
-﻿//projects.js
+//projects.js
 
 
 
@@ -177,7 +177,7 @@ function renderProjects() {
                             type="button"
                             title="Редактировать проект"
                             onclick="openEditProjectModal(${project.id})">
-                            <i class="fas fa-edit"></i>
+                            <i class="fas fa-pen-to-square"></i>
                         </button>
 
                         <button
@@ -185,7 +185,7 @@ function renderProjects() {
                             type="button"
                             title="Удалить проект"
                             onclick="openDeleteProjectModal(${project.id})">
-                            <i class="fas fa-trash"></i>
+                            <i class="fas fa-trash-can"></i>
                         </button>
                     </div>
                 ` : ""}
@@ -257,7 +257,7 @@ function renderProjects() {
                     </span>
 
                     <span class="tiny-pill is-secondary">
-                        <i class="fas fa-users"></i>
+                        <i class="fas fa-user-group"></i>
                         ${project.membersCount || 0}
                     </span>
                 </div>
@@ -443,7 +443,7 @@ function renderProjectPresetStages() {
                     <i class="fas fa-angles-down"></i>
                 </button>
                 <button class="btn btn-sm btn-danger" type="button" title="Удалить" onclick="removeProjectStage(${index})">
-                    <i class="fas fa-trash"></i>
+                    <i class="fas fa-trash-can"></i>
                 </button>
             </div>
         </div>
@@ -642,7 +642,7 @@ function renderEditProjectStages() {
                 </button>
 
                 <button class="btn btn-sm btn-danger" type="button" title="${isLocked ? "Нельзя удалить этап с задачами" : "Удалить"}" ${isLocked ? "disabled" : ""} onclick="removeEditProjectStage(${index})">
-                    <i class="fas fa-trash"></i>
+                    <i class="fas fa-trash-can"></i>
                 </button>
             </div>
         </div>
@@ -1166,7 +1166,7 @@ function showProjectDetails(id) {
                 </div>
 
                 <div class="action-card future-action">
-                    <i class="fas fa-users"></i>
+                    <i class="fas fa-user-group"></i>
                     <div>
                         <strong>Состав команды</strong>
                         <span>Подключить участников проекта</span>
@@ -1190,7 +1190,7 @@ function showProjectDetails(id) {
                 </div>
 
                 <div class="action-card future-action">
-                    <i class="fas fa-calendar-check"></i>
+                    <i class="fas fa-calendar-days"></i>
                     <div>
                         <strong>Календарь проекта</strong>
                         <span>События, митапы и дедлайны</span>
@@ -1324,12 +1324,12 @@ function showProjectDetails(id) {
                                                 ${(isAdmin || isManager) ? `
                                                     <button class="btn btn-sm btn-outline" type="button" title="Редактировать задачу"
                                                         onclick="event.stopPropagation(); openEditTaskModal(${task.id})">
-                                                        <i class="fas fa-edit"></i>
+                                                        <i class="fas fa-pen-to-square"></i>
                                                     </button>
 
                                                     <button class="btn btn-sm btn-danger" type="button" title="Удалить задачу"
                                                         onclick="event.stopPropagation(); openDeleteTaskModal(${task.id})">
-                                                        <i class="fas fa-trash"></i>
+                                                        <i class="fas fa-trash-can"></i>
                                                     </button>
                                                 ` : ""}
 
@@ -1395,7 +1395,7 @@ function showProjectDetails(id) {
 
                 ${!isEmployee ? `
                     <button class="btn btn-outline" type="button" onclick="event.stopPropagation(); openEditProjectModal(${project.id})">
-                        <i class="fas fa-edit"></i> Редактировать
+                        <i class="fas fa-pen-to-square"></i> Редактировать
                     </button>
                 ` : ""}
             </div>
@@ -1410,7 +1410,7 @@ function showProjectDetails(id) {
                 </div>
 
                 <div class="detail-pill">
-                    <i class="fas fa-users"></i>Команда: ${membersCount}
+                    <i class="fas fa-user-group"></i>Команда: ${membersCount}
                 </div>
 
                 <div class="detail-pill">
@@ -1629,7 +1629,7 @@ function renderProjectMembersPicker(searchInputId, selectId) {
                 type="button"
                 onclick="event.stopPropagation(); toggleProjectMemberSelection('${selectId}', ${option.id})">
                 <span>${option.text.split(" — ")[0]}</span>
-                <i class="fas fa-times"></i>
+                <i class="fas fa-xmark"></i>
             </button>
         `).join("")
         : `<div class="member-picker-empty">Пока никто не выбран</div>`;

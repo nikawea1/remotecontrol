@@ -1,16 +1,17 @@
 using Microsoft.EntityFrameworkCore;
 using RemoteControl1.Data;
 using RemoteControl1.Services;
-using QuestPDF.Infrastructure;//מעקועû
+using QuestPDF.Infrastructure;
 
 
 
-QuestPDF.Settings.License = LicenseType.Community;//מעקועû
+QuestPDF.Settings.License = LicenseType.Community;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorPages();
+builder.Services.AddControllers();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -23,6 +24,7 @@ builder.Services.AddSession(options =>
 });
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<TaskService>();
 
 var app = builder.Build();
@@ -43,5 +45,6 @@ app.UseSession();
 app.UseAuthorization();
 
 app.MapRazorPages();
+app.MapControllers();
 
 app.Run();

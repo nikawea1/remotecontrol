@@ -1,4 +1,4 @@
-﻿@page
+@page
 @* Файл: RemoteControl1/Pages/Reports.cshtml *@
 @model RemoteControl1.Pages.ReportsModel
 @{
@@ -7,11 +7,18 @@
 
 <div id="reportsPage" class="container main-content page-content">
     <div class="page-content">
-        <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:30px; flex-wrap:wrap; gap:15px;">
-            <h1 style="display:flex; align-items:center; gap:15px;">
-                <i class="fas fa-chart-bar" style="color: var(--primary);"></i> Отчеты и аналитика
-            </h1>
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <div class="page-header-row">
+            <div class="page-heading">
+                <span class="page-heading-icon" aria-hidden="true">
+                    <i class="fas fa-chart-simple"></i>
+                </span>
+                <div>
+                    <h1 class="page-title">Отчеты и аналитика</h1>
+                    <p class="page-subtitle">Экспорт, динамика времени, задачи и показатели команды.</p>
+                </div>
+            </div>
+
+            <div class="page-header-actions">
                 <button class="btn btn-outline" onclick="exportReport('csv')">
                     <i class="fas fa-file-csv"></i> CSV
                 </button>
@@ -37,7 +44,7 @@
                     <span>—</span>
                     <input type="date" class="date-input-old" id="reportDateTo">
                     <button class="btn btn-primary" onclick="updateReports()">
-                        <i class="fas fa-sync-alt"></i> Обновить
+                        <i class="fas fa-rotate"></i> Обновить
                     </button>
                 </div>
             </div>
@@ -52,7 +59,7 @@
             </div>
 
             <div class="filter-group">
-                <i class="fas fa-project-diagram"></i>
+                <i class="fas fa-diagram-project"></i>
                 <select class="filter-select" id="reportProjectFilter" onchange="filterReports()">
                     <option value="all">Все проекты</option>
                 </select>
@@ -74,7 +81,7 @@
                     </li>
                     <li class="reports-menu-item">
                         <button type="button" class="reports-menu-link" onclick="return showReport('monthly', this)">
-                            <i class="fas fa-calendar-alt"></i> Месячный отчет
+                            <i class="fas fa-calendar-days"></i> Месячный отчет
                         </button>
                     </li>
                     <li class="reports-menu-item">
@@ -84,7 +91,7 @@
                     </li>
                     <li class="reports-menu-item">
                         <button type="button" class="reports-menu-link" onclick="return showReport('overdue', this)">
-                            <i class="fas fa-exclamation-triangle"></i> Просроченные задачи
+                            <i class="fas fa-triangle-exclamation"></i> Просроченные задачи
                         </button>
                     </li>
                     <li class="reports-menu-item">

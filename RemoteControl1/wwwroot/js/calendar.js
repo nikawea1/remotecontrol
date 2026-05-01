@@ -1,4 +1,4 @@
-﻿// Файл: RemoteControl1/wwwroot/js/calendar.js
+// Файл: RemoteControl1/wwwroot/js/calendar.js
 
 const calendarState = {
     events: Array.isArray(window.remoteControlData?.calendarEvents)
@@ -178,10 +178,10 @@ function renderCalendarSidebar() {
             ${ev.canManage && !ev.isReadOnly ? `
                 <div class="calendar-side-actions">
                     <button class="btn btn-sm btn-outline" type="button" onclick="openEditCalendarEvent(${ev.id})">
-                        <i class="fas fa-edit"></i>
+                        <i class="fas fa-pen-to-square"></i>
                     </button>
                     <button class="btn btn-sm btn-danger" type="button" onclick="deleteCalendarEvent(${ev.id})">
-                        <i class="fas fa-trash"></i>
+                        <i class="fas fa-trash-can"></i>
                     </button>
                 </div>
             ` : ""}

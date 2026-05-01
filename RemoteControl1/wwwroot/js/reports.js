@@ -1,4 +1,4 @@
-﻿// Файл: RemoteControl1/wwwroot/js/reports.js
+// Файл: RemoteControl1/wwwroot/js/reports.js
 
 function getExportQuery() {
     const dateFrom = document.getElementById("reportDateFrom")?.value || "";
@@ -231,7 +231,7 @@ function renderReports(data) {
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-tasks"></i></div>
+                    <div class="stat-icon"><i class="fas fa-list-check"></i></div>
                     <div class="stat-info">
                         <div class="stat-value">${data.daily.completedTasks}</div>
                         <div class="stat-label">Задач завершено</div>
@@ -295,7 +295,7 @@ function renderReports(data) {
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-icon"><i class="fas fa-circle-check"></i></div>
                     <div class="stat-info">
                         <div class="stat-value">${data.weekly.completedTasks}</div>
                         <div class="stat-label">Завершено задач</div>
@@ -363,7 +363,7 @@ function renderReports(data) {
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-icon"><i class="fas fa-circle-check"></i></div>
                     <div class="stat-info">
                         <div class="stat-value">${data.monthly.completedTasks}</div>
                         <div class="stat-label">Завершено задач</div>
@@ -439,7 +439,7 @@ function renderReports(data) {
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="stat-icon"><i class="fas fa-triangle-exclamation"></i></div>
                     <div class="stat-info">
                         <div class="stat-value">${data.performance.overdueCount}</div>
                         <div class="stat-label">Просроченных задач</div>
@@ -469,7 +469,7 @@ function renderReports(data) {
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-icon"><i class="fas fa-user-group"></i></div>
                     <div class="stat-info">
                         <div class="stat-value">${data.overdue.assignees}</div>
                         <div class="stat-label">Сотрудников с просрочками</div>

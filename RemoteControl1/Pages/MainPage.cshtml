@@ -1,4 +1,4 @@
-﻿@page
+@page
 @* Файл: RemoteControl1/Pages/MainPage.cshtml *@
 @model RemoteControl1.Pages.MainPageModel
 @{
@@ -8,10 +8,15 @@
 <div id="dashboardPage" class="container main-content page-content">
     <div class="page-content">
         <div class="page-header-row">
-            <h1 class="page-title">
-                <i class="fas fa-tachometer-alt"></i>
-                Главная панель
-            </h1>
+            <div class="page-heading">
+                <span class="page-heading-icon" aria-hidden="true">
+                    <i class="fas fa-gauge-high"></i>
+                </span>
+                <div>
+                    <h1 class="page-title">Главная панель</h1>
+                    <p class="page-subtitle">Рабочий день, задачи на сегодня и быстрый учет времени.</p>
+                </div>
+            </div>
 
             <div class="page-header-actions">
                 <button class="btn btn-success" onclick="startTracker()" id="startDayBtn">
@@ -46,7 +51,7 @@
             </div>
 
             <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-tasks"></i></div>
+                <div class="stat-icon"><i class="fas fa-list-check"></i></div>
                 <div class="stat-info">
                     <div class="stat-value" id="activeTasks">0</div>
                     <div class="stat-label">Активных задач</div>
@@ -54,7 +59,7 @@
             </div>
 
             <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-project-diagram"></i></div>
+                <div class="stat-icon"><i class="fas fa-diagram-project"></i></div>
                 <div class="stat-info">
                     <div class="stat-value" id="activeProjects">0</div>
                     <div class="stat-label">Активных проектов</div>
@@ -62,7 +67,7 @@
             </div>
 
             <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+                <div class="stat-icon"><i class="fas fa-calendar-days"></i></div>
                 <div class="stat-info">
                     <div class="stat-value" id="completedTasks">0</div>
                     <div class="stat-label">Выполненных задач</div>
@@ -101,7 +106,7 @@
             <div class="card-header">
                 <h3 class="card-title">Мои задачи на сегодня</h3>
                 <a class="btn btn-outline" asp-page="/Tasks">
-                    <i class="fas fa-eye"></i> Все задачи
+                    <i class="fas fa-list-check"></i> Все задачи
                 </a>
             </div>
 

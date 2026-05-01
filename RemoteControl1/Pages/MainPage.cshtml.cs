@@ -322,6 +322,28 @@ namespace RemoteControl1.Pages
             return new JsonResult(new { ok = false, error = "Нет прав" });
         }
 
+        public async Task<JsonResult> OnPostSubmitTaskForReviewAsync([FromBody] SubmitTaskForReviewDto dto)
+        {
+            var currentUserId = CurrentUserOrZero();
+            if (currentUserId <= 0)
+                return new JsonResult(new { ok = false, error = "\u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d" });
+
+            if (!CurrentUserIsEmployee())
+                return new JsonResult(new { ok = false, error = "\u041d\u0435\u0442 \u043f\u0440\u0430\u0432" });
+
+            var isMyTask = await IsMyTaskAsync(dto.Id);
+            if (!isMyTask)
+                return new JsonResult(new { ok = false, error = "\u041d\u0435\u0442 \u043f\u0440\u0430\u0432" });
+
+            var result = await _taskService.SubmitTaskForReviewAsync(currentUserId, dto);
+
+            return new JsonResult(new
+            {
+                ok = result.Ok,
+                error = result.Error,
+                task = result.Data
+            });
+        }
         public async Task<JsonResult> OnPostDeleteTaskAsync([FromBody] DeleteTaskDto dto)
         {
             var currentUserId = CurrentUserOrZero();

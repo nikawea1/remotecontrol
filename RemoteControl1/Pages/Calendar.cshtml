@@ -1,4 +1,4 @@
-﻿@page
+@page
 @* Файл: RemoteControl1/Pages/Calendar.cshtml *@
 @model RemoteControl1.Pages.CalendarModel
 @{
@@ -10,9 +10,14 @@
 <div id="calendarPage" class="container main-content page-content">
     <div class="page-content">
         <div class="calendar-page-header">
-            <div>
-                <h1 class="calendar-page-title">Календарь</h1>
-                <p class="calendar-page-subtitle">Управляйте вашими событиями и задачами</p>
+            <div class="page-heading">
+                <span class="page-heading-icon" aria-hidden="true">
+                    <i class="fas fa-calendar-days"></i>
+                </span>
+                <div>
+                    <h1 class="calendar-page-title">Календарь</h1>
+                    <p class="calendar-page-subtitle">События, сроки и рабочие даты по проектам.</p>
+                </div>
             </div>
 
             @if (!Model.IsEmployee)
@@ -148,11 +153,11 @@
 
             <div class="modal-footer">
                 <button class="btn btn-danger hidden" id="calendarDeleteBtn" type="button" onclick="deleteCalendarEvent()">
-                    <i class="fas fa-trash"></i> Удалить
+                    <i class="fas fa-trash-can"></i> Удалить
                 </button>
                 <button class="btn btn-outline" type="button" onclick="closeModal('calendarModal')">Отмена</button>
                 <button class="btn btn-primary" type="button" onclick="saveCalendarEvent()">
-                    <i class="fas fa-save"></i> Сохранить
+                    <i class="fas fa-floppy-disk"></i> Сохранить
                 </button>
             </div>
         </div>

@@ -1,4 +1,4 @@
-﻿/* Файл: RemoteControl1/wwwroot/css/tracker.css */
+/* Файл: RemoteControl1/wwwroot/css/tracker.css */
 /* tracker.css */
 
 /* =========================================================
@@ -107,13 +107,13 @@
     height: 42px;
     border: none;
     border-radius: 14px;
-    background: rgba(40, 53, 147, 0.95);
+    background: rgba(var(--primary-rgb), 0.95);
     color: #fff;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 10px 24px rgba(40, 53, 147, 0.28);
+    box-shadow: 0 10px 24px rgba(var(--primary-rgb), 0.28);
     transition: all 0.2s ease;
 }
 

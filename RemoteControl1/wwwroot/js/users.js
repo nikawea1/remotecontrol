@@ -1,7 +1,14 @@
-﻿// Файл: RemoteControl1/wwwroot/js/users.js
+// Файл: RemoteControl1/wwwroot/js/users.js
 
 let manualTimeRequests = Array.isArray(window.manualTimeRequests) ? window.manualTimeRequests : [];
 let expandedManualRequestId = 0;
+const expandedAdminTableRows = {
+    employees: 0,
+    workload: 0,
+    productivity: 0,
+    salary: 0,
+    bonuses: 0
+};
 
 function showAdminTab(tabName, btn) {
     if (currentUserRole !== "admin" && (tabName === "salary" || tabName === "bonuses")) {
@@ -147,6 +154,443 @@ function renderUserNameCell(user) {
             ${email ? `<span class="admin-user-email">${escapeUserText(email)}</span>` : ""}
         </div>
     `;
+}
+
+function renderTableExpandPill(text) {
+    if (!String(text || "").trim()) {
+        return "";
+    }
+
+    return `<span class="table-expand-pill">${escapeUserText(text)}</span>`;
+}
+
+function renderTableExpandMeta(parts) {
+    const items = parts.filter(part => String(part || "").trim());
+    if (!items.length) {
+        return "";
+    }
+
+    return `
+        <div class="table-expand-subtitle">
+            ${items.map(item => `<span>${escapeUserText(item)}</span>`).join("")}
+        </div>
+    `;
+}
+
+function renderTableExpandStat(label, value, options = {}) {
+    const { html = false } = options;
+    const content = html ? value : escapeUserText(value || "—");
+
+    return `
+        <div class="table-expand-stat">
+            <span class="table-expand-stat-label">${escapeUserText(label)}</span>
+            <div class="table-expand-stat-value">${content}</div>
+        </div>
+    `;
+}
+
+function renderTableExpandItem(label, value, options = {}) {
+    const { html = false } = options;
+    const content = html ? value : escapeUserText(value || "—");
+
+    return `
+        <div class="table-expand-item">
+            <span class="table-expand-item-label">${escapeUserText(label)}</span>
+            <div class="table-expand-item-value">${content}</div>
+        </div>
+    `;
+}
+
+function renderTableExpandSection(title, content, options = {}) {
+    const { wide = false } = options;
+    return `
+        <section class="table-expand-section${wide ? " is-wide" : ""}">
+            <div class="table-expand-section-title">${escapeUserText(title)}</div>
+            <div class="table-expand-list">
+                ${content}
+            </div>
+        </section>
+    `;
+}
+
+function renderTableExpandNote(title, value, options = {}) {
+    const { html = false, wide = false, muted = false } = options;
+    const content = html ? value : escapeUserText(value || "—");
+
+    return `
+        <div class="table-expand-note${wide ? " is-wide" : ""}${muted ? " is-muted" : ""}">
+            <span class="table-expand-note-title">${escapeUserText(title)}</span>
+            <div class="table-expand-note-body">${content}</div>
+        </div>
+    `;
+}
+
+function getExpandedAdminTableRowId(tableKey) {
+    return Number(expandedAdminTableRows[tableKey] || 0);
+}
+
+function rerenderAdminTable(tableKey) {
+    switch (tableKey) {
+        case "employees":
+            renderUsersTable();
+            break;
+        case "workload":
+            renderWorkloadTable();
+            break;
+        case "productivity":
+            renderProductivityTable();
+            break;
+        case "salary":
+            renderSalaryTable();
+            break;
+        case "bonuses":
+            renderBonusesTable();
+            break;
+        default:
+            break;
+    }
+}
+
+function getProductivityStateView(state) {
+    if (state === "overloaded") {
+        return { text: "Перегружен", badge: "badge-danger" };
+    }
+
+    if (state === "underloaded") {
+        return { text: "Недогружен", badge: "badge-warning" };
+    }
+
+    if (state === "no_data") {
+        return { text: "Нет данных", badge: "badge-info" };
+    }
+
+    return { text: "Норма", badge: "badge-success" };
+}
+
+function renderAdminExpandedRow(tableKey, colSpan, user) {
+    const fullName = user?.fullName || user?.login || "—";
+    const workModeText = user?.workMode === "fixed" ? "Фиксированный" : "Гибкий";
+    const diffText = `${Number(user?.workloadDiff || 0) >= 0 ? "+" : ""}${Number(user?.workloadDiff || 0).toFixed(1)} ч`;
+    const trackedHoursText = `${Number(user?.trackedHours || 0).toFixed(1)} ч`;
+    const plannedHoursText = `${Number(user?.plannedHours || 0).toFixed(1)} ч`;
+    const workDayText = `${Number(user?.workDayHours || 0).toFixed(1)} ч`;
+    const idleHoursText = `${Number(user?.idleHours || 0).toFixed(1)} ч`;
+    const completionText = `${Number(user?.completionPercent || 0).toFixed(0)}%`;
+    const metaMarkup = renderTableExpandMeta([
+        user?.email || "",
+        user?.position || ""
+    ]);
+    const basePills = [renderTableExpandPill(`ID ${user?.id || "—"}`)];
+    let kicker = "Сотрудник";
+    let badges = [];
+    let stats = [];
+    let sections = [];
+
+    switch (tableKey) {
+        case "employees":
+            kicker = "Профиль сотрудника";
+            badges = [
+                ...basePills,
+                getRoleBadge(user?.role),
+                getUserStatusBadge(user?.status)
+            ];
+            stats = [
+                renderTableExpandStat("Учтено", trackedHoursText),
+                renderTableExpandStat("Норма", `${Number(user?.requiredDailyHours || 0).toFixed(1)} ч`),
+                renderTableExpandStat("В работе", String(user?.tasksInProgress ?? 0))
+            ];
+            sections = [
+                renderTableExpandSection("Рабочий профиль", [
+                    renderTableExpandItem("Логин", user?.login || "—"),
+                    renderTableExpandItem("Email", user?.email || "—"),
+                    renderTableExpandItem("Телефон", user?.phone || "—"),
+                    renderTableExpandItem("Режим", workModeText)
+                ].join("")),
+                renderTableExpandSection("Сегодня", [
+                    renderTableExpandItem("Активные задачи", String(user?.tasksInProgress ?? 0)),
+                    renderTableExpandItem("Завершено", String(user?.completedTasks ?? 0)),
+                    renderTableExpandItem("Просрочено", String(user?.overdueTasks ?? 0)),
+                    renderTableExpandItem("Учтено сегодня", trackedHoursText)
+                ].join(""))
+            ];
+            break;
+        case "workload": {
+            kicker = "Рабочая нагрузка";
+            badges = [...basePills, renderTableExpandPill(workModeText)];
+            stats = [
+                renderTableExpandStat("Отклонение", diffText),
+                renderTableExpandStat("План", plannedHoursText),
+                renderTableExpandStat("Факт", trackedHoursText)
+            ];
+            sections = [
+                renderTableExpandSection("План и факт", [
+                    renderTableExpandItem("Логин", user?.login || "—"),
+                    renderTableExpandItem("План по задачам", plannedHoursText),
+                    renderTableExpandItem("Факт по задачам", trackedHoursText),
+                    renderTableExpandItem("Рабочий день", workDayText)
+                ].join("")),
+                renderTableExpandSection("Баланс дня", [
+                    renderTableExpandItem("Отклонение от плана", diffText),
+                    renderTableExpandItem("Простой", idleHoursText),
+                    renderTableExpandItem("Норма", `${Number(user?.requiredDailyHours || 0).toFixed(1)} ч`),
+                    renderTableExpandItem("Режим", workModeText)
+                ].join(""))
+            ];
+            break;
+        }
+        case "productivity": {
+            const stateView = getProductivityStateView(user?.productivityState);
+            kicker = "Рабочий результат";
+            badges = [
+                ...basePills,
+                `<span class="badge ${stateView.badge}">${escapeUserText(stateView.text)}</span>`
+            ];
+            stats = [
+                renderTableExpandStat("Индекс", completionText),
+                renderTableExpandStat("Факт", trackedHoursText),
+                renderTableExpandStat("Рабочий день", workDayText)
+            ];
+            sections = [
+                renderTableExpandSection("Рабочие показатели", [
+                    renderTableExpandItem("Логин", user?.login || "—"),
+                    renderTableExpandItem("Режим", workModeText),
+                    renderTableExpandItem("Простой", idleHoursText),
+                    renderTableExpandItem("Учтено", trackedHoursText)
+                ].join("")),
+                renderTableExpandSection("Результат", [
+                    renderTableExpandItem("Индекс выполнения", completionText),
+                    renderTableExpandItem("Активные задачи", String(user?.tasksInProgress ?? 0)),
+                    renderTableExpandItem("Завершено", String(user?.completedTasks ?? 0)),
+                    renderTableExpandItem("Ставка", `${Number(user?.hourlyRate || 0).toLocaleString("ru-RU")} руб.`)
+                ].join(""))
+            ];
+            break;
+        }
+        case "salary": {
+            const salaryHours = Number(user?.salaryHours || 0);
+            const rate = Number(user?.hourlyRate || 0);
+            const salary = salaryHours * rate;
+            kicker = "Расчёт оплаты";
+            badges = [...basePills, renderTableExpandPill(workModeText)];
+            stats = [
+                renderTableExpandStat("Итого", `${salary.toLocaleString("ru-RU")} руб.`),
+                renderTableExpandStat("Ставка", `${rate.toLocaleString("ru-RU")} руб.`),
+                renderTableExpandStat("Учтено", `${salaryHours.toFixed(1)} ч`)
+            ];
+            sections = [
+                renderTableExpandSection("Данные для расчёта", [
+                    renderTableExpandItem("Логин", user?.login || "—"),
+                    renderTableExpandItem("Учтено часов", `${salaryHours.toFixed(1)} ч`),
+                    renderTableExpandItem("Ставка", `${rate.toLocaleString("ru-RU")} руб.`),
+                    renderTableExpandItem("Норма", `${Number(user?.requiredDailyHours || 0).toFixed(1)} ч`)
+                ].join("")),
+                renderTableExpandSection("Итог", [
+                    renderTableExpandItem("Сумма к выплате", `${salary.toLocaleString("ru-RU")} руб.`),
+                    renderTableExpandItem("Рабочее время", workDayText),
+                    renderTableExpandItem("Простой", idleHoursText),
+                    renderTableExpandItem("Режим", workModeText)
+                ].join(""))
+            ];
+            break;
+        }
+        case "bonuses": {
+            const bonusPercent = Number(user?.bonusPercent || 0);
+            const statusText = bonusPercent > 0 ? `Бонус ${bonusPercent}%` : "Без бонуса";
+            const badgeClass = bonusPercent >= 10 ? "badge-success" : bonusPercent > 0 ? "badge-warning" : "badge-info";
+            const bonusReason = user?.bonusReason || "Бонус не назначен";
+            kicker = "Бонусы";
+            badges = [
+                ...basePills,
+                `<span class="badge ${badgeClass}">${escapeUserText(statusText)}</span>`
+            ];
+            stats = [
+                renderTableExpandStat("Бонус", `${Number(user?.bonusAmount || 0).toLocaleString("ru-RU")} руб.`),
+                renderTableExpandStat("Выполнение", completionText),
+                renderTableExpandStat("Отклонение", diffText)
+            ];
+            sections = [
+                renderTableExpandSection("Основание для бонуса", [
+                    renderTableExpandItem("Логин", user?.login || "—"),
+                    renderTableExpandItem("Выполнение", completionText),
+                    renderTableExpandItem("Отклонение", diffText),
+                    renderTableExpandItem("Факт часов", trackedHoursText)
+                ].join("")),
+                renderTableExpandSection("Комментарий менеджера", [
+                    renderTableExpandItem("Примечание", bonusReason),
+                    renderTableExpandItem("Норма", `${Number(user?.requiredDailyHours || 0).toFixed(1)} ч`),
+                    renderTableExpandItem("Ставка", `${Number(user?.hourlyRate || 0).toLocaleString("ru-RU")} руб.`),
+                    renderTableExpandItem("Режим", workModeText),
+                    renderTableExpandItem("Размер бонуса", `${Number(user?.bonusAmount || 0).toLocaleString("ru-RU")} руб.`)
+                ].join(""))
+            ];
+            break;
+        }
+        default:
+            return "";
+    }
+
+    return `
+        <tr class="table-expand-row admin-table-expand-row">
+            <td colspan="${colSpan}">
+                <div class="table-expand-stage" data-expand-stage data-enter="true">
+                    <div class="table-expand-shell admin-expand-shell">
+                        <div class="admin-expand-head">
+                            <div class="table-expand-identity admin-expand-copy">
+                                <span class="table-expand-kicker">${escapeUserText(kicker)}</span>
+                                <div class="table-expand-title-row">
+                                    <h4 class="table-expand-title">${escapeUserText(fullName)}</h4>
+                                </div>
+                                ${metaMarkup}
+                            </div>
+                            <div class="table-expand-badges admin-expand-badges">
+                                ${badges.join("")}
+                            </div>
+                        </div>
+
+                        <div class="table-expand-stats admin-expand-stats">
+                            ${stats.join("")}
+                        </div>
+
+                        <div class="table-expand-content admin-expand-content">
+                            ${sections.join("")}
+                        </div>
+
+                        <div class="table-expand-actions admin-expand-actions">
+                            <button class="btn btn-outline" type="button" onclick="showUserDetails(${user.id})">
+                                <i class="fas fa-id-card"></i>
+                                <span>Открыть карточку сотрудника</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    `;
+}
+
+function playUsersExpandStageEnter(root) {
+    root?.querySelectorAll?.("[data-expand-stage][data-enter='true']").forEach(stage => {
+        const targetHeight = stage.scrollHeight;
+        const shell = stage.firstElementChild;
+
+        stage.style.overflow = "hidden";
+        stage.style.height = "0px";
+        stage.style.opacity = "0";
+        stage.style.willChange = "height, opacity";
+        stage.style.transition = "none";
+
+        if (shell instanceof HTMLElement) {
+            shell.style.opacity = "0";
+            shell.style.transform = "translateY(-4px)";
+            shell.style.transition = "none";
+        }
+
+        stage.offsetHeight;
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                stage.style.transition = "height 240ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease";
+                stage.style.height = `${targetHeight}px`;
+                stage.style.opacity = "1";
+
+                if (shell instanceof HTMLElement) {
+                    shell.style.transition = "transform 240ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease";
+                    shell.style.opacity = "1";
+                    shell.style.transform = "translateY(0)";
+                }
+            });
+        });
+
+        const cleanup = () => {
+            stage.style.height = "";
+            stage.style.opacity = "";
+            stage.style.transition = "";
+            stage.style.overflow = "";
+            stage.style.willChange = "";
+            stage.removeAttribute("data-enter");
+
+            if (shell instanceof HTMLElement) {
+                shell.style.opacity = "";
+                shell.style.transform = "";
+                shell.style.transition = "";
+            }
+        };
+
+        const onEnd = event => {
+            if (event.target !== stage || event.propertyName !== "height") {
+                return;
+            }
+
+            stage.removeEventListener("transitionend", onEnd);
+            cleanup();
+        };
+
+        stage.addEventListener("transitionend", onEnd);
+        window.setTimeout(() => {
+            stage.removeEventListener("transitionend", onEnd);
+            cleanup();
+        }, 380);
+    });
+}
+
+function collapseUsersExpandStage(stage, onDone) {
+    if (!stage) {
+        onDone?.();
+        return;
+    }
+
+    const currentHeight = stage.scrollHeight;
+    const shell = stage.firstElementChild;
+    stage.style.overflow = "hidden";
+    stage.style.height = `${currentHeight}px`;
+    stage.style.opacity = "1";
+    stage.style.willChange = "height, opacity";
+    stage.style.transition = "none";
+
+    if (shell instanceof HTMLElement) {
+        shell.style.opacity = "1";
+        shell.style.transform = "translateY(0)";
+        shell.style.transition = "none";
+    }
+
+    stage.offsetHeight;
+
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            stage.style.transition = "height 280ms cubic-bezier(0.32, 0, 0.2, 1), opacity 220ms ease";
+            stage.style.height = "0px";
+            stage.style.opacity = "0";
+
+            if (shell instanceof HTMLElement) {
+                shell.style.transition = "transform 220ms ease, opacity 200ms ease";
+                shell.style.opacity = "0";
+                shell.style.transform = "translateY(-4px)";
+            }
+        });
+    });
+
+    let completed = false;
+    const finish = () => {
+        if (completed) return;
+        completed = true;
+        onDone?.();
+    };
+
+    const onEnd = event => {
+        if (event.target !== stage || event.propertyName !== "height") {
+            return;
+        }
+
+        stage.removeEventListener("transitionend", onEnd);
+        finish();
+    };
+
+    stage.addEventListener("transitionend", onEnd);
+    window.setTimeout(() => {
+        stage.removeEventListener("transitionend", onEnd);
+        stage.style.willChange = "";
+        finish();
+    }, 460);
 }
 
 function parseManualRequestDateValue(value) {
@@ -304,27 +748,86 @@ function getFilteredManualTimeRequests() {
     return filtered;
 }
 
-function selectAdminTableRow(event, row) {
-    if (!row) return;
+function getAdminTableBodyId(tableKey) {
+    const bodyIdMap = {
+        employees: "usersTableBody",
+        workload: "workloadTableBody",
+        productivity: "productivityTableBody",
+        salary: "salaryTableBody",
+        bonuses: "bonusesTableBody"
+    };
+
+    return bodyIdMap[tableKey] || "";
+}
+
+function getAdminTableColSpan(tableKey) {
+    const colSpanMap = {
+        employees: 10,
+        workload: 10,
+        productivity: 7,
+        salary: 7,
+        bonuses: 9
+    };
+
+    return colSpanMap[tableKey] || 1;
+}
+
+function mountAdminExpandedRow(targetRow, tableKey, rowId) {
+    const user = users.find(x => Number(x.id) === Number(rowId));
+    if (!user || !targetRow) {
+        expandedAdminTableRows[tableKey] = 0;
+        return;
+    }
+
+    expandedAdminTableRows[tableKey] = Number(rowId);
+    targetRow.classList.add("is-selected");
+    targetRow.insertAdjacentHTML("afterend", renderAdminExpandedRow(tableKey, getAdminTableColSpan(tableKey), user));
+    playUsersExpandStageEnter(targetRow.parentElement);
+}
+
+function selectAdminTableRow(event, tableKey, rowId) {
+    if (!rowId || !tableKey) return;
 
     const target = event?.target;
     if (target?.closest?.("button, a, input, select, textarea, .table-actions")) {
         return;
     }
 
-    const table = row.closest("table");
-    const wasSelected = row.classList.contains("is-selected");
+    const nextId = Number(rowId);
+    const body = document.getElementById(getAdminTableBodyId(tableKey));
+    const nextRow = target?.closest?.(".admin-table-row");
+    const currentExpandRow = body?.querySelector?.(".table-expand-row");
+    const currentStage = currentExpandRow?.querySelector?.("[data-expand-stage]");
+    const currentSelectedRow = body?.querySelector?.(".admin-table-row.is-selected");
 
-    table?.querySelectorAll("tbody tr.is-selected").forEach(x => x.classList.remove("is-selected"));
-
-    if (!wasSelected) {
-        row.classList.add("is-selected");
+    if (!body || !nextRow) {
+        return;
     }
+
+    if (getExpandedAdminTableRowId(tableKey) === nextId && currentStage) {
+        collapseUsersExpandStage(currentStage, () => {
+            currentExpandRow?.remove();
+            currentSelectedRow?.classList.remove("is-selected");
+            expandedAdminTableRows[tableKey] = 0;
+        });
+        return;
+    }
+
+    if (currentStage) {
+        collapseUsersExpandStage(currentStage, () => {
+            currentExpandRow?.remove();
+            currentSelectedRow?.classList.remove("is-selected");
+            mountAdminExpandedRow(nextRow, tableKey, nextId);
+        });
+        return;
+    }
+
+    mountAdminExpandedRow(nextRow, tableKey, nextId);
 }
 
 function enhanceAdminTables() {
     document.querySelectorAll("#usersPage .table th, #usersPage .table td").forEach(cell => {
-        if (cell.closest(".manual-request-expanded-row")) return;
+        if (cell.closest(".manual-request-expanded-row") || cell.closest(".table-expand-row")) return;
         if (cell.title) return;
 
         const text = cell.textContent?.trim();
@@ -378,6 +881,9 @@ function renderUsersTable() {
     clearEmployeeSearchAutofill();
 
     const data = getFilteredUsers();
+    if (getExpandedAdminTableRowId("employees") && !data.some(u => Number(u.id) === getExpandedAdminTableRowId("employees"))) {
+        expandedAdminTableRows.employees = 0;
+    }
 
     if (!data.length) {
         body.innerHTML = `
@@ -391,36 +897,41 @@ function renderUsersTable() {
 
     const isAdminUser = currentUserRole === "admin";
 
-    body.innerHTML = data.map(u => `
-        <tr onclick="selectAdminTableRow(event, this)">
-            <td>${renderUserIdCell(u)}</td>
-            <td>${renderUserNameCell(u)}</td>
-            <td title="${escapeUserText(u.login || "-")}">${escapeUserText(u.login || "-")}</td>
-            <td title="${escapeUserText(u.position || "-")}">${escapeUserText(u.position || "-")}</td>
-            <td>${getRoleBadge(u.role)}</td>
-            <td>${Number(u.hourlyRate || 0).toLocaleString("ru-RU")} руб.</td>
-            <td>${u.tasksInProgress}</td>
-            <td>${Number(u.trackedHours || 0).toFixed(1)}</td>
-            <td>${getUserStatusBadge(u.status)}</td>
-            <td>
-                <div class="table-actions">
-                    <button class="btn btn-sm btn-outline" onclick="showUserDetails(${u.id})" title="Карточка">
-                        <i class="fas fa-eye"></i>
-                    </button>
-
-                    ${isAdminUser ? `
-                        <button class="btn btn-sm btn-outline" onclick="editUser(${u.id})" title="Редактировать">
-                            <i class="fas fa-edit"></i>
+    body.innerHTML = data.map(u => {
+        const isExpanded = getExpandedAdminTableRowId("employees") === Number(u.id);
+        return `
+            <tr class="admin-table-row ${isExpanded ? "is-selected" : ""}" onclick="selectAdminTableRow(event, 'employees', ${u.id})">
+                <td>${renderUserIdCell(u)}</td>
+                <td>${renderUserNameCell(u)}</td>
+                <td title="${escapeUserText(u.login || "-")}">${escapeUserText(u.login || "-")}</td>
+                <td title="${escapeUserText(u.position || "-")}">${escapeUserText(u.position || "-")}</td>
+                <td>${getRoleBadge(u.role)}</td>
+                <td>${Number(u.hourlyRate || 0).toLocaleString("ru-RU")} руб.</td>
+                <td>${u.tasksInProgress}</td>
+                <td>${Number(u.trackedHours || 0).toFixed(1)}</td>
+                <td>${getUserStatusBadge(u.status)}</td>
+                <td>
+                    <div class="table-actions">
+                        <button class="btn btn-sm btn-outline" type="button" onclick="showUserDetails(${u.id})" title="Карточка">
+                            <i class="fas fa-id-card"></i>
                         </button>
-                        <button class="btn btn-sm ${u.status === "active" ? "btn-danger" : "btn-success"}" onclick="toggleUserStatus(${u.id})" title="Статус">
-                            <i class="fas ${u.status === "active" ? "fa-user-lock" : "fa-user-check"}"></i>
-                        </button>
-                    ` : ``}
-                </div>
-            </td>
-        </tr>
-    `).join("");
 
+                        ${isAdminUser ? `
+                            <button class="btn btn-sm btn-outline" type="button" onclick="editUser(${u.id})" title="Редактировать">
+                                <i class="fas fa-pen-to-square"></i>
+                            </button>
+                            <button class="btn btn-sm ${u.status === "active" ? "btn-danger" : "btn-success"}" type="button" onclick="toggleUserStatus(${u.id})" title="Статус">
+                                <i class="fas ${u.status === "active" ? "fa-user-lock" : "fa-user-check"}"></i>
+                            </button>
+                        ` : ``}
+                    </div>
+                </td>
+            </tr>
+            ${isExpanded ? renderAdminExpandedRow("employees", 10, u) : ""}
+        `;
+    }).join("");
+
+    playUsersExpandStageEnter(body);
     enhanceAdminTables();
 }
 
@@ -438,21 +949,26 @@ function renderWorkloadTable() {
         return;
     }
 
-    body.innerHTML = users.map(u => `
-        <tr onclick="selectAdminTableRow(event, this)">
-            <td>${renderUserIdCell(u)}</td>
-            <td>${renderUserNameCell(u)}</td>
-            <td>${u.tasksInProgress}</td>
-            <td>${u.completedTasks}</td>
-            <td>${u.overdueTasks}</td>
-            <td>${Number(u.plannedHours || 0).toFixed(1)}</td>
-            <td>${Number(u.trackedHours || 0).toFixed(1)}</td>
-            <td>${Number(u.workDayHours || 0).toFixed(1)}</td>
-            <td>${Number(u.idleHours || 0).toFixed(1)}</td>
-            <td>${Number(u.workloadDiff || 0) >= 0 ? "+" : ""}${Number(u.workloadDiff || 0).toFixed(1)}</td>
-        </tr>
-    `).join("");
+    body.innerHTML = users.map(u => {
+        const isExpanded = getExpandedAdminTableRowId("workload") === Number(u.id);
+        return `
+            <tr class="admin-table-row ${isExpanded ? "is-selected" : ""}" onclick="selectAdminTableRow(event, 'workload', ${u.id})">
+                <td>${renderUserIdCell(u)}</td>
+                <td>${renderUserNameCell(u)}</td>
+                <td>${u.tasksInProgress}</td>
+                <td>${u.completedTasks}</td>
+                <td>${u.overdueTasks}</td>
+                <td>${Number(u.plannedHours || 0).toFixed(1)}</td>
+                <td>${Number(u.trackedHours || 0).toFixed(1)}</td>
+                <td>${Number(u.workDayHours || 0).toFixed(1)}</td>
+                <td>${Number(u.idleHours || 0).toFixed(1)}</td>
+                <td>${Number(u.workloadDiff || 0) >= 0 ? "+" : ""}${Number(u.workloadDiff || 0).toFixed(1)}</td>
+            </tr>
+            ${isExpanded ? renderAdminExpandedRow("workload", 10, u) : ""}
+        `;
+    }).join("");
 
+    playUsersExpandStageEnter(body);
     enhanceAdminTables();
 }
 
@@ -470,28 +986,13 @@ function renderProductivityTable() {
         return;
     }
 
-    const getProductivityStateView = (state) => {
-        if (state === "overloaded") {
-            return { text: "Перегружен", badge: "badge-danger" };
-        }
-
-        if (state === "underloaded") {
-            return { text: "Недогружен", badge: "badge-warning" };
-        }
-
-        if (state === "no_data") {
-            return { text: "Нет данных", badge: "badge-info" };
-        }
-
-        return { text: "Норма", badge: "badge-success" };
-    };
-
     body.innerHTML = users.map(u => {
         const stateView = getProductivityStateView(u.productivityState);
         const index = Number(u.completionPercent || 0);
+        const isExpanded = getExpandedAdminTableRowId("productivity") === Number(u.id);
 
         return `
-              <tr onclick="selectAdminTableRow(event, this)">
+              <tr class="admin-table-row ${isExpanded ? "is-selected" : ""}" onclick="selectAdminTableRow(event, 'productivity', ${u.id})">
                   <td>${renderUserIdCell(u)}</td>
                 <td>${renderUserNameCell(u)}</td>
                   <td>${Number(u.trackedHours || 0).toFixed(1)}</td>
@@ -500,9 +1001,11 @@ function renderProductivityTable() {
                   <td>${index.toFixed(0)}%</td>
                   <td><span class="badge ${stateView.badge}">${stateView.text}</span></td>
               </tr>
+              ${isExpanded ? renderAdminExpandedRow("productivity", 7, u) : ""}
           `;
     }).join("");
 
+    playUsersExpandStageEnter(body);
     enhanceAdminTables();
 }
 
@@ -526,9 +1029,10 @@ function renderSalaryTable() {
         const idleHours = Number(u.idleHours || 0);
         const rate = Number(u.hourlyRate || 0);
         const salary = salaryHours * rate;
+        const isExpanded = getExpandedAdminTableRowId("salary") === Number(u.id);
 
         return `
-            <tr onclick="selectAdminTableRow(event, this)">
+            <tr class="admin-table-row ${isExpanded ? "is-selected" : ""}" onclick="selectAdminTableRow(event, 'salary', ${u.id})">
                 <td>${renderUserIdCell(u)}</td>
                 <td>${renderUserNameCell(u)}</td>
                 <td>${salaryHours.toFixed(1)}</td>
@@ -537,9 +1041,11 @@ function renderSalaryTable() {
                 <td>${rate.toLocaleString("ru-RU")}</td>
                 <td><strong>${salary.toLocaleString("ru-RU")}</strong></td>
             </tr>
+            ${isExpanded ? renderAdminExpandedRow("salary", 7, u) : ""}
         `;
     }).join("");
 
+    playUsersExpandStageEnter(body);
     enhanceAdminTables();
 }
 
@@ -573,9 +1079,10 @@ function renderBonusesTable() {
             : bonusPercent > 0
                 ? "badge-warning"
                 : "badge-info";
+        const isExpanded = getExpandedAdminTableRowId("bonuses") === Number(u.id);
 
         return `
-              <tr onclick="selectAdminTableRow(event, this)">
+              <tr class="admin-table-row ${isExpanded ? "is-selected" : ""}" onclick="selectAdminTableRow(event, 'bonuses', ${u.id})">
                   <td>${renderUserIdCell(u)}</td>
                   <td>${renderUserNameCell(u)}</td>
                   <td>${planned.toFixed(1)}</td>
@@ -586,9 +1093,11 @@ function renderBonusesTable() {
                   <td class="bonus-reason-cell" title="${escapeUserText(reason || "Бонус не назначен")}">${escapeUserText(reason || "Бонус не назначен")}</td>
                   <td class="bonus-amount-cell">${bonusAmount > 0 ? `${bonusAmount.toLocaleString("ru-RU")} руб.` : "0 руб."}</td>
               </tr>
+              ${isExpanded ? renderAdminExpandedRow("bonuses", 9, u) : ""}
           `;
     }).join("");
 
+    playUsersExpandStageEnter(body);
     enhanceAdminTables();
 }
 
@@ -773,7 +1282,7 @@ function openUserModal() {
 
     if (title) title.textContent = "Новый сотрудник";
     if (editId) editId.value = "0";
-    if (saveBtn) saveBtn.innerHTML = '<i class="fas fa-save"></i> Сохранить';
+    if (saveBtn) saveBtn.innerHTML = '<i class="fas fa-floppy-disk"></i> Сохранить';
 
     resetUserModalState();
     openModal("userModal");
@@ -1211,50 +1720,114 @@ function formatManualRequestTimelineDate(value) {
     `;
 }
 
+function formatManualRequestReadableDate(value, includeTime = true) {
+    const raw = String(value || "").trim();
+    if (!raw) {
+        return "—";
+    }
+
+    const parsed = parseManualRequestDateValue(raw);
+    if (!parsed) {
+        return raw;
+    }
+
+    const hasTime = /\d{2}:\d{2}$/.test(raw);
+    const dateLabel = parsed
+        .toLocaleDateString("ru-RU", { day: "numeric", month: "short", year: "numeric" })
+        .replace(/\s?г\./g, "")
+        .trim();
+
+    if (!includeTime || !hasTime) {
+        return dateLabel;
+    }
+
+    const timeLabel = parsed.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+    return `${dateLabel}, ${timeLabel}`;
+}
+
+function formatManualRequestHistoryDate(value) {
+    const raw = String(value || "").trim();
+    if (!raw) {
+        return `
+            <span class="manual-request-history-date">
+                <strong>—</strong>
+                <span>Без даты</span>
+            </span>
+        `;
+    }
+
+    const parsed = parseManualRequestDateValue(raw);
+    if (!parsed) {
+        return `
+            <span class="manual-request-history-date">
+                <strong>${escapeUserText(raw)}</strong>
+            </span>
+        `;
+    }
+
+    const hasTime = /\d{2}:\d{2}$/.test(raw);
+    const dateLabel = parsed
+        .toLocaleDateString("ru-RU", { day: "numeric", month: "long" })
+        .replace(/\.$/, "");
+    const timeLabel = hasTime
+        ? parsed.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })
+        : "Без времени";
+
+    return `
+        <span class="manual-request-history-date">
+            <strong>${escapeUserText(dateLabel)}</strong>
+            <span>${escapeUserText(timeLabel)}</span>
+        </span>
+    `;
+}
+
 function getManualRequestStateInfo(request) {
     const status = String(request.status || "pending").toLowerCase();
 
     switch (status) {
         case "approved":
             return {
-                title: "Время подтверждено",
-                text: "Заявка одобрена. Эти часы могут участвовать в расчётах, отчётах и бонусах.",
+                title: "Проверка завершена",
+                text: "Заявка одобрена. Часы будут учтены в расчётах и отчётах.",
                 tone: "success",
-                actionText: "Дополнительных действий не требуется."
+                actionTitle: "Результат",
+                actionText: "Заявка принята. Часы будут учтены автоматически, дополнительных действий не требуется."
             };
         case "rejected":
             return {
-                title: "Заявка отклонена",
-                text: "Заявка закрыта и не учитывается в расчётах. При необходимости сотрудник может создать новую заявку с уточнениями.",
+                title: "Проверка завершена",
+                text: "Заявка отклонена и не будет учтена в расчётах.",
                 tone: "danger",
-                actionText: "Проверь комментарий менеджера и при необходимости подготовь новую заявку."
+                actionTitle: "Результат проверки",
+                actionText: "Если это время всё же нужно учесть, оформи новую заявку с уточнениями и подтверждением."
             };
         case "needs_revision":
             return {
-                title: "Нужна доработка",
-                text: "Менеджер вернул заявку на доработку. После исправления её можно отправить повторно.",
+                title: "Требуется доработка",
+                text: "Менеджер вернул заявку на доработку. Повторная отправка доступна после исправлений.",
                 tone: "warning",
-                actionText: "Исправь замечания, обнови комментарий или файл и отправь заявку снова."
+                actionTitle: "Что изменить",
+                actionText: "Ниже указано замечание менеджера. После правок можно повторно отправить заявку на проверку."
             };
         default:
             return {
-                title: "Ожидает решения",
-                text: "Заявка отправлена и пока находится на проверке у менеджера.",
+                title: "Ожидает проверки",
+                text: "Заявка передана менеджеру и ожидает решения.",
                 tone: "info",
-                actionText: "Ожидается решение: одобрение, возврат на доработку или отклонение."
+                actionTitle: "Состояние заявки",
+                actionText: "Заявка находится на проверке у менеджера. Дополнительных действий пока не требуется."
             };
     }
 }
 
-function getManualRequestHistoryMarkup(request) {
+function getManualRequestHistoryItems(request) {
     const status = String(request.status || "pending").toLowerCase();
     const items = [
         {
-            title: "Заявка создана",
+            title: "Заявка отправлена",
             time: request.createdAt || "—",
-            icon: "fa-file-circle-plus",
             tone: "info",
-            text: `Сотрудник отправил заявку на ${Number(request.hours || 0).toFixed(1)} ч по задаче «${escapeUserText(request.taskName || "—")}».`
+            text: `Указано ${Number(request.hours || 0).toFixed(1)} ч. Заявка передана на проверку менеджеру.`
         }
     ];
 
@@ -1282,14 +1855,6 @@ function getManualRequestHistoryMarkup(request) {
         items.push({
             title: actionTitle,
             time: request.reviewedAt,
-            icon:
-                status === "approved"
-                    ? "fa-circle-check"
-                    : status === "rejected"
-                        ? "fa-circle-xmark"
-                        : status === "needs_revision"
-                            ? "fa-rotate-left"
-                            : "fa-clipboard-check",
             tone:
                 status === "approved"
                     ? "success"
@@ -1306,33 +1871,114 @@ function getManualRequestHistoryMarkup(request) {
         items.push({
             title: "Ожидает решения",
             time: request.createdAt || "—",
-            icon: "fa-hourglass-half",
             tone: "pending",
             text: "Заявка отправлена на проверку и пока не обработана менеджером."
         });
     }
 
+    return items;
+}
+
+function getManualRequestHistoryMarkup(request) {
+    const items = getManualRequestHistoryItems(request);
+    const activeIndex = Math.max(items.length - 1, 0);
+    const activeItem = items[activeIndex];
+
     return `
-        <div class="manual-request-timeline">
-            ${items.map((item, index) => `
-                <div class="manual-request-timeline-item is-${item.tone}">
-                    <div class="manual-request-timeline-marker">
-                        <span class="manual-request-timeline-dot">
-                            <i class="fas ${item.icon}"></i>
-                        </span>
-                        ${index < items.length - 1 ? `<span class="manual-request-timeline-line"></span>` : ""}
-                    </div>
-                    <div class="manual-request-timeline-content">
-                        <div class="manual-request-timeline-head">
-                            <strong>${item.title}</strong>
-                            ${formatManualRequestTimelineDate(item.time)}
-                        </div>
-                        <div class="manual-request-timeline-text">${item.text}</div>
-                    </div>
+        <div class="manual-request-history-shell">
+            <div class="manual-request-history-track">
+                <span class="manual-request-history-cap is-start" aria-hidden="true"></span>
+                <div class="manual-request-history-list">
+                    ${items.map((item, index) => `
+                        <button class="manual-request-history-item is-${item.tone}${index === activeIndex ? " is-active" : ""}"
+                                type="button"
+                                data-tone="${escapeUserText(item.tone)}"
+                                data-title="${escapeUserText(item.title)}"
+                                data-date="${escapeUserText(formatManualRequestReadableDate(item.time))}"
+                                data-text="${escapeUserText(item.text)}"
+                                onclick="selectManualRequestHistoryItem(event, this)">
+                            <span class="manual-request-history-dot" aria-hidden="true"></span>
+                            <span class="manual-request-history-copy">
+                                <strong>${escapeUserText(item.title)}</strong>
+                                <span>${escapeUserText(formatManualRequestReadableDate(item.time))}</span>
+                            </span>
+                        </button>
+                    `).join("")}
                 </div>
-            `).join("")}
+                <span class="manual-request-history-cap is-end" aria-hidden="true"></span>
+            </div>
+
+            <div class="manual-request-history-detail is-${escapeUserText(activeItem.tone)}">
+                <span class="manual-request-history-detail-kicker">Выбранный этап</span>
+                <div class="manual-request-history-detail-head">
+                    <h6 data-history-detail-title>${escapeUserText(activeItem.title)}</h6>
+                    <span data-history-detail-date>${escapeUserText(formatManualRequestReadableDate(activeItem.time))}</span>
+                </div>
+                <div class="manual-request-history-detail-text" data-history-detail-text>${escapeUserText(activeItem.text)}</div>
+            </div>
         </div>
     `;
+}
+
+function renderManualRequestContextGrid(request) {
+    return `
+        <div class="manual-request-context-grid">
+            <div class="manual-request-context-card">
+                <span>Сотрудник</span>
+                <strong>${escapeUserText(request.employee || "—")}</strong>
+            </div>
+            <div class="manual-request-context-card">
+                <span>Основание</span>
+                <strong>${escapeUserText(getManualRequestReasonText(request.reason))}</strong>
+            </div>
+        </div>
+    `;
+}
+
+function renderManualRequestPath(request) {
+    return `
+        <div class="manual-request-path">
+            <div class="manual-request-path-node">
+                <span>Проект</span>
+                <strong>${escapeUserText(request.projectName || "Без проекта")}</strong>
+            </div>
+            <span class="manual-request-path-separator" aria-hidden="true">
+                <i class="fas fa-chevron-right"></i>
+            </span>
+            <div class="manual-request-path-node">
+                <span>Задача</span>
+                <strong>${escapeUserText(request.taskName || "Без задачи")}</strong>
+            </div>
+        </div>
+    `;
+}
+
+function selectManualRequestHistoryItem(event, button) {
+    const shell = button?.closest?.(".manual-request-history-shell");
+    if (!shell) {
+        return;
+    }
+
+    shell.querySelectorAll(".manual-request-history-item").forEach(item => {
+        item.classList.toggle("is-active", item === button);
+    });
+
+    const detail = shell.querySelector(".manual-request-history-detail");
+    if (detail) {
+        detail.className = `manual-request-history-detail is-${button.dataset.tone || "info"}`;
+    }
+
+    const title = shell.querySelector("[data-history-detail-title]");
+    const date = shell.querySelector("[data-history-detail-date]");
+    const text = shell.querySelector("[data-history-detail-text]");
+
+    if (title) title.textContent = button.dataset.title || "—";
+    if (date) date.textContent = button.dataset.date || "—";
+    if (text) text.textContent = button.dataset.text || "—";
+
+    if (event?.currentTarget instanceof HTMLElement) {
+        event.currentTarget.blur();
+    }
 }
 
 function renderManualRequestExpandedDetails(request) {
@@ -1343,6 +1989,7 @@ function renderManualRequestExpandedDetails(request) {
         : `<span class="manual-request-muted">Файл не прикреплён</span>`;
     const statusMarkup = renderManualTimeStatus(request.status);
     const stateInfo = getManualRequestStateInfo(request);
+    const managerCommentText = request.managerComment || (String(request.status || "").toLowerCase() === "pending" ? "Решение менеджера ещё не добавлено." : "Комментарий не указан.");
     const canResubmitAction = request.canResubmit
         ? `
             <button class="btn btn-primary" type="button" onclick="closeModal('manualRequestDetailsModal'); startManualRequestEdit(${request.id})">
@@ -1356,11 +2003,9 @@ function renderManualRequestExpandedDetails(request) {
             <div class="manual-request-modal-top">
                 <div class="manual-request-modal-heading">
                     <div class="manual-request-modal-kicker">Заявка #${escapeUserText(request.id)}</div>
-                    <h4>Ручное время по задаче «${escapeUserText(request.taskName || "—")}»</h4>
-                    <div class="manual-request-modal-meta">
-                        <span>${escapeUserText(request.employee || "—")}</span>
-                        <span>${escapeUserText(request.projectName || "Без проекта")}</span>
-                    </div>
+                    <h4>Заявка на ручной учёт времени</h4>
+                    ${renderManualRequestPath(request)}
+                    ${renderManualRequestContextGrid(request)}
                 </div>
                 <div class="manual-request-modal-status">
                     ${statusMarkup}
@@ -1371,7 +2016,7 @@ function renderManualRequestExpandedDetails(request) {
             <div class="manual-request-summary-grid">
                 <div class="manual-request-summary-chip">
                     <span>Дата работы</span>
-                    <strong>${escapeUserText(request.workDate || "—")}</strong>
+                    <strong>${escapeUserText(formatManualRequestReadableDate(request.workDate, false))}</strong>
                 </div>
                 <div class="manual-request-summary-chip">
                     <span>Учтённые часы</span>
@@ -1379,11 +2024,11 @@ function renderManualRequestExpandedDetails(request) {
                 </div>
                 <div class="manual-request-summary-chip">
                     <span>Отправлена</span>
-                    <strong>${escapeUserText(request.createdAt || "—")}</strong>
+                    <strong>${escapeUserText(formatManualRequestReadableDate(request.createdAt))}</strong>
                 </div>
                 <div class="manual-request-summary-chip">
                     <span>Последняя проверка</span>
-                    <strong>${escapeUserText(request.reviewedAt || "—")}</strong>
+                    <strong>${escapeUserText(request.reviewedAt ? formatManualRequestReadableDate(request.reviewedAt) : "Ещё не было")}</strong>
                 </div>
             </div>
 
@@ -1395,75 +2040,65 @@ function renderManualRequestExpandedDetails(request) {
                     Проверка
                 </button>
                 <button class="manual-request-modal-tab" type="button" data-tab="history" onclick="switchManualRequestDetailsTab(event, 'history')">
-                    История
+                    История правок
                 </button>
             </div>
 
             <div class="manual-request-modal-panel is-active" data-tab-panel="overview">
-                <div class="manual-request-modal-grid">
+                <div class="manual-request-modal-grid manual-request-modal-grid-overview">
                     <div class="manual-request-modal-card">
-                        <h5>Основная информация</h5>
-                        <div class="manual-request-modal-list">
-                            <div class="manual-request-modal-item"><span>Сотрудник</span><strong>${escapeUserText(request.employee || "—")}</strong></div>
-                            <div class="manual-request-modal-item"><span>Задача</span><strong>${escapeUserText(request.taskName || "—")}</strong></div>
-                            <div class="manual-request-modal-item"><span>Проект</span><strong>${escapeUserText(request.projectName || "—")}</strong></div>
-                            <div class="manual-request-modal-item"><span>Причина</span><strong>${escapeUserText(getManualRequestReasonText(request.reason))}</strong></div>
-                            <div class="manual-request-modal-item"><span>Дата работы</span><strong>${escapeUserText(request.workDate || "—")}</strong></div>
-                            <div class="manual-request-modal-item"><span>Часы</span><strong>${Number(request.hours || 0).toFixed(1)} ч</strong></div>
-                        </div>
-                    </div>
-
-                    <div class="manual-request-modal-card">
-                        <h5>Подтверждение и файл</h5>
-                        <div class="manual-request-modal-list">
-                            <div class="manual-request-modal-item"><span>Файл</span><div>${attachmentMarkup}</div></div>
-                            <div class="manual-request-modal-item"><span>Текущий статус</span><div>${statusMarkup}</div></div>
-                            <div class="manual-request-modal-item"><span>Статус проверки</span><strong>${stateInfo.title}</strong></div>
-                            <div class="manual-request-modal-item"><span>Что дальше</span><strong>${escapeUserText(stateInfo.actionText)}</strong></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="manual-request-modal-note-grid">
-                    <div class="manual-request-modal-card manual-request-modal-notes">
-                        <h5>Что сделал сотрудник</h5>
+                        <h5>Комментарий сотрудника</h5>
                         <div class="manual-request-note-block">
-                            <span>Комментарий</span>
-                            <div>${escapeUserText(request.comment || "—")}</div>
+                            <span>Текст заявки</span>
+                            <div>${escapeUserText(request.comment || "Комментарий не добавлен.")}</div>
                         </div>
                     </div>
 
-                    <div class="manual-request-modal-card manual-request-modal-notes">
+                    <div class="manual-request-modal-card">
+                        <h5>Файл</h5>
+                        <div class="manual-request-modal-list">
+                            <div class="manual-request-modal-item"><span>Вложение</span><div>${attachmentMarkup}</div></div>
+                        </div>
+                    </div>
+
+                    <div class="manual-request-modal-card manual-request-modal-card-wide">
                         <h5>Комментарий менеджера</h5>
                         <div class="manual-request-note-block">
-                            <span>Решение / замечание</span>
-                            <div>${escapeUserText(request.managerComment || "Пока нет")}</div>
+                            <span>Решение</span>
+                            <div>${escapeUserText(managerCommentText)}</div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="manual-request-modal-panel" data-tab-panel="review">
-                <div class="manual-request-modal-grid">
-                    <div class="manual-request-modal-card manual-request-state-card is-${stateInfo.tone}">
-                        <h5>Состояние заявки</h5>
-                        <div class="manual-request-state-header">
+                <div class="manual-request-modal-grid manual-request-modal-grid-review">
+                    <div class="manual-request-modal-card manual-request-review-card">
+                        <h5>Статус проверки</h5>
+                        <div class="manual-request-review-status-row">
                             ${statusMarkup}
-                            <strong>${stateInfo.title}</strong>
+                            <strong>${escapeUserText(stateInfo.title)}</strong>
                         </div>
                         <p>${escapeUserText(stateInfo.text)}</p>
-                        <div class="manual-request-state-hint">${escapeUserText(stateInfo.actionText)}</div>
-                        ${canResubmitAction ? `<div class="manual-request-state-actions">${canResubmitAction}</div>` : ""}
                     </div>
 
-                    <div class="manual-request-modal-card">
-                        <h5>Контрольные точки</h5>
+                    <div class="manual-request-modal-card manual-request-review-card">
+                        <h5>Ключевые даты</h5>
                         <div class="manual-request-modal-list">
-                            <div class="manual-request-modal-item"><span>Отправлена</span><strong>${escapeUserText(request.createdAt || "—")}</strong></div>
-                            <div class="manual-request-modal-item"><span>Последняя проверка</span><strong>${escapeUserText(request.reviewedAt || "—")}</strong></div>
-                            <div class="manual-request-modal-item"><span>Дата работы</span><strong>${escapeUserText(request.workDate || "—")}</strong></div>
-                            <div class="manual-request-modal-item"><span>Файл-подтверждение</span><div>${attachmentMarkup}</div></div>
+                            <div class="manual-request-modal-item"><span>Отправлена</span><strong>${escapeUserText(formatManualRequestReadableDate(request.createdAt))}</strong></div>
+                            <div class="manual-request-modal-item"><span>Последняя проверка</span><strong>${escapeUserText(request.reviewedAt ? formatManualRequestReadableDate(request.reviewedAt) : "Ещё не было")}</strong></div>
+                            <div class="manual-request-modal-item"><span>Дата работы</span><strong>${escapeUserText(formatManualRequestReadableDate(request.workDate, false))}</strong></div>
                         </div>
+                    </div>
+
+                    <div class="manual-request-modal-card manual-request-modal-card-wide manual-request-review-card">
+                        <h5>${escapeUserText(stateInfo.actionTitle)}</h5>
+                        <div class="manual-request-review-next-step">${escapeUserText(stateInfo.actionText)}</div>
+                        <div class="manual-request-note-block">
+                            <span>Комментарий менеджера</span>
+                            <div>${escapeUserText(managerCommentText)}</div>
+                        </div>
+                        ${canResubmitAction ? `<div class="manual-request-state-actions">${canResubmitAction}</div>` : ""}
                     </div>
                 </div>
             </div>
@@ -1478,17 +2113,79 @@ function renderManualRequestExpandedDetails(request) {
     `;
 }
 
-function renderManualRequestExpandedSummary(request, showViewButton) {
-    if (!showViewButton) {
-        return "";
-    }
+function renderManualRequestExpandedSummary(request, canShowActions) {
+    const attachmentMarkup = request.attachmentPath
+        ? `<a href="${escapeUserText(request.attachmentPath)}" target="_blank" class="btn btn-outline manual-expanded-file-btn">
+                <i class="fas fa-paperclip"></i> ${escapeUserText(request.attachmentName || "Открыть файл")}
+           </a>`
+        : `<span class="manual-request-muted">Файл не прикреплён</span>`;
+    const managerCommentText = request.managerComment || "Пока решения нет";
+    const employeeCommentText = request.comment || "Комментарий не добавлен";
+    const quickActions = canShowActions
+        ? `
+            <button class="btn btn-success manual-request-inline-action" type="button" onclick="approveManualTimeRequest(${request.id})">
+                <i class="fas fa-check"></i>
+                <span>Одобрить</span>
+            </button>
+            <button class="btn btn-outline manual-request-inline-action" type="button" onclick="sendManualTimeRequestToRevision(${request.id})">
+                <i class="fas fa-rotate-left"></i>
+                <span>На доработку</span>
+            </button>
+            <button class="btn btn-danger manual-request-inline-action" type="button" onclick="rejectManualTimeRequest(${request.id})">
+                <i class="fas fa-xmark"></i>
+                <span>Отклонить</span>
+            </button>
+        `
+        : "";
 
     return `
-        <div class="manual-request-expand-strip row-expand-animate">
-            <button class="btn btn-sm btn-outline manual-request-expand-btn" type="button" onclick="showManualRequestDetails(${request.id})">
-                <i class="fas fa-eye manual-request-expand-icon"></i>
-                <span>Открыть подробности</span>
-            </button>
+        <div class="table-expand-stage" data-expand-stage data-enter="true">
+            <div class="table-expand-shell manual-request-expand-shell row-expand-animate">
+                <div class="manual-request-expand-head">
+                    <div class="table-expand-identity manual-request-expand-copy">
+                        <span class="table-expand-kicker">Заявка #${escapeUserText(request.id)}</span>
+                        <div class="table-expand-title-row">
+                            <h4 class="table-expand-title">${escapeUserText(request.employee || "—")}</h4>
+                        </div>
+                        ${renderManualRequestPath(request)}
+                    </div>
+                    <div class="table-expand-badges manual-request-expand-badges">
+                        ${renderManualTimeStatus(request.status)}
+                        ${renderTableExpandPill(getManualRequestReasonText(request.reason))}
+                    </div>
+                </div>
+
+                <div class="table-expand-stats manual-request-expand-stats">
+                    ${renderTableExpandStat("Учтено", `${Number(request.hours || 0).toFixed(1)} ч`)}
+                    ${renderTableExpandStat("Дата работы", formatManualRequestReadableDate(request.workDate, false))}
+                    ${renderTableExpandStat("Отправлена", formatManualRequestReadableDate(request.createdAt))}
+                </div>
+
+                <div class="table-expand-content manual-request-expand-content">
+                    ${renderTableExpandSection("Проверка", [
+            renderTableExpandItem("Текущий статус", renderManualTimeStatus(request.status), { html: true }),
+            renderTableExpandItem("Последнее решение", request.reviewedAt ? formatManualRequestReadableDate(request.reviewedAt) : "Ещё не было"),
+            renderTableExpandItem("Файл", attachmentMarkup, { html: true }),
+            renderTableExpandItem(getManualRequestStateInfo(request).actionTitle, getManualRequestStateInfo(request).actionText)
+        ].join(""), { wide: true })}
+
+                    ${renderTableExpandNote("Комментарий сотрудника", employeeCommentText, {
+            muted: !String(request.comment || "").trim()
+        })}
+
+                    ${renderTableExpandNote("Комментарий менеджера", managerCommentText, {
+            muted: !String(request.managerComment || "").trim()
+        })}
+                </div>
+
+                <div class="table-expand-actions manual-request-expand-actions">
+                    <button class="btn btn-outline manual-request-expand-btn" type="button" onclick="showManualRequestDetails(${request.id})">
+                        <i class="fas fa-arrow-up-right-from-square manual-request-expand-icon"></i>
+                        <span>Посмотреть подробности</span>
+                    </button>
+                    ${quickActions}
+                </div>
+            </div>
         </div>
     `;
 }
@@ -1501,9 +2198,52 @@ function toggleManualRequestRow(event, row, id) {
         return;
     }
 
-    const wasExpanded = Number(expandedManualRequestId) === Number(id);
-    expandedManualRequestId = wasExpanded ? 0 : Number(id);
-    renderManualTimeRequests();
+    const nextId = Number(id);
+    const body = document.getElementById("manualTimeRequestsBody");
+    const expandedRow = body?.querySelector?.(".manual-request-expanded-row");
+    const expandedStage = expandedRow?.querySelector?.("[data-expand-stage]");
+    const selectedRow = body?.querySelector?.(".manual-request-row.is-selected");
+    const request = manualTimeRequests.find(x => Number(x.id) === nextId);
+    const canReview = isAdmin || isManager;
+    const canShowActions = canReview && String(request?.status || "").toLowerCase() === "pending";
+
+    const mountExpandedRow = () => {
+        if (!request) {
+            expandedManualRequestId = 0;
+            return;
+        }
+
+        expandedManualRequestId = nextId;
+        row.classList.add("is-selected");
+        row.insertAdjacentHTML("afterend", `
+            <tr class="manual-request-expanded-row">
+                <td colspan="10">
+                    ${renderManualRequestExpandedSummary(request, canShowActions)}
+                </td>
+            </tr>
+        `);
+        playUsersExpandStageEnter(body);
+    };
+
+    if (Number(expandedManualRequestId) === nextId && expandedStage) {
+        collapseUsersExpandStage(expandedStage, () => {
+            expandedRow?.remove();
+            selectedRow?.classList.remove("is-selected");
+            expandedManualRequestId = 0;
+        });
+        return;
+    }
+
+    if (expandedStage) {
+        collapseUsersExpandStage(expandedStage, () => {
+            expandedRow?.remove();
+            selectedRow?.classList.remove("is-selected");
+            mountExpandedRow();
+        });
+        return;
+    }
+
+    mountExpandedRow();
 }
 
 function renderManualTimeRequests() {
@@ -1511,6 +2251,9 @@ function renderManualTimeRequests() {
     if (!body) return;
 
     const items = getFilteredManualTimeRequests();
+    if (expandedManualRequestId && !items.some(item => Number(item.id) === Number(expandedManualRequestId))) {
+        expandedManualRequestId = 0;
+    }
 
     if (!items.length) {
         body.innerHTML = `
@@ -1537,11 +2280,11 @@ function renderManualTimeRequests() {
                         <i class="fas fa-rotate-left"></i>
                     </button>
                     <button class="btn btn-sm btn-danger" type="button" onclick="rejectManualTimeRequest(${x.id})" title="Отклонить">
-                        <i class="fas fa-times"></i>
+                        <i class="fas fa-xmark"></i>
                     </button>
                 ` : `
                     <button class="btn btn-sm btn-outline" type="button" onclick="showManualRequestDetails(${x.id})" title="Подробнее">
-                        <i class="fas fa-eye"></i>
+                        <i class="fas fa-arrow-up-right-from-square"></i>
                     </button>
                 `}
             </div>
@@ -1567,7 +2310,7 @@ function renderManualTimeRequests() {
                 <td>${formatManualRequestDate(x.createdAt)}</td>
                 <td>${actionsMarkup}</td>
             </tr>
-            ${isExpanded && canShowActions ? `
+            ${isExpanded ? `
                 <tr class="manual-request-expanded-row">
                     <td colspan="10">${renderManualRequestExpandedSummary(x, canShowActions)}</td>
                 </tr>
@@ -1575,6 +2318,7 @@ function renderManualTimeRequests() {
         `;
     }).join("");
 
+    playUsersExpandStageEnter(body);
     enhanceAdminTables();
 }
 
@@ -1772,8 +2516,8 @@ function renderDashboardManualTimeRequests() {
                 </td>
                 <td>
                     ${canEdit
-                ? `<button class="btn btn-sm btn-outline" type="button" onclick="startManualRequestEdit(${x.id})">Доработать</button>`
-                : `<button class="btn btn-sm btn-outline" type="button" onclick="showManualRequestDetails(${x.id})">Подробнее</button>`}
+                ? `<button class="btn btn-outline manual-request-text-btn" type="button" onclick="startManualRequestEdit(${x.id})">Доработать</button>`
+                : `<button class="btn btn-outline manual-request-text-btn" type="button" onclick="showManualRequestDetails(${x.id})">Подробнее</button>`}
                 </td>
             </tr>
         `;

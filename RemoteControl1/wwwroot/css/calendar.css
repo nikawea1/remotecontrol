@@ -1,4 +1,4 @@
-﻿/* Файл: RemoteControl1/wwwroot/css/calendar.css */
+/* Файл: RemoteControl1/wwwroot/css/calendar.css */
 /* calendar.css */
 
 /* =========================================================
@@ -41,12 +41,12 @@
     }
 
     .calendar-day.today {
-        border-color: var(--secondary);
-        box-shadow: 0 0 0 2px rgba(0, 172, 193, 0.15);
+        border-color: var(--color-border-brand-strong);
+        box-shadow: none;
     }
 
     .calendar-day.selected {
-        background: rgba(40, 53, 147, 0.08);
+        background: rgba(var(--primary-rgb), 0.08);
         border-color: var(--primary);
     }
 
@@ -175,8 +175,8 @@
 
     .calendar-nav-btn:hover,
     .mini-calendar-nav-btn:hover {
-        border-color: #2563eb;
-        color: #2563eb;
+        border-color: var(--ramp-blue-500);
+        color: var(--ramp-blue-500);
         background: #f8fbff;
     }
 
@@ -218,7 +218,7 @@
 
     .calendar-day:hover {
         border-color: #c7d7f7;
-        box-shadow: 0 6px 18px rgba(37, 99, 235, 0.08);
+        box-shadow: none;
     }
 
     .calendar-day.empty {
@@ -234,7 +234,7 @@
     }
 
     .calendar-day.today {
-        box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.18);
+        box-shadow: none;
     }
 
 .calendar-day-number {
@@ -315,7 +315,7 @@
 }
 
 .event-task {
-    background: #2563eb;
+    background: var(--ramp-blue-500);
 }
 
 .event-reminder {
@@ -495,8 +495,8 @@
 }
 
     .mini-calendar-month-btn:hover {
-        border-color: #2563eb;
-        color: #2563eb;
+        border-color: var(--ramp-blue-500);
+        color: var(--ramp-blue-500);
         background: #f8fbff;
     }
 

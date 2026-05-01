@@ -14,19 +14,19 @@
 
     <style>
         :root {
-            --primary-dark: #1a237e;
-            --primary: #283593;
-            --primary-light: #3949ab;
-            --secondary: #00acc1;
-            --success: #43a047;
-            --warning: #ff9800;
-            --danger: #e53935;
-            --light: #f5f7fa;
-            --dark: #2c3e50;
-            --gray: #78909c;
-            --border: #e0e0e0;
-            --radius: 12px;
-            --shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            --primary-dark: #1f4f9f;
+            --primary: #2f6fd6;
+            --primary-light: #4f8ee8;
+            --secondary: #edf4ff;
+            --success: #16a34a;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --light: #f5f8fd;
+            --dark: #111827;
+            --gray: #6b7280;
+            --border: #dce6f5;
+            --radius: 8px;
+            --shadow: 0 18px 48px rgba(31,79,159,0.14);
         }
 
         * {
@@ -34,11 +34,13 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            backdrop-filter: none !important;
+            filter: none !important;
         }
 
         body {
             min-height: 100vh;
-            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            background: linear-gradient(135deg, #eaf2ff 0%, #f7fafe 46%, #dceaff 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -52,8 +54,8 @@
                 content: '';
                 position: absolute;
                 inset: 0;
-                background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='none'/%3E%3Cpath d='M0,50 L50,0 L100,50 L50,100 Z' fill='white' fill-opacity='0.03'/%3E%3C/svg%3E");
-                background-size: 120px;
+                background: radial-gradient(circle at 18% 18%, rgba(47,111,214,0.10), transparent 34%), radial-gradient(circle at 82% 78%, rgba(79,142,232,0.14), transparent 32%), linear-gradient(90deg, rgba(31,79,159,0.04) 1px, transparent 1px), linear-gradient(rgba(31,79,159,0.04) 1px, transparent 1px);
+                background-size: auto, auto, 44px 44px, 44px 44px;
                 pointer-events: none;
                 z-index: 0;
             }
@@ -65,8 +67,9 @@
             width: 100%;
             max-width: 1100px;
             min-height: 650px;
-            background: white;
-            border-radius: 32px;
+            background: #ffffff;
+            border: 1px solid rgba(31, 79, 159, 0.12);
+            border-radius: 16px;
             overflow: hidden;
             box-shadow: var(--shadow);
             animation: fadeIn 0.5s ease-out;
@@ -86,7 +89,7 @@
 
         .auth-left {
             flex: 1.2;
-            background: linear-gradient(145deg, #0d1b3e 0%, #1a237e 100%);
+            background: linear-gradient(160deg, #1f4f9f 0%, #2f6fd6 56%, #4f8ee8 100%);
             position: relative;
             display: flex;
             align-items: center;
@@ -120,7 +123,7 @@
                 background: rgba(255,255,255,0.12);
                 padding: 25px;
                 border-radius: 50%;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                box-shadow: none;
                 border: 1px solid rgba(255,255,255,0.2);
             }
 
@@ -129,7 +132,7 @@
                 font-weight: 700;
                 margin-bottom: 15px;
                 letter-spacing: 2px;
-                text-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                text-shadow: none;
             }
 
             .left-content p {
@@ -141,9 +144,9 @@
             }
 
         .quote-block {
-            background: rgba(255,255,255,0.08);
-            backdrop-filter: blur(10px);
-            border-radius: 24px;
+            background: rgba(255,255,255,0.12);
+            backdrop-filter: none;
+            border-radius: 16px;
             padding: 35px 30px;
             border: 1px solid rgba(255,255,255,0.15);
             text-align: left;
@@ -188,7 +191,8 @@
         .auth-right {
             width: 50%;
             min-width: 480px;
-            background: white;
+            background: linear-gradient(180deg, #ffffff 0%, #f7fafe 100%);
+            border-left: 1px solid rgba(31, 79, 159, 0.10);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -272,14 +276,14 @@
             border-radius: 16px;
             font-size: 1rem;
             transition: all 0.3s ease;
-            background: #f8fafd;
+            background: #ffffff;
         }
 
             .form-control:focus {
                 outline: none;
                 border-color: var(--primary);
                 background: white;
-                box-shadow: 0 0 0 4px rgba(40, 53, 147, 0.1);
+                box-shadow: 0 0 0 3px rgba(47, 111, 214, 0.22);
             }
 
             .form-control::placeholder {
@@ -350,7 +354,7 @@
             gap: 10px;
             padding: 16px 24px;
             border: none;
-            border-radius: 16px;
+            border-radius: 8px;
             font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
@@ -366,14 +370,14 @@
 
             .btn-primary:hover {
                 background: var(--primary-light);
-                transform: translateY(-2px);
-                box-shadow: 0 10px 25px rgba(40, 53, 147, 0.4);
+                transform: none;
+                box-shadow: none;
             }
 
         .error-box {
             padding: 12px 14px;
             border-radius: 14px;
-            background: rgba(229,57,53,0.08);
+            background: #fee2e2;
             color: var(--danger);
             font-weight: 600;
         }
@@ -478,7 +482,7 @@
                         <i class="fas fa-lock input-icon"></i>
                         <input type="password" class="form-control" id="registerPassword" asp-for="Input.Password" placeholder="••••••••" required>
                         <button type="button" class="password-toggle" onclick="togglePassword('registerPassword', this)">
-                            <i class="far fa-eye"></i>
+                            <i class="fas fa-lock"></i>
                         </button>
                     </div>
                     <div class="field-error" asp-validation-for="Input.Password"></div>
@@ -490,7 +494,7 @@
                         <i class="fas fa-lock input-icon"></i>
                         <input type="password" class="form-control" id="registerConfirmPassword" asp-for="Input.ConfirmPassword" placeholder="••••••••" required>
                         <button type="button" class="password-toggle" onclick="togglePassword('registerConfirmPassword', this)">
-                            <i class="far fa-eye"></i>
+                            <i class="fas fa-lock"></i>
                         </button>
                     </div>
                     <div class="field-error" asp-validation-for="Input.ConfirmPassword"></div>
@@ -520,12 +524,12 @@
 
             if (input.type === 'password') {
                 input.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
+                icon.classList.remove('fa-lock');
+                icon.classList.add('fa-lock-open');
             } else {
                 input.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
+                icon.classList.remove('fa-lock-open');
+                icon.classList.add('fa-lock');
             }
         }
 

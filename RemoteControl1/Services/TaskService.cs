@@ -802,6 +802,37 @@ namespace RemoteControl1.Services
             return ServiceResult<TaskVm>.Success(MapTask(task));
         }
 
+        public async Task<ServiceResult<TaskVm>> SubmitTaskForReviewAsync(int currentUserId, SubmitTaskForReviewDto dto)
+        {
+            if (dto.Id <= 0)
+                return ServiceResult<TaskVm>.Fail("Задача не найдена");
+
+            if (string.IsNullOrWhiteSpace(dto.Description))
+                return ServiceResult<TaskVm>.Fail("Добавьте отчёт перед отправкой на проверку");
+
+            var currentUser = await _db.Users.FirstOrDefaultAsync(x => x.Id == currentUserId);
+            if (currentUser == null)
+                return ServiceResult<TaskVm>.Fail("Пользователь не найден");
+
+            var task = await _db.Tasks
+                .Include(t => t.Project)
+                .Include(t => t.User)
+                .FirstOrDefaultAsync(t => t.Id == dto.Id);
+
+            if (task == null)
+                return ServiceResult<TaskVm>.Fail("Задача не найдена");
+
+            if (task.UserId != currentUserId)
+                return ServiceResult<TaskVm>.Fail("Нет прав на отправку этой задачи");
+
+            task.Description = dto.Description.Trim();
+            task.Status = "review";
+
+            await _db.SaveChangesAsync();
+
+            return ServiceResult<TaskVm>.Success(MapTask(task));
+        }
+
         public async Task<ServiceResult> DeleteTaskAsync(int currentUserId, int taskId)
         {
             var currentUser = await _db.Users.FirstOrDefaultAsync(x => x.Id == currentUserId);
@@ -2887,6 +2918,12 @@ namespace RemoteControl1.Services
         public decimal PlannedTime { get; set; }
         public DateTime? Deadline { get; set; }
         public string? StageName { get; set; }
+    }
+
+    public class SubmitTaskForReviewDto
+    {
+        public int Id { get; set; }
+        public string? Description { get; set; }
     }
 
     public class DeleteTaskDto

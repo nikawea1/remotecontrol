@@ -1,4 +1,4 @@
-﻿/* Файл: RemoteControl1/wwwroot/css/projects.css */
+/* Файл: RemoteControl1/wwwroot/css/projects.css */
 
 .projects-grid {
     display: grid;
@@ -54,7 +54,7 @@
     gap: 8px;
     padding: 6px 10px;
     border-radius: 999px;
-    background: rgba(40, 53, 147, 0.08);
+    background: rgba(var(--primary-rgb), 0.08);
     color: var(--primary);
     font-size: 12px;
     font-weight: 700;
@@ -468,7 +468,7 @@
     }
 
     .timeline-step.current {
-        background: #e3f2fd;
+        background: var(--color-bg-brand-tertiary);
         border-color: #bbdefb;
     }
 
@@ -671,8 +671,8 @@
 
     .template-card:hover,
     .template-card.active {
-        border-color: rgba(40, 53, 147, 0.22);
-        background: rgba(40, 53, 147, 0.05);
+        border-color: rgba(var(--primary-rgb), 0.22);
+        background: rgba(var(--primary-rgb), 0.05);
     }
 
 .template-top {
@@ -695,7 +695,7 @@
     font-size: 12px;
     font-weight: 700;
     color: var(--primary);
-    background: rgba(40, 53, 147, 0.10);
+    background: rgba(var(--primary-rgb), 0.10);
 }
 
 .template-description {
@@ -764,8 +764,8 @@
     gap: 8px;
     padding: 8px 12px;
     border-radius: 999px;
-    border: 1px solid rgba(40, 53, 147, 0.18);
-    background: rgba(40, 53, 147, 0.06);
+    border: 1px solid rgba(var(--primary-rgb), 0.18);
+    background: rgba(var(--primary-rgb), 0.06);
     color: var(--primary-dark);
     font-size: 12px;
     font-weight: 700;
@@ -806,8 +806,8 @@
 }
 
 .member-picker-item.is-selected {
-    border-color: rgba(40, 53, 147, 0.24);
-    background: rgba(40, 53, 147, 0.06);
+    border-color: rgba(var(--primary-rgb), 0.24);
+    background: rgba(var(--primary-rgb), 0.06);
 }
 
 .member-picker-info {
@@ -950,7 +950,7 @@
         width: 38px;
         height: 38px;
         border-radius: 14px;
-        background: rgba(40, 53, 147, 0.08);
+        background: rgba(var(--primary-rgb), 0.08);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1282,8 +1282,8 @@
 
 #projectViewModal .local-progress-pill {
     color: var(--primary-dark);
-    background: rgba(40, 53, 147, 0.08);
-    border: 1px solid rgba(40, 53, 147, 0.16);
+    background: rgba(var(--primary-rgb), 0.08);
+    border: 1px solid rgba(var(--primary-rgb), 0.16);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.72);
 }
 
@@ -1334,7 +1334,7 @@
 }
 
 #projectViewModal .task-row.task-status-progress {
-    border-left-color: #1e88e5;
+    border-left-color: var(--ramp-blue-500);
 }
 
 #projectViewModal .task-row.task-status-review {
@@ -1482,7 +1482,7 @@
 }
 
 #projectViewModal .timeline-step.current .timeline-status {
-    background: rgba(40, 53, 147, 0.10);
+    background: rgba(var(--primary-rgb), 0.10);
     color: var(--primary-dark);
 }
 
@@ -1516,7 +1516,7 @@
     height: 32px;
     flex-basis: 32px;
     border-radius: 10px;
-    background: rgba(40, 53, 147, 0.08);
+    background: rgba(var(--primary-rgb), 0.08);
 }
 
 #projectViewModal .action-card strong {

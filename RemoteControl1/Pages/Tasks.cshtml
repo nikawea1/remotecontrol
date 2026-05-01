@@ -1,4 +1,4 @@
-﻿@page
+@page
 @* Файл: RemoteControl1/Pages/Tasks.cshtml *@
 @model RemoteControl1.Pages.TasksModel
 @{
@@ -8,10 +8,15 @@
 <div id="tasksPage" class="container main-content page-content">
     <div class="page-content">
         <div class="page-header-row">
-            <h1 class="page-title">
-                <i class="fas fa-tasks"></i>
-                Управление задачами
-            </h1>
+            <div class="page-heading">
+                <span class="page-heading-icon" aria-hidden="true">
+                    <i class="fas fa-list-check"></i>
+                </span>
+                <div>
+                    <h1 class="page-title">Управление задачами</h1>
+                    <p class="page-subtitle">Сроки, статусы, исполнители и проверка результата в одном рабочем списке.</p>
+                </div>
+            </div>
 
             @if (!Model.IsEmployee)
             {
@@ -44,14 +49,25 @@
             </div>
 
             <div class="filter-group">
-                <i class="fas fa-project-diagram"></i>
+                <i class="fas fa-diagram-project"></i>
                 <select class="filter-select" id="taskProjectFilter" onchange="filterTasks()">
                     <option value="all">Все проекты</option>
                 </select>
             </div>
 
             <div class="filter-group">
-                <i class="fas fa-search"></i>
+                <i class="fas fa-arrow-down-wide-short"></i>
+                <select class="filter-select" id="taskSortFilter" onchange="filterTasks()">
+                    <option value="deadline_asc">Сначала ближайшие</option>
+                    <option value="deadline_desc">Сначала дальние</option>
+                    <option value="priority_desc">Сначала важные</option>
+                    <option value="status">По статусу</option>
+                    <option value="name">По названию</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <i class="fas fa-magnifying-glass"></i>
                 <input type="text"
                        class="filter-input"
                        id="taskSearch"
@@ -67,29 +83,27 @@
             </div>
 
             <button class="btn btn-outline" type="button" onclick="resetTaskFilters()">
-                <i class="fas fa-undo"></i> Сбросить
+                <i class="fas fa-rotate-left"></i> Сбросить
             </button>
         </div>
 
-        <div class="card">
-            <div class="table-container">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Название<br>задачи</th>
-                            <th>Проект</th>
-                            <th>Этап</th>
-                            <th>Приоритет</th>
-                            <th>Срок</th>
-                            <th>Статус</th>
-                            <th>Исполнитель</th>
-                            <th>Действия</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tasksTable"></tbody>
-                </table>
+        <div class="tasks-board-shell">
+            <div class="tasks-board-toolbar">
+                <div class="tasks-deadline-panel" aria-label="Сводка по срокам задач">
+                    <div class="tasks-deadline-panel-head">
+                        <div class="tasks-deadline-title">
+                            <i class="fas fa-calendar-days" aria-hidden="true"></i>
+                            <span>Сроки задач</span>
+                        </div>
+                        <div class="tasks-deadline-caption" id="tasksDeadlineCaption">
+                            Сводка обновляется по текущим фильтрам
+                        </div>
+                    </div>
+
+                    <div class="tasks-deadline-summary" id="tasksDeadlineSummary"></div>
+                </div>
             </div>
+            <div class="tasks-board" id="tasksBoard"></div>
         </div>
     </div>
 </div>
@@ -156,7 +170,7 @@
             <div class="modal-footer">
                 <button class="btn btn-outline" type="button" onclick="closeModal('addTaskModal')">Отмена</button>
                 <button class="btn btn-primary" type="button" onclick="addTask()">
-                    <i class="fas fa-save"></i> Сохранить задачу
+                    <i class="fas fa-floppy-disk"></i> Сохранить задачу
                 </button>
             </div>
         </div>
@@ -233,7 +247,7 @@
         <div class="modal-footer">
             <button class="btn btn-outline" type="button" onclick="closeModal('editTaskModal'); restoreProjectViewAfterTaskModal();">Отмена</button>
             <button class="btn btn-primary" type="button" onclick="saveTaskChanges()">
-                <i class="fas fa-save"></i> Сохранить изменения
+                <i class="fas fa-floppy-disk"></i> Сохранить изменения
             </button>
         </div>
     </div>
@@ -249,7 +263,7 @@
         <div class="modal-body">
             <input type="hidden" id="deleteTaskId">
 
-            <p style="margin:0;">
+            <p class="modal-confirm-text">
                 Вы действительно хотите удалить задачу
                 <strong id="deleteTaskName"></strong>?
             </p>
@@ -258,7 +272,37 @@
         <div class="modal-footer">
             <button class="btn btn-outline" type="button" onclick="closeModal('deleteTaskModal'); restoreProjectViewAfterTaskModal();">Отмена</button>
             <button class="btn btn-danger" type="button" onclick="confirmDeleteTask()">
-                <i class="fas fa-trash"></i> Удалить
+                <i class="fas fa-trash-can"></i> Удалить
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="completeTaskModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Отчёт по завершению задачи</h3>
+            <button class="modal-close" type="button" onclick="closeModal('completeTaskModal')">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <input type="hidden" id="completeTaskId" value="0">
+
+            <div class="task-complete-intro">
+                <div class="task-complete-title" id="completeTaskTitle">Задача</div>
+                <div class="task-complete-hint">После отправки задача перейдёт в статус «На проверке», а менеджер увидит ваш отчёт в карточке задачи.</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Коротко: что сделано *</label>
+                <textarea class="form-control" id="completeTaskReport" rows="6" placeholder="Опишите результат, что выполнено, что передано на проверку, что важно учесть менеджеру."></textarea>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-outline" type="button" onclick="closeModal('completeTaskModal')">Отмена</button>
+            <button class="btn btn-primary" type="button" onclick="submitTaskCompletionReport()">
+                <i class="fas fa-paper-plane"></i> Отправить на проверку
             </button>
         </div>
     </div>

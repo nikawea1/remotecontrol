@@ -1,4 +1,4 @@
-﻿@page
+@page
 @* Файл: RemoteControl1/Pages/Profile.cshtml *@
 @model RemoteControl1.Pages.ProfileModel
 @{
@@ -8,9 +8,15 @@
 <div id="profilePage" class="container main-content page-content">
     <div class="page-content">
         <div class="content-header">
-            <h1 class="page-title">
-                <i class="fas fa-user-circle"></i> Мой профиль
-            </h1>
+            <div class="page-heading">
+                <span class="page-heading-icon" aria-hidden="true">
+                    <i class="fas fa-user-circle"></i>
+                </span>
+                <div>
+                    <h1 class="page-title">Мой профиль</h1>
+                    <p class="page-subtitle">Личные данные, контактная информация и рабочие параметры сотрудника.</p>
+                </div>
+            </div>
         </div>
 
         <div style="display:grid; grid-template-columns: 300px 1fr; gap:24px;">
@@ -141,7 +147,7 @@
                 <div id="profileWork" class="admin-tab-content hidden">
                     <div class="stats-grid">
                         <div class="stat-card">
-                            <div class="stat-icon"><i class="fas fa-tasks"></i></div>
+                            <div class="stat-icon"><i class="fas fa-list-check"></i></div>
                             <div class="stat-info">
                                 <div class="stat-value" id="profileActiveTasks">0</div>
                                 <div class="stat-label">Активных задач</div>
@@ -149,7 +155,7 @@
                         </div>
 
                         <div class="stat-card">
-                            <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                            <div class="stat-icon"><i class="fas fa-circle-check"></i></div>
                             <div class="stat-info">
                                 <div class="stat-value" id="profileDoneTasks">0</div>
                                 <div class="stat-label">Выполнено задач</div>
@@ -227,7 +233,7 @@
                 <div id="profilePrefs" class="admin-tab-content hidden">
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title"><i class="fas fa-cog"></i> Пользовательские настройки</h3>
+                            <h3 class="card-title"><i class="fas fa-gear"></i> Пользовательские настройки</h3>
                         </div>
 
                         <div class="settings-grid">
@@ -280,7 +286,7 @@
                 <div class="card">
                     <div class="modal-footer" style="margin-top:0; justify-content:flex-end;">
                         <button class="btn btn-primary" type="button" onclick="saveProfile()">
-                            <i class="fas fa-save"></i> Сохранить изменения
+                            <i class="fas fa-floppy-disk"></i> Сохранить изменения
                         </button>
                     </div>
                 </div>

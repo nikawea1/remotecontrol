@@ -1,4 +1,4 @@
-﻿@page
+@page
 @* Файл: RemoteControl1/Pages/Projects.cshtml *@
 @model RemoteControl1.Pages.ProjectsModel
 @{
@@ -7,10 +7,16 @@
 
 <div id="projectsPage" class="container main-content page-content">
     <div class="page-content">
-        <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:30px; flex-wrap:wrap; gap:15px;">
-            <h1 style="display:flex; align-items:center; gap:15px;">
-                <i class="fas fa-project-diagram"></i> Проекты
-            </h1>
+        <div class="page-header-row">
+            <div class="page-heading">
+                <span class="page-heading-icon" aria-hidden="true">
+                    <i class="fas fa-diagram-project"></i>
+                </span>
+                <div>
+                    <h1 class="page-title">Проекты</h1>
+                    <p class="page-subtitle">Карточки проектов, этапы, команда и прогресс без визуальной каши.</p>
+                </div>
+            </div>
 
             @if (!Model.IsEmployee)
             {
@@ -22,10 +28,9 @@
 
         <div class="filters-bar">
             <div class="filter-group">
-                <i class="fas fa-search"></i>
+                <i class="fas fa-magnifying-glass"></i>
                 <input type="text"
                        class="filter-input"
-                       style="width: 250px;"
                        placeholder="Поиск проектов..."
                        id="projectSearch"
                        onkeyup="filterProjects()">
@@ -51,7 +56,7 @@
             </div>
 
             <button class="btn btn-outline" type="button" onclick="resetProjectFilters()">
-                <i class="fas fa-undo"></i> Сбросить
+                <i class="fas fa-rotate-left"></i> Сбросить
             </button>
         </div>
 
@@ -152,7 +157,7 @@
                             <div class="modal-footer" style="margin-top:18px;">
                                 <button class="btn btn-outline" type="button" onclick="closeModal('addProjectModal')">Отмена</button>
                                 <button class="btn btn-primary" type="button" onclick="addProject()">
-                                    <i class="fas fa-save"></i> Создать проект
+                                    <i class="fas fa-floppy-disk"></i> Создать проект
                                 </button>
                             </div>
                         </div>
@@ -167,7 +172,7 @@
     <div class="modal-content project-create-content">
         <div class="modal-header project-create-header">
             <h3 class="modal-title">
-                <i class="fas fa-edit"></i>
+                <i class="fas fa-pen-to-square"></i>
                 Редактирование проекта
             </h3>
             <button class="modal-close" type="button" onclick="closeModal('editProjectModal'); restoreProjectViewModal();">&times;</button>
@@ -256,7 +261,7 @@
                         <div class="modal-footer" style="margin-top:18px;">
                             <button class="btn btn-outline" type="button" onclick="closeModal('editProjectModal'); restoreProjectViewModal();">Отмена</button>
                             <button class="btn btn-primary" type="button" onclick="saveProjectChanges()">
-                                <i class="fas fa-save"></i> Сохранить
+                                <i class="fas fa-floppy-disk"></i> Сохранить
                             </button>
                         </div>
                     </div>
@@ -276,17 +281,17 @@
         <div class="modal-body">
             <input type="hidden" id="deleteProjectId">
 
-            <div style="line-height: 1.6;">
+            <div class="modal-confirm-text">
                 Вы действительно хотите удалить проект
                 <strong id="deleteProjectName"></strong>?
             </div>
 
-            <div style="background: rgba(255, 99, 132, 0.08); border: 1px solid rgba(255, 99, 132, 0.25); border-radius: 12px; padding: 14px 16px;">
-                <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; color:#d9534f; font-weight:600;">
-                    <i class="fas fa-exclamation-triangle"></i>
+            <div class="modal-danger-note">
+                <div class="modal-danger-note-title">
+                    <i class="fas fa-triangle-exclamation"></i>
                     <span>Внимание</span>
                 </div>
-                <div style="color: var(--gray-dark); font-size: 14px; line-height: 1.5;">
+                <div class="modal-danger-note-text">
                     Вместе с проектом будут удалены все связанные задачи:
                     <strong><span id="deleteProjectTasksCount">0</span></strong>.
                     Это действие нельзя отменить.
@@ -297,7 +302,7 @@
         <div class="modal-footer">
             <button class="btn btn-outline" type="button" onclick="closeModal('deleteProjectModal')">Отмена</button>
             <button class="btn btn-danger" type="button" onclick="confirmDeleteProject()">
-                <i class="fas fa-trash"></i> Удалить проект
+                <i class="fas fa-trash-can"></i> Удалить проект
             </button>
         </div>
     </div>
@@ -363,7 +368,7 @@
         <div class="modal-footer">
             <button class="btn btn-outline" type="button" onclick="closeModal('addTaskModal')">Отмена</button>
             <button class="btn btn-primary" type="button" onclick="addTask()">
-                <i class="fas fa-save"></i> Сохранить задачу
+                <i class="fas fa-floppy-disk"></i> Сохранить задачу
             </button>
         </div>
     </div>
@@ -439,7 +444,7 @@
         <div class="modal-footer">
             <button class="btn btn-outline" type="button" onclick="closeModal('editTaskModal'); restoreProjectViewAfterTaskModal();">Отмена</button>
             <button class="btn btn-primary" type="button" onclick="saveTaskChanges()">
-                <i class="fas fa-save"></i> Сохранить изменения
+                <i class="fas fa-floppy-disk"></i> Сохранить изменения
             </button>
         </div>
     </div>
@@ -464,7 +469,7 @@
         <div class="modal-footer">
             <button class="btn btn-outline" type="button" onclick="closeModal('deleteTaskModal'); restoreProjectViewAfterTaskModal();">Отмена</button>
             <button class="btn btn-danger" type="button" onclick="confirmDeleteTask()">
-                <i class="fas fa-trash"></i> Удалить
+                <i class="fas fa-trash-can"></i> Удалить
             </button>
         </div>
     </div>

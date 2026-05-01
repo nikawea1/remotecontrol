@@ -1,4 +1,4 @@
-﻿// Файл: RemoteControl1/wwwroot/js/timer.js
+// Файл: RemoteControl1/wwwroot/js/timer.js
 
 let bottomTrackerExpanded = false;
 let workDayStatusInterval = null;
@@ -633,7 +633,7 @@ function startManualRequestEdit(id) {
     commentField.value = request.comment || "";
 
     if (submitButton) {
-        submitButton.innerHTML = '<i class="fas fa-redo"></i> Отправить повторно';
+        submitButton.innerHTML = '<i class="fas fa-rotate-right"></i> Отправить повторно';
     }
 
     if (resetButton) {
