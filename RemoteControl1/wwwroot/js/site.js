@@ -706,10 +706,70 @@ function toggleNotificationsDropdown(event) {
     }
 }
 
+function getStoredUiPreference(key, fallback = false) {
+    try {
+        const value = window.localStorage.getItem(key);
+        return value === null ? fallback : value === "true";
+    } catch {
+        return fallback;
+    }
+}
+
+function setStoredUiPreference(key, value) {
+    try {
+        window.localStorage.setItem(key, value ? "true" : "false");
+    } catch {
+        // ignore storage errors
+    }
+}
+
+function applyUiPreferences() {
+    const highContrast = getStoredUiPreference("rcUiHighContrast", true);
+    const compactDensity = getStoredUiPreference("rcUiCompactDensity", false);
+
+    document.body.classList.toggle("ui-contrast-strong", highContrast);
+    document.body.classList.toggle("ui-density-compact", compactDensity);
+    updateSettingsControls(highContrast, compactDensity);
+}
+
+function updateSettingsControls(highContrast = getStoredUiPreference("rcUiHighContrast", true), compactDensity = getStoredUiPreference("rcUiCompactDensity", false)) {
+    const contrastBtn = document.getElementById("settingsContrastToggle");
+    const compactBtn = document.getElementById("settingsCompactToggle");
+    const navThemeBtn = document.querySelector(".nav-theme-btn");
+
+    if (contrastBtn) {
+        contrastBtn.innerHTML = `<i class="fas fa-circle-half-stroke"></i> ${highContrast ? "Выключить" : "Включить"}`;
+        contrastBtn.classList.toggle("is-active", highContrast);
+    }
+
+    if (compactBtn) {
+        compactBtn.innerHTML = `<i class="fas fa-compress"></i> ${compactDensity ? "Выключить" : "Включить"}`;
+        compactBtn.classList.toggle("is-active", compactDensity);
+    }
+
+    navThemeBtn?.classList.toggle("is-active", highContrast);
+}
+
+function toggleHighContrastMode() {
+    const next = !getStoredUiPreference("rcUiHighContrast", true);
+    setStoredUiPreference("rcUiHighContrast", next);
+    applyUiPreferences();
+    showNotification(next ? "Повышенный контраст включён" : "Повышенный контраст выключен");
+}
+
+function toggleCompactDensity() {
+    const next = !getStoredUiPreference("rcUiCompactDensity", false);
+    setStoredUiPreference("rcUiCompactDensity", next);
+    applyUiPreferences();
+    showNotification(next ? "Компактный режим включён" : "Компактный режим выключен");
+}
+
 function toggleThemePlaceholder() {
-    const btn = document.querySelector(".nav-theme-btn");
-    btn?.classList.toggle("is-active");
-    showNotification("Переключатель тёмной темы добавлен как заглушка. Полная тёмная тема будет подключена следующим этапом.");
+    toggleHighContrastMode();
+}
+
+function initSettingsPage() {
+    applyUiPreferences();
 }
 
 function initHeaderChrome() {
@@ -919,6 +979,7 @@ function initUsersPage() {
 document.addEventListener("DOMContentLoaded", function () {
     initAppShell();
     initHeaderChrome();
+    applyUiPreferences();
 
     if (document.getElementById("tasksPage")) {
         safeCall("fillProjectFilter");
@@ -940,6 +1001,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (document.getElementById("profilePage")) {
         safeCall("initProfilePage");
+    }
+
+    if (document.getElementById("settingsPage")) {
+        safeCall("initSettingsPage");
     }
 
     if (document.getElementById("usersPage")) {

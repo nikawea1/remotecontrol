@@ -56,6 +56,24 @@ function normalizeWorkDayEntry(item) {
     };
 }
 
+function escapeTimerText(value) {
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+function formatWorkDayDuration(hours) {
+    const safeHours = Math.max(0, Number(hours || 0));
+    const totalMinutes = Math.round(safeHours * 60);
+    const wholeHours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    return `${wholeHours}ч ${minutes.toString().padStart(2, "0")}м`;
+}
+
 function formatTimerValue(totalSeconds) {
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -807,20 +825,26 @@ function renderWorkDayHistory() {
 
     if (!items.length) {
         body.innerHTML = `
-            <tr>
-                <td colspan="4" style="text-align:center; color: var(--gray);">История рабочих сессий пока пуста</td>
-            </tr>
+            <div class="session-history-empty">
+                История сессий пока пуста
+            </div>
         `;
         return;
     }
 
     body.innerHTML = items.map(item => `
-        <tr>
-            <td>${item.date || "-"}</td>
-            <td>${item.start || "-"}</td>
-            <td>${item.end || "-"}</td>
-            <td>${Number(item.hours || 0).toFixed(1)} ч</td>
-        </tr>
+        <article class="session-history-item">
+            <div class="session-history-title">
+                <strong>Рабочая сессия</strong>
+                <span>${escapeTimerText(item.date || "-")}</span>
+            </div>
+            <div class="session-history-meta">
+                <span><i class="far fa-calendar-days"></i>${escapeTimerText(item.date || "-")}</span>
+                <span><i class="fas fa-table-columns"></i>Remote Control</span>
+                <span><i class="far fa-clock"></i>${escapeTimerText(item.start || "-")} - ${escapeTimerText(item.end || "-")}</span>
+            </div>
+            <div class="session-history-duration">${formatWorkDayDuration(item.hours)}</div>
+        </article>
     `).join("");
 }
 

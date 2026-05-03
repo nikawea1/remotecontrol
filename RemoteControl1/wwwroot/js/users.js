@@ -1126,49 +1126,109 @@ function renderControlTab() {
     const controlList = document.getElementById("controlList");
     if (!controlList) return;
 
-    let html = "";
+    const healthy = users.filter(u =>
+        u.status === "active" &&
+        !overloaded.includes(u) &&
+        !underloaded.includes(u) &&
+        !highIdle.includes(u) &&
+        !noActivity.includes(u));
 
-    if (overloaded.length) {
-        html += `
-            <div class="card" style="margin-bottom:16px;">
-                <h4 style="margin-bottom:12px; color:var(--danger);">Перегружены</h4>
-                ${overloaded.map(x => `<div style="margin-bottom:8px;">${x.fullName} — активных задач: ${x.tasksInProgress}, часов по задачам: ${Number(x.trackedHours || 0).toFixed(1)}</div>`).join("")}
+    const groups = [
+        {
+            id: "overloaded",
+            icon: "fa-triangle-exclamation",
+            title: "Перегруженные",
+            hint: "Много активных задач или часов по задачам",
+            tone: "danger",
+            users: overloaded,
+            details: x => `Активных задач: ${Number(x.tasksInProgress || 0)} · часы: ${Number(x.trackedHours || 0).toFixed(1)}`
+        },
+        {
+            id: "underloaded",
+            icon: "fa-hourglass-half",
+            title: "Недогруженные",
+            hint: "Факт ниже плановой нагрузки",
+            tone: "warning",
+            users: underloaded,
+            details: x => `Факт: ${Number(x.trackedHours || 0).toFixed(1)} ч · план: ${Number(x.plannedHours || 0).toFixed(1)} ч`
+        },
+        {
+            id: "idle",
+            icon: "fa-circle-pause",
+            title: "Высокий простой",
+            hint: "Много рабочего времени без задач",
+            tone: "warning",
+            users: highIdle,
+            details: x => `Простой: ${Number(x.idleHours || 0).toFixed(1)} ч · рабочий день: ${Number(x.workDayHours || 0).toFixed(1)} ч`
+        },
+        {
+            id: "noActivity",
+            icon: "fa-user-slash",
+            title: "Без активности",
+            hint: "Есть план или задачи, но нет списанных часов",
+            tone: "info",
+            users: noActivity,
+            details: x => `Активных задач: ${Number(x.tasksInProgress || 0)} · план: ${Number(x.plannedHours || 0).toFixed(1)} ч`
+        },
+        {
+            id: "stable",
+            icon: "fa-circle-check",
+            title: "Без критичных отклонений",
+            hint: "Активные сотрудники без явных проблем по нагрузке",
+            tone: "success",
+            users: healthy,
+            details: x => `Активных задач: ${Number(x.tasksInProgress || 0)} · часы: ${Number(x.trackedHours || 0).toFixed(1)}`
+        }
+    ];
+
+    const current = document.getElementById("controlIssueFilter")?.value;
+    const selected = groups.find(x => x.id === current) || groups.find(x => x.users.length) || groups[0];
+    const visible = selected.users.slice(0, 6);
+    const hidden = selected.users.slice(6);
+
+    const renderRow = user => `
+        <div class="control-issue-row">
+            <div class="control-issue-person">
+                <strong>${escapeUserText(user.fullName || user.login || "Сотрудник")}</strong>
+                <span>${escapeUserText(selected.details(user))}</span>
             </div>
-        `;
-    }
+            <span class="control-issue-role">${escapeUserText(getRoleText(user.role || "employee"))}</span>
+        </div>
+    `;
 
-    if (underloaded.length) {
-        html += `
-            <div class="card" style="margin-bottom:16px;">
-                <h4 style="margin-bottom:12px; color:var(--warning);">Недогружены</h4>
-                ${underloaded.map(x => `<div style="margin-bottom:8px;">${x.fullName} — часов по задачам: ${Number(x.trackedHours || 0).toFixed(1)} / ${Number(x.plannedHours || 0).toFixed(1)}</div>`).join("")}
+    controlList.innerHTML = `
+        <div class="control-issues-panel">
+            <div class="control-issues-toolbar">
+                <div class="control-issues-heading">
+                    <span class="control-issues-icon control-issues-${selected.tone}">
+                        <i class="fas ${selected.icon}"></i>
+                    </span>
+                    <div>
+                        <strong>${escapeUserText(selected.title)}</strong>
+                        <span>${escapeUserText(selected.hint)}</span>
+                    </div>
+                </div>
+                <select class="filter-select control-issues-select" id="controlIssueFilter" onchange="renderControlTab()">
+                    ${groups.map(group => `
+                        <option value="${group.id}" ${group.id === selected.id ? "selected" : ""}>
+                            ${group.title} (${group.users.length})
+                        </option>
+                    `).join("")}
+                </select>
             </div>
-        `;
-    }
-
-    if (highIdle.length) {
-        html += `
-            <div class="card" style="margin-bottom:16px;">
-                <h4 style="margin-bottom:12px; color:var(--warning);">Высокий простой</h4>
-                ${highIdle.map(x => `<div style="margin-bottom:8px;">${x.fullName} — простой: ${Number(x.idleHours || 0).toFixed(1)} ч</div>`).join("")}
+            <div class="control-issues-list">
+                ${visible.length ? visible.map(renderRow).join("") : `<div class="control-issues-empty">Нет сотрудников в выбранной группе</div>`}
+                ${hidden.length ? `
+                    <details class="control-issues-more">
+                        <summary>Показать ещё ${hidden.length}</summary>
+                        <div class="control-issues-more-list">
+                            ${hidden.map(renderRow).join("")}
+                        </div>
+                    </details>
+                ` : ""}
             </div>
-        `;
-    }
-
-    if (noActivity.length) {
-        html += `
-            <div class="card" style="margin-bottom:0;">
-                <h4 style="margin-bottom:12px; color:var(--primary);">Без активности</h4>
-                ${noActivity.map(x => `<div style="margin-bottom:8px;">${x.fullName}</div>`).join("")}
-            </div>
-        `;
-    }
-
-    if (!html) {
-        html = `<div style="color:var(--gray);">Отклонений пока нет</div>`;
-    }
-
-    controlList.innerHTML = html;
+        </div>
+    `;
 }
 
 function showUserDetails(id) {
@@ -1799,12 +1859,12 @@ function getManualRequestStateInfo(request) {
                 text: "Заявка отклонена и не будет учтена в расчётах.",
                 tone: "danger",
                 actionTitle: "Результат проверки",
-                actionText: "Если это время всё же нужно учесть, оформи новую заявку с уточнениями и подтверждением."
+                actionText: "Если это время всё же нужно учесть, оформите новую заявку с уточнениями и подтверждением."
             };
         case "needs_revision":
             return {
-                title: "Требуется доработка",
-                text: "Менеджер вернул заявку на доработку. Повторная отправка доступна после исправлений.",
+                title: "Нужны правки",
+                text: "Менеджер запросил уточнения. Повторная отправка доступна после исправлений.",
                 tone: "warning",
                 actionTitle: "Что изменить",
                 actionText: "Ниже указано замечание менеджера. После правок можно повторно отправить заявку на проверку."
@@ -1820,6 +1880,51 @@ function getManualRequestStateInfo(request) {
     }
 }
 
+function normalizeManualRequestDecisionText(value) {
+    return String(value || "")
+        .trim()
+        .replace(/\s+/g, " ")
+        .toLowerCase();
+}
+
+function getManualRequestManagerCommentText(request) {
+    const raw = String(request.managerComment || "").trim();
+    const status = String(request.status || "pending").toLowerCase();
+
+    if (!raw) {
+        if (status === "pending") {
+            return "Решение менеджера ещё не добавлено.";
+        }
+
+        return "Подробный комментарий менеджера не указан.";
+    }
+
+    const normalized = normalizeManualRequestDecisionText(raw);
+    const duplicateLabels = [
+        getManualRequestStatusText(status),
+        getManualRequestStateInfo(request).title,
+        "требуется доработка",
+        "на доработке",
+        "возвращена на доработку"
+    ].map(normalizeManualRequestDecisionText);
+
+    if (duplicateLabels.includes(normalized)) {
+        if (status === "needs_revision") {
+            return "Менеджер запросил правки без подробного комментария.";
+        }
+
+        if (status === "rejected") {
+            return "Менеджер отклонил заявку без подробного комментария.";
+        }
+
+        if (status === "approved") {
+            return "Менеджер одобрил заявку без дополнительного комментария.";
+        }
+    }
+
+    return raw;
+}
+
 function getManualRequestHistoryItems(request) {
     const status = String(request.status || "pending").toLowerCase();
     const items = [
@@ -1832,7 +1937,7 @@ function getManualRequestHistoryItems(request) {
     ];
 
     if (request.reviewedAt) {
-        const reviewText = escapeUserText(request.managerComment || "");
+        const reviewText = getManualRequestManagerCommentText(request);
         const actionTitle =
             status === "approved"
                 ? "Заявка одобрена"
@@ -1989,7 +2094,7 @@ function renderManualRequestExpandedDetails(request) {
         : `<span class="manual-request-muted">Файл не прикреплён</span>`;
     const statusMarkup = renderManualTimeStatus(request.status);
     const stateInfo = getManualRequestStateInfo(request);
-    const managerCommentText = request.managerComment || (String(request.status || "").toLowerCase() === "pending" ? "Решение менеджера ещё не добавлено." : "Комментарий не указан.");
+    const managerCommentText = getManualRequestManagerCommentText(request);
     const canResubmitAction = request.canResubmit
         ? `
             <button class="btn btn-primary" type="button" onclick="closeModal('manualRequestDetailsModal'); startManualRequestEdit(${request.id})">
@@ -1997,39 +2102,50 @@ function renderManualRequestExpandedDetails(request) {
             </button>
         `
         : "";
+    const projectName = request.projectName || "Без проекта";
+    const taskName = request.taskName || "Без задачи";
+    const employeeName = request.employee || "—";
 
     return `
-        <div class="manual-request-modal-shell">
-            <div class="manual-request-modal-top">
-                <div class="manual-request-modal-heading">
-                    <div class="manual-request-modal-kicker">Заявка #${escapeUserText(request.id)}</div>
-                    <h4>Заявка на ручной учёт времени</h4>
-                    ${renderManualRequestPath(request)}
-                    ${renderManualRequestContextGrid(request)}
+        <div class="manual-request-details-clean">
+            <div class="manual-request-details-hero">
+                <div class="manual-request-details-title">
+                    <span>Заявка #${escapeUserText(request.id)}</span>
+                    <h4>${escapeUserText(taskName)}</h4>
+                    <p>${escapeUserText(projectName)} · ${escapeUserText(employeeName)}</p>
                 </div>
-                <div class="manual-request-modal-status">
+                <div class="manual-request-details-status">
                     ${statusMarkup}
-                    <div class="manual-request-modal-status-caption">${stateInfo.title}</div>
+                    <strong>${escapeUserText(stateInfo.title)}</strong>
+                    <span>${escapeUserText(stateInfo.text)}</span>
                 </div>
             </div>
 
-            <div class="manual-request-summary-grid">
-                <div class="manual-request-summary-chip">
-                    <span>Дата работы</span>
-                    <strong>${escapeUserText(formatManualRequestReadableDate(request.workDate, false))}</strong>
-                </div>
-                <div class="manual-request-summary-chip">
-                    <span>Учтённые часы</span>
-                    <strong>${Number(request.hours || 0).toFixed(1)} ч</strong>
-                </div>
-                <div class="manual-request-summary-chip">
-                    <span>Отправлена</span>
-                    <strong>${escapeUserText(formatManualRequestReadableDate(request.createdAt))}</strong>
-                </div>
-                <div class="manual-request-summary-chip">
-                    <span>Последняя проверка</span>
-                    <strong>${escapeUserText(request.reviewedAt ? formatManualRequestReadableDate(request.reviewedAt) : "Ещё не было")}</strong>
-                </div>
+            <div class="manual-request-details-facts">
+                <dl>
+                    <dt>Сотрудник</dt>
+                    <dd>${escapeUserText(employeeName)}</dd>
+                </dl>
+                <dl>
+                    <dt>Основание</dt>
+                    <dd>${escapeUserText(getManualRequestReasonText(request.reason))}</dd>
+                </dl>
+                <dl>
+                    <dt>Дата работы</dt>
+                    <dd>${escapeUserText(formatManualRequestReadableDate(request.workDate, false))}</dd>
+                </dl>
+                <dl>
+                    <dt>Часы</dt>
+                    <dd>${Number(request.hours || 0).toFixed(1)} ч</dd>
+                </dl>
+                <dl>
+                    <dt>Отправлена</dt>
+                    <dd>${escapeUserText(formatManualRequestReadableDate(request.createdAt))}</dd>
+                </dl>
+                <dl>
+                    <dt>Проверка</dt>
+                    <dd>${escapeUserText(request.reviewedAt ? formatManualRequestReadableDate(request.reviewedAt) : "Не проверялась")}</dd>
+                </dl>
             </div>
 
             <div class="manual-request-modal-tabs" role="tablist" aria-label="Вкладки заявки">
@@ -2045,69 +2161,43 @@ function renderManualRequestExpandedDetails(request) {
             </div>
 
             <div class="manual-request-modal-panel is-active" data-tab-panel="overview">
-                <div class="manual-request-modal-grid manual-request-modal-grid-overview">
-                    <div class="manual-request-modal-card">
-                        <h5>Комментарий сотрудника</h5>
-                        <div class="manual-request-note-block">
-                            <span>Текст заявки</span>
-                            <div>${escapeUserText(request.comment || "Комментарий не добавлен.")}</div>
-                        </div>
-                    </div>
+                <div class="manual-request-details-grid">
+                    <section class="manual-request-details-section">
+                        <h5>Что запросил сотрудник</h5>
+                        <div class="manual-request-details-text">${escapeUserText(request.comment || "Комментарий не добавлен.")}</div>
+                    </section>
 
-                    <div class="manual-request-modal-card">
-                        <h5>Файл</h5>
-                        <div class="manual-request-modal-list">
-                            <div class="manual-request-modal-item"><span>Вложение</span><div>${attachmentMarkup}</div></div>
+                    <section class="manual-request-details-section">
+                        <h5>Связанные данные</h5>
+                        <div class="manual-request-details-list">
+                            <div><span>Проект</span><strong>${escapeUserText(projectName)}</strong></div>
+                            <div><span>Задача</span><strong>${escapeUserText(taskName)}</strong></div>
+                            <div><span>Вложение</span><strong>${attachmentMarkup}</strong></div>
                         </div>
-                    </div>
-
-                    <div class="manual-request-modal-card manual-request-modal-card-wide">
-                        <h5>Комментарий менеджера</h5>
-                        <div class="manual-request-note-block">
-                            <span>Решение</span>
-                            <div>${escapeUserText(managerCommentText)}</div>
-                        </div>
-                    </div>
+                    </section>
                 </div>
             </div>
 
             <div class="manual-request-modal-panel" data-tab-panel="review">
-                <div class="manual-request-modal-grid manual-request-modal-grid-review">
-                    <div class="manual-request-modal-card manual-request-review-card">
-                        <h5>Статус проверки</h5>
-                        <div class="manual-request-review-status-row">
-                            ${statusMarkup}
-                            <strong>${escapeUserText(stateInfo.title)}</strong>
-                        </div>
-                        <p>${escapeUserText(stateInfo.text)}</p>
-                    </div>
-
-                    <div class="manual-request-modal-card manual-request-review-card">
-                        <h5>Ключевые даты</h5>
-                        <div class="manual-request-modal-list">
-                            <div class="manual-request-modal-item"><span>Отправлена</span><strong>${escapeUserText(formatManualRequestReadableDate(request.createdAt))}</strong></div>
-                            <div class="manual-request-modal-item"><span>Последняя проверка</span><strong>${escapeUserText(request.reviewedAt ? formatManualRequestReadableDate(request.reviewedAt) : "Ещё не было")}</strong></div>
-                            <div class="manual-request-modal-item"><span>Дата работы</span><strong>${escapeUserText(formatManualRequestReadableDate(request.workDate, false))}</strong></div>
-                        </div>
-                    </div>
-
-                    <div class="manual-request-modal-card manual-request-modal-card-wide manual-request-review-card">
+                <div class="manual-request-details-grid">
+                    <section class="manual-request-details-section">
                         <h5>${escapeUserText(stateInfo.actionTitle)}</h5>
-                        <div class="manual-request-review-next-step">${escapeUserText(stateInfo.actionText)}</div>
-                        <div class="manual-request-note-block">
-                            <span>Комментарий менеджера</span>
-                            <div>${escapeUserText(managerCommentText)}</div>
-                        </div>
+                        <div class="manual-request-details-text is-emphasis">${escapeUserText(stateInfo.actionText)}</div>
+                    </section>
+
+                    <section class="manual-request-details-section">
+                        <h5>Комментарий менеджера</h5>
+                        <div class="manual-request-details-text">${escapeUserText(managerCommentText)}</div>
                         ${canResubmitAction ? `<div class="manual-request-state-actions">${canResubmitAction}</div>` : ""}
-                    </div>
+                    </section>
                 </div>
             </div>
 
             <div class="manual-request-modal-panel" data-tab-panel="history">
-                <div class="manual-request-modal-card">
+                <section class="manual-request-details-section">
                     <h5>История правок и решений</h5>
                     ${getManualRequestHistoryMarkup(request)}
-                </div>
+                </section>
             </div>
         </div>
     `;
@@ -2119,7 +2209,7 @@ function renderManualRequestExpandedSummary(request, canShowActions) {
                 <i class="fas fa-paperclip"></i> ${escapeUserText(request.attachmentName || "Открыть файл")}
            </a>`
         : `<span class="manual-request-muted">Файл не прикреплён</span>`;
-    const managerCommentText = request.managerComment || "Пока решения нет";
+    const managerCommentText = getManualRequestManagerCommentText(request);
     const employeeCommentText = request.comment || "Комментарий не добавлен";
     const quickActions = canShowActions
         ? `
@@ -2379,7 +2469,7 @@ function openManualRequestActionModal(id, actionType) {
         needs_revision: {
             title: "Возврат на доработку",
             label: "Что нужно исправить",
-            hint: "Опиши, что нужно дополнить или переделать, чтобы сотрудник смог отправить заявку повторно.",
+            hint: "Опишите, что нужно дополнить или переделать, чтобы сотрудник смог отправить заявку повторно.",
             submitText: "Вернуть на доработку",
             value: request.managerComment || ""
         },
@@ -2528,6 +2618,8 @@ async function initProfilePage() {
     const roleText = getRoleText(currentUserRole);
     const statusText = getStatusTextFull(currentUserIsActive);
     const rateText = currentUserRate > 0 ? `${currentUserRate.toLocaleString("ru-RU")} руб.` : "—";
+    const profileName = currentUserName || currentUserLogin || currentUserEmail || "Пользователь";
+    const profileInitial = profileName.trim().charAt(0).toUpperCase() || "U";
 
     const setProfileValue = (id, value) => {
         const el = document.getElementById(id);
@@ -2551,6 +2643,10 @@ async function initProfilePage() {
     const profileRoleText = document.getElementById("profileRoleText");
     const profileStatusText = document.getElementById("profileStatusText");
     const profileRateText = document.getElementById("profileRateText");
+    const profileCardName = document.getElementById("profileCardName");
+    const profileCardPosition = document.getElementById("profileCardPosition");
+    const profileCardEmail = document.getElementById("profileCardEmail");
+    const profileAvatarBig = document.getElementById("profileAvatarBig");
 
     if (profileRole) profileRole.value = roleText;
     if (profileStatus) profileStatus.value = statusText;
@@ -2559,6 +2655,10 @@ async function initProfilePage() {
     if (profileRoleText) profileRoleText.textContent = roleText;
     if (profileStatusText) profileStatusText.textContent = statusText;
     if (profileRateText) profileRateText.textContent = rateText;
+    if (profileCardName) profileCardName.textContent = profileName;
+    if (profileCardPosition) profileCardPosition.textContent = currentUserPosition || roleText;
+    if (profileCardEmail) profileCardEmail.textContent = currentUserEmail || currentUserLogin || "—";
+    if (profileAvatarBig) profileAvatarBig.textContent = profileInitial;
 
     try {
         const res = await fetch("/MainPage?handler=Profile");

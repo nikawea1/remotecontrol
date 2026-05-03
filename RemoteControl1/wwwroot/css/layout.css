@@ -425,7 +425,8 @@ body.sidebar-collapsed {
     color: var(--sidebar-foreground);
     border-right: 1px solid var(--sidebar-border);
     box-shadow: none;
-    transition: transform 0.18s ease;
+    overflow-x: hidden;
+    transition: width 0.22s ease, padding 0.22s ease, transform 0.22s ease;
 }
 
 .sidebar-brand-row {
@@ -443,9 +444,13 @@ body.sidebar-collapsed {
     align-items: center;
     flex: 1 1 auto;
     min-width: 0;
+    max-width: 190px;
     gap: 10px;
     color: var(--sidebar-foreground);
     text-decoration: none;
+    overflow: hidden;
+    opacity: 1;
+    transition: max-width 0.22s ease, opacity 0.18s ease, flex-basis 0.22s ease;
 }
 
 .sidebar-brand:hover {
@@ -478,6 +483,7 @@ body.sidebar-collapsed {
     line-height: 1.1;
     letter-spacing: 0;
     white-space: nowrap;
+    transition: width 0.18s ease, opacity 0.18s ease;
 }
 
 .sidebar-collapse-btn,
@@ -541,6 +547,7 @@ body.sidebar-collapsed {
     font-weight: 750;
     line-height: 1;
     white-space: nowrap;
+    transition: width 0.18s ease, opacity 0.18s ease;
 }
 
 .sidebar-link:hover {
@@ -593,6 +600,7 @@ body.sidebar-collapsed {
     min-width: 0;
     margin-left: var(--sidebar-width);
     background: var(--background);
+    transition: margin-left 0.22s ease;
 }
 
 .app-topbar {
@@ -676,7 +684,10 @@ body.sidebar-collapsed .sidebar-brand-row {
 }
 
 body.sidebar-collapsed .sidebar-brand {
-    display: none;
+    flex: 0 0 0;
+    max-width: 0;
+    opacity: 0;
+    pointer-events: none;
 }
 
 body.sidebar-collapsed .sidebar-collapse-btn {

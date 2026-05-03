@@ -1502,3 +1502,342 @@
         min-width: 0;
     }
 }
+
+/* =========================================================
+   TASKS: compact unified cards and clear status categories
+   ========================================================= */
+
+#tasksPage .tasks-deadline-panel {
+    width: 100%;
+    padding: 14px !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    background: #ffffff !important;
+}
+
+#tasksPage .tasks-deadline-panel-head {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 10px 14px !important;
+    align-items: center !important;
+    margin-bottom: 10px !important;
+}
+
+#tasksPage .tasks-deadline-title {
+    min-height: 0 !important;
+}
+
+#tasksPage .tasks-deadline-title span {
+    color: #0f172a !important;
+    font-size: 15px !important;
+    font-weight: 850 !important;
+}
+
+#tasksPage .tasks-deadline-caption {
+    color: #475569 !important;
+    font-size: 13px !important;
+    font-weight: 650 !important;
+    line-height: 1.35 !important;
+}
+
+#tasksPage .tasks-deadline-summary {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px !important;
+}
+
+#tasksPage .tasks-deadline-card {
+    min-height: 72px !important;
+    padding: 10px 12px !important;
+    border: 1px solid #d2dae7 !important;
+    border-radius: 8px !important;
+    background: #f8fafc !important;
+    box-shadow: none !important;
+}
+
+#tasksPage .tasks-deadline-card-head {
+    gap: 8px !important;
+    margin-bottom: 5px !important;
+}
+
+#tasksPage .tasks-deadline-card-title {
+    color: #334155 !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+}
+
+#tasksPage .tasks-deadline-card-icon {
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 8px !important;
+    background: #ffffff !important;
+    border: 1px solid #dbe3ee !important;
+}
+
+#tasksPage .tasks-deadline-card-value {
+    color: #0f172a !important;
+    font-size: 22px !important;
+    font-weight: 850 !important;
+    line-height: 1.05 !important;
+}
+
+#tasksPage .tasks-deadline-card-note {
+    margin-top: 4px !important;
+    color: #475569 !important;
+    font-size: 12px !important;
+    font-weight: 650 !important;
+    line-height: 1.25 !important;
+}
+
+#tasksPage .tasks-period-group,
+#tasksPage .task-list-item,
+#tasksPage .task-detail-section,
+#tasksPage .task-detail-note {
+    border-color: #cbd5e1 !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+}
+
+#tasksPage .tasks-period-toggle {
+    min-height: 58px !important;
+    padding: 12px 14px !important;
+}
+
+#tasksPage .tasks-period-icon,
+#tasksPage .tasks-period-chevron {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 8px !important;
+}
+
+#tasksPage .tasks-period-summary,
+#tasksPage .tasks-period-pill,
+#tasksPage .task-list-inline-meta-item {
+    color: #475569 !important;
+}
+
+#tasksPage .tasks-period-body {
+    gap: 10px !important;
+    padding: 12px !important;
+    background: #f8fafc !important;
+}
+
+#tasksPage .task-list-main {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 400px) !important;
+    padding: 12px 14px !important;
+    gap: 14px !important;
+}
+
+#tasksPage .task-list-indicator {
+    width: 4px !important;
+    min-height: 58px !important;
+    border-radius: 8px !important;
+}
+
+#tasksPage .task-list-title {
+    color: #0f172a !important;
+    font-size: 16px !important;
+    font-weight: 850 !important;
+}
+
+#tasksPage .task-priority-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 30px;
+    max-width: 100%;
+    padding: 5px 9px;
+    border: 1px solid #d2dae7;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 750;
+    line-height: 1.2;
+}
+
+#tasksPage .task-priority-chip i {
+    font-size: 11px;
+    color: currentColor;
+}
+
+#tasksPage .task-priority-chip span {
+    color: #64748b;
+}
+
+#tasksPage .task-priority-chip strong {
+    color: #0f172a;
+}
+
+#tasksPage .task-priority-chip.priority-high,
+#tasksPage .task-priority-chip.badge-high,
+#tasksPage .task-priority-chip.badge-danger {
+    border-color: #f1b8b8;
+    background: #fff7f7;
+    color: #b42318;
+}
+
+#tasksPage .task-priority-chip.priority-medium,
+#tasksPage .task-priority-chip.badge-medium,
+#tasksPage .task-priority-chip.badge-warning {
+    border-color: #e6c37d;
+    background: #fffaf0;
+    color: #92400e;
+}
+
+#tasksPage .task-priority-chip.priority-low,
+#tasksPage .task-priority-chip.badge-low,
+#tasksPage .task-priority-chip.badge-success {
+    border-color: #b8dcc5;
+    background: #f4fbf6;
+    color: #166534;
+}
+
+#tasksPage .task-list-inline-meta-item {
+    padding: 4px 8px !important;
+    border-radius: 8px !important;
+    background: #ffffff !important;
+}
+
+#tasksPage .task-list-aside {
+    grid-template-columns: minmax(0, 1fr) minmax(150px, 170px) !important;
+    gap: 10px !important;
+}
+
+#tasksPage .task-list-metrics {
+    gap: 8px !important;
+}
+
+#tasksPage .task-list-metric {
+    min-height: 50px !important;
+    padding: 8px 10px !important;
+    border-color: #d2dae7 !important;
+    border-radius: 8px !important;
+    background: #ffffff !important;
+}
+
+#tasksPage .task-list-metric span {
+    color: #64748b !important;
+    font-size: 11px !important;
+    font-weight: 750 !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+}
+
+#tasksPage .task-list-metric strong {
+    color: #0f172a !important;
+    font-size: 14px !important;
+}
+
+#tasksPage .task-list-status-block {
+    display: grid;
+    gap: 5px;
+}
+
+#tasksPage .task-list-status-block > span {
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+#tasksPage .task-list-side .task-status,
+#tasksPage .task-status-badge {
+    min-height: 34px !important;
+    border-radius: 8px !important;
+}
+
+#tasksPage .task-detail-panel {
+    gap: 12px !important;
+    padding: 14px !important;
+}
+
+#tasksPage .task-detail-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(210px, 280px);
+    gap: 12px;
+    align-items: stretch;
+    padding: 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+#tasksPage .task-detail-title {
+    display: grid;
+    gap: 6px;
+}
+
+#tasksPage .task-detail-title span {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+#tasksPage .task-detail-title h4 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 20px;
+    font-weight: 850;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+#tasksPage .task-detail-title p {
+    margin: 0;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 650;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+#tasksPage .task-detail-state {
+    display: grid;
+    gap: 8px;
+    align-content: start;
+    padding: 10px;
+    border: 1px solid #d2dae7;
+    border-radius: 8px;
+    background: #f8fafc;
+}
+
+#tasksPage .task-detail-state .task-priority-chip,
+#tasksPage .task-detail-state .task-status,
+#tasksPage .task-detail-state .task-status-badge {
+    width: 100%;
+}
+
+#tasksPage .task-detail-heading {
+    padding-left: 0 !important;
+    color: #0f172a !important;
+    font-size: 14px !important;
+}
+
+#tasksPage .task-detail-heading::before {
+    display: none !important;
+}
+
+#tasksPage .task-detail-note-body {
+    color: #1f2937 !important;
+}
+
+@media (max-width: 1180px) {
+    #tasksPage .tasks-deadline-summary {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 1100px) {
+    #tasksPage .task-list-main,
+    #tasksPage .task-list-aside,
+    #tasksPage .task-detail-hero {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 680px) {
+    #tasksPage .tasks-deadline-summary {
+        grid-template-columns: 1fr;
+    }
+}

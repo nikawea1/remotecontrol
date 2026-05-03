@@ -12,7 +12,7 @@
             </span>
             <div>
                 <h1 class="page-title">Настройки</h1>
-                <p class="page-subtitle">Общие параметры интерфейса, уведомлений и рабочего процесса.</p>
+                <p class="page-subtitle">Параметры интерфейса, уведомлений и рабочего процесса, которые применяются сразу.</p>
             </div>
         </div>
     </div>
@@ -29,21 +29,24 @@
 
             <div class="settings-row">
                 <div>
-                    <div class="settings-row-title">Тёмная тема</div>
-                    <div class="settings-row-text">Полное переключение палитры на темную.</div>
+                    <div class="settings-row-title">Повышенный контраст</div>
+                    <div class="settings-row-text">Усиливает границы карточек, таблиц и полей, чтобы блоки лучше отделялись друг от друга.</div>
                 </div>
-                <button class="btn btn-outline" type="button" onclick="toggleThemePlaceholder()">
-                    <i class="fas fa-moon"></i>
-                    Скоро
+                <button class="btn btn-outline" type="button" id="settingsContrastToggle" onclick="toggleHighContrastMode()">
+                    <i class="fas fa-circle-half-stroke"></i>
+                    Включить
                 </button>
             </div>
 
             <div class="settings-row">
                 <div>
                     <div class="settings-row-title">Плотность интерфейса</div>
-                    <div class="settings-row-text">Карточки, таблицы и формы</div>
+                    <div class="settings-row-text">Уменьшает высоту карточек, строк таблиц и рабочих списков на больших экранах.</div>
                 </div>
-                <span class="settings-status-pill">Стандарт</span>
+                <button class="btn btn-outline" type="button" id="settingsCompactToggle" onclick="toggleCompactDensity()">
+                    <i class="fas fa-compress"></i>
+                    Включить
+                </button>
             </div>
         </section>
 
@@ -111,7 +114,7 @@
                     <i class="far fa-user"></i>
                     Профиль и доступ
                 </h2>
-                <span class="settings-card-badge">Аккаунт</span>
+                <span class="settings-card-badge">Доступ</span>
             </div>
 
             <div class="settings-row">

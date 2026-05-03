@@ -3609,3 +3609,536 @@ table td {
         justify-content: flex-start !important;
     }
 }
+
+/* =========================================================
+   Unified interface final pass
+   ========================================================= */
+
+body.ui-contrast-strong {
+    --border: #cbd5e1;
+    --border-dark: #94a3b8;
+    --muted-foreground: #334155;
+    --gray: #475569;
+    --surface-soft: #f8fafc;
+}
+
+body.ui-contrast-strong .card,
+body.ui-contrast-strong .stat-card,
+body.ui-contrast-strong .report-card,
+body.ui-contrast-strong .report-panel,
+body.ui-contrast-strong .settings-card,
+body.ui-contrast-strong .table-container,
+body.ui-contrast-strong .modal-content,
+body.ui-contrast-strong .project-card,
+body.ui-contrast-strong .task-list-item,
+body.ui-contrast-strong .tasks-period-group,
+body.ui-contrast-strong .tasks-deadline-card,
+body.ui-contrast-strong .manual-request-card {
+    border-color: #cbd5e1 !important;
+    box-shadow: none !important;
+}
+
+body.ui-density-compact .card,
+body.ui-density-compact .report-card,
+body.ui-density-compact .settings-card {
+    padding: 16px !important;
+}
+
+body.ui-density-compact .stat-card {
+    min-height: 76px !important;
+    padding: 14px !important;
+}
+
+body.ui-density-compact .table th,
+body.ui-density-compact .table td {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+}
+
+.card,
+.stat-card,
+.report-card,
+.report-panel,
+.settings-card,
+.table-container,
+.modal-content,
+.form-control,
+.filter-select,
+.filter-input {
+    border-color: #cbd5e1 !important;
+    border-radius: 8px !important;
+}
+
+.card,
+.stat-card,
+.report-card,
+.report-panel,
+.settings-card,
+.table-container {
+    box-shadow: none !important;
+}
+
+.admin-tabs {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    padding: 6px !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    background: #f8fafc !important;
+}
+
+.admin-tab-btn,
+.reports-menu-link,
+.report-period-btn {
+    min-height: 40px !important;
+    border: 1px solid transparent !important;
+    border-radius: 6px !important;
+    box-shadow: none !important;
+}
+
+.admin-tab-btn {
+    background: transparent !important;
+    color: #334155 !important;
+}
+
+.admin-tab-btn.active,
+.reports-menu-link.active,
+.report-period-btn.active {
+    background: #ffffff !important;
+    color: var(--primary-dark) !important;
+    border-color: #cbd5e1 !important;
+}
+
+.settings-row {
+    border-color: #cbd5e1 !important;
+    border-radius: 8px !important;
+}
+
+.settings-row .btn.is-active {
+    background: var(--primary) !important;
+    color: #ffffff !important;
+    border-color: var(--primary) !important;
+}
+
+body.sidebar-collapsed .sidebar-brand {
+    display: inline-flex !important;
+    flex: 0 0 0 !important;
+    max-width: 0 !important;
+    opacity: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+}
+
+body.sidebar-collapsed .sidebar-nav-section-label {
+    display: block !important;
+    width: 0 !important;
+    max-height: 0 !important;
+    margin: 0 !important;
+    opacity: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+}
+
+body.sidebar-collapsed .sidebar-nav-divider {
+    margin: 10px 14px !important;
+}
+
+.app-sidebar,
+.app-main,
+.sidebar-brand,
+.sidebar-brand-text,
+.sidebar-link span,
+.sidebar-nav-section-label {
+    transition-duration: 0.22s !important;
+    transition-timing-function: ease !important;
+}
+
+#usersPage .control-issues-panel {
+    display: grid;
+    gap: 14px;
+    padding: 16px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+#usersPage .control-issues-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+#usersPage .control-issues-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+#usersPage .control-issues-heading strong {
+    display: block;
+    color: #0f172a;
+    font-size: 16px;
+    font-weight: 850;
+    line-height: 1.2;
+}
+
+#usersPage .control-issues-heading span:not(.control-issues-icon) {
+    display: block;
+    margin-top: 3px;
+    color: #475569;
+    font-size: 13px;
+    line-height: 1.35;
+}
+
+#usersPage .control-issues-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #f8fafc;
+    color: #334155;
+}
+
+#usersPage .control-issues-danger { color: #b42318; background: #fff1f0; border-color: #fecaca; }
+#usersPage .control-issues-warning { color: #92400e; background: #fffbeb; border-color: #fde68a; }
+#usersPage .control-issues-info { color: #1d4ed8; background: #eff6ff; border-color: #bfdbfe; }
+#usersPage .control-issues-success { color: #047857; background: #ecfdf5; border-color: #bbf7d0; }
+
+#usersPage .control-issues-select {
+    min-width: 250px;
+}
+
+#usersPage .control-issues-list,
+#usersPage .control-issues-more-list {
+    display: grid;
+    gap: 8px;
+}
+
+#usersPage .control-issue-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    min-height: 54px;
+    padding: 10px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #f8fafc;
+}
+
+#usersPage .control-issue-person {
+    min-width: 0;
+}
+
+#usersPage .control-issue-person strong {
+    display: block;
+    overflow: hidden;
+    color: #0f172a;
+    font-size: 14px;
+    font-weight: 820;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#usersPage .control-issue-person span {
+    display: block;
+    margin-top: 4px;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 650;
+}
+
+#usersPage .control-issue-role {
+    flex: 0 0 auto;
+    padding: 6px 9px;
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 750;
+    white-space: nowrap;
+}
+
+#usersPage .control-issues-more {
+    margin-top: 2px;
+}
+
+#usersPage .control-issues-more summary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 7px 11px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #334155;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 750;
+}
+
+#usersPage .control-issues-more-list {
+    margin-top: 8px;
+}
+
+#usersPage .control-issues-empty {
+    padding: 14px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 8px;
+    color: #475569;
+    font-weight: 700;
+    text-align: center;
+}
+
+#usersPage #manualRequestsTable.admin-manual-requests-table {
+    min-width: 1180px !important;
+    table-layout: fixed !important;
+}
+
+#usersPage #manualRequestsTable.admin-manual-requests-table col:nth-child(1) { width: 4% !important; }
+#usersPage #manualRequestsTable.admin-manual-requests-table col:nth-child(2) { width: 8% !important; }
+#usersPage #manualRequestsTable.admin-manual-requests-table col:nth-child(3) { width: 14% !important; }
+#usersPage #manualRequestsTable.admin-manual-requests-table col:nth-child(4) { width: 10% !important; }
+#usersPage #manualRequestsTable.admin-manual-requests-table col:nth-child(5) { width: 5% !important; }
+#usersPage #manualRequestsTable.admin-manual-requests-table col:nth-child(6) { width: 9% !important; }
+#usersPage #manualRequestsTable.admin-manual-requests-table col:nth-child(7) { width: 5% !important; }
+#usersPage #manualRequestsTable.admin-manual-requests-table col:nth-child(8) { width: 13% !important; }
+#usersPage #manualRequestsTable.admin-manual-requests-table col:nth-child(9) { width: 16% !important; }
+#usersPage #manualRequestsTable.admin-manual-requests-table col:nth-child(10) { width: 16% !important; }
+
+#usersPage #manualRequestsTable.admin-manual-requests-table th,
+#usersPage #manualRequestsTable.admin-manual-requests-table td {
+    padding: 10px 6px !important;
+    line-height: 1.25 !important;
+}
+
+#usersPage #manualRequestsTable.admin-manual-requests-table th:nth-child(1),
+#usersPage #manualRequestsTable.admin-manual-requests-table td:nth-child(1) { width: 4% !important; }
+#usersPage #manualRequestsTable.admin-manual-requests-table th:nth-child(2),
+#usersPage #manualRequestsTable.admin-manual-requests-table td:nth-child(2) { width: 8% !important; }
+#usersPage #manualRequestsTable.admin-manual-requests-table th:nth-child(3),
+#usersPage #manualRequestsTable.admin-manual-requests-table td:nth-child(3) { width: 14% !important; }
+#usersPage #manualRequestsTable.admin-manual-requests-table th:nth-child(4),
+#usersPage #manualRequestsTable.admin-manual-requests-table td:nth-child(4) { width: 10% !important; }
+#usersPage #manualRequestsTable.admin-manual-requests-table th:nth-child(5),
+#usersPage #manualRequestsTable.admin-manual-requests-table td:nth-child(5) { width: 5% !important; }
+#usersPage #manualRequestsTable.admin-manual-requests-table th:nth-child(6),
+#usersPage #manualRequestsTable.admin-manual-requests-table td:nth-child(6) { width: 9% !important; }
+#usersPage #manualRequestsTable.admin-manual-requests-table th:nth-child(7),
+#usersPage #manualRequestsTable.admin-manual-requests-table td:nth-child(7) { width: 5% !important; }
+#usersPage #manualRequestsTable.admin-manual-requests-table th:nth-child(8),
+#usersPage #manualRequestsTable.admin-manual-requests-table td:nth-child(8) { width: 13% !important; }
+#usersPage #manualRequestsTable.admin-manual-requests-table th:nth-child(9),
+#usersPage #manualRequestsTable.admin-manual-requests-table td:nth-child(9) { width: 16% !important; }
+#usersPage #manualRequestsTable.admin-manual-requests-table th:nth-child(10),
+#usersPage #manualRequestsTable.admin-manual-requests-table td:nth-child(10) {
+    width: 16% !important;
+    overflow: visible !important;
+    text-align: left !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
+}
+
+#usersPage #manualRequestsTable.admin-manual-requests-table th:nth-child(8),
+#usersPage #manualRequestsTable.admin-manual-requests-table td:nth-child(8),
+#usersPage #manualRequestsTable.admin-manual-requests-table th:nth-child(9),
+#usersPage #manualRequestsTable.admin-manual-requests-table td:nth-child(9) {
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+}
+
+#usersPage #manualRequestsTable.admin-manual-requests-table .manual-request-status-badge,
+#usersPage #manualRequestsTable.admin-manual-requests-table .manual-date,
+#usersPage #manualRequestsTable.admin-manual-requests-table .manual-date-day,
+#usersPage #manualRequestsTable.admin-manual-requests-table .manual-date-time {
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+}
+
+#usersPage #manualRequestsTable.admin-manual-requests-table .manual-request-status-badge {
+    display: inline-flex !important;
+    width: 100% !important;
+    min-height: 32px !important;
+    padding: 6px 8px !important;
+    line-height: 1.15 !important;
+}
+
+#usersPage #manualRequestsTable.admin-manual-requests-table .manual-date,
+#usersPage #manualRequestsTable.admin-manual-requests-table .manual-date-day,
+#usersPage #manualRequestsTable.admin-manual-requests-table .manual-date-time {
+    display: block !important;
+    width: 100% !important;
+    line-height: 1.25 !important;
+}
+
+#usersPage #manualRequestsTable .manual-request-actions,
+#usersPage #manualRequestsTable .table-actions {
+    justify-content: flex-start !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+}
+
+.report-visual-layout {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+}
+
+.report-period-rail {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    border-radius: 8px !important;
+    background: #ffffff !important;
+}
+
+.report-period-btn {
+    width: auto !important;
+    min-width: 116px !important;
+    justify-content: center !important;
+    text-align: center !important;
+}
+
+.bonus-reason-panel p,
+.bonus-factor strong {
+    overflow-wrap: anywhere !important;
+}
+
+#tasksPage .tasks-deadline-card,
+#tasksPage .tasks-period-group,
+#tasksPage .task-list-item,
+#tasksPage .task-detail-hero,
+#tasksPage .task-detail-section,
+#tasksPage .task-detail-note {
+    border-color: #cbd5e1 !important;
+    border-radius: 8px !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+}
+
+#tasksPage .tasks-deadline-card {
+    min-height: 92px !important;
+    padding: 12px !important;
+}
+
+#tasksPage .tasks-deadline-card-value {
+    font-size: 24px !important;
+}
+
+#tasksPage .tasks-deadline-card-note,
+#tasksPage .tasks-period-count,
+#tasksPage .task-list-subtitle,
+#tasksPage .task-list-inline-meta-item,
+#tasksPage .task-detail-meta {
+    color: #475569 !important;
+}
+
+#tasksPage .task-card-expand {
+    background: #f8fafc !important;
+}
+
+#tasksPage .task-detail-section::before,
+#tasksPage .task-detail-note::before {
+    display: none !important;
+}
+
+#projectsPage .project-card,
+#projectsPage .project-detail-hero,
+#projectViewModal .project-view-hero,
+#projectViewModal .project-summary-card,
+#projectViewModal .project-action-card,
+#projectViewModal .stage-section,
+#projectViewModal .project-task-row,
+#projectModal .modal-content,
+#taskModal .modal-content {
+    border-color: #cbd5e1 !important;
+    border-radius: 8px !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+}
+
+#projectsPage .project-card,
+#projectViewModal .project-view-hero,
+#projectViewModal .project-card,
+#projectModal .modal-content,
+#taskModal .modal-content {
+    background-image: none !important;
+}
+
+#projectsPage .project-card:hover {
+    transform: none !important;
+    border-color: #94a3b8 !important;
+}
+
+#projectsPage .project-title,
+#projectViewModal .project-view-title,
+#projectViewModal .project-task-title {
+    color: #0f172a !important;
+    font-weight: 850 !important;
+}
+
+#projectsPage .project-description,
+#projectViewModal .project-view-description {
+    color: #475569 !important;
+}
+
+#projectsPage .project-stage-preview-chip,
+#projectViewModal .timeline-step,
+#projectViewModal .stage-section-actions .btn,
+#projectViewModal .project-stage-task-actions .btn {
+    border-radius: 8px !important;
+}
+
+.tracker-history-card,
+.session-history-item,
+.session-history-duration {
+    border-color: #cbd5e1 !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+}
+
+#profilePage .page-content > div[style*="grid-template-columns"] {
+    grid-template-columns: 320px minmax(0, 1fr) !important;
+}
+
+#profilePage .project-stat,
+#profilePage .setting-item {
+    border-color: #cbd5e1 !important;
+    border-radius: 8px !important;
+    background: #f8fafc !important;
+}
+
+#profilePage #profileCardName {
+    color: #0f172a !important;
+    font-size: 20px !important;
+    font-weight: 850 !important;
+}
+
+@media (max-width: 980px) {
+    #usersPage .control-issues-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    #usersPage .control-issues-select {
+        min-width: 0;
+        width: 100%;
+    }
+
+    #profilePage .page-content > div[style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+    }
+
+    .report-period-btn {
+        flex: 1 1 140px !important;
+    }
+}

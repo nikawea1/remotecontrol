@@ -169,26 +169,6 @@ function renderProjects() {
                         ${project.projectTypeName || "Проект"}
                     </div>
                 </div>
-
-                ${!isEmployee ? `
-                    <div class="project-header-actions" onclick="event.stopPropagation()">
-                        <button
-                            class="btn btn-sm btn-outline"
-                            type="button"
-                            title="Редактировать проект"
-                            onclick="openEditProjectModal(${project.id})">
-                            <i class="fas fa-pen-to-square"></i>
-                        </button>
-
-                        <button
-                            class="btn btn-sm btn-danger"
-                            type="button"
-                            title="Удалить проект"
-                            onclick="openDeleteProjectModal(${project.id})">
-                            <i class="fas fa-trash-can"></i>
-                        </button>
-                    </div>
-                ` : ""}
             </div>
 
             <div class="project-desc">
@@ -209,7 +189,6 @@ function renderProjects() {
                 <div class="metric-box">
                     <div class="label">Текущий этап</div>
                     <div class="value">${currentStageLabel}</div>
-                    <div class="sub">${currentStagePercent}% завершено</div>
                 </div>
             </div>
 
@@ -229,19 +208,17 @@ function renderProjects() {
                 <div class="stages-preview-list">
                     ${(project.stageNames && project.stageNames.length)
                         ? `
-                            ${project.stageNames.slice(0, 4).map(stage => `
+                            ${project.stageNames.slice(0, 3).map(stage => `
                                 <span class="stage-chip">
-                                    <i class="fas fa-circle" style="font-size:8px;color:var(--primary)"></i>
                                     ${stage}
                                 </span>
                             `).join("")}
-                            ${project.stageNames.length > 4 ? `
-                                <span class="stage-chip">+${project.stageNames.length - 4}</span>
+                            ${project.stageNames.length > 3 ? `
+                                <span class="stage-chip">+${project.stageNames.length - 3}</span>
                             ` : ""}
                         `
                         : `
                             <span class="stage-chip">
-                                <i class="fas fa-circle" style="font-size:8px;color:var(--primary)"></i>
                                 Этапы не заданы
                             </span>
                         `
@@ -250,20 +227,36 @@ function renderProjects() {
             </div>
 
             <div class="project-card-bottom">
-                <div class="project-card-meta">
-                    <span class="tiny-pill is-secondary">
-                        <i class="fas fa-signal"></i>
-                        ${statusText}
-                    </span>
+                <div class="project-card-actions" onclick="event.stopPropagation()">
+                    <button
+                        class="btn btn-sm btn-outline"
+                        type="button"
+                        title="Открыть подробности"
+                        onclick="showProjectDetails(${project.id})">
+                        <i class="fas fa-arrow-up-right-from-square"></i>
+                    </button>
 
-                    <span class="tiny-pill is-secondary">
-                        <i class="fas fa-user-group"></i>
-                        ${project.membersCount || 0}
-                    </span>
+                    ${!isEmployee ? `
+                        <button
+                            class="btn btn-sm btn-outline"
+                            type="button"
+                            title="Редактировать проект"
+                            onclick="openEditProjectModal(${project.id})">
+                            <i class="fas fa-pen-to-square"></i>
+                        </button>
+
+                        <button
+                            class="btn btn-sm btn-danger"
+                            type="button"
+                            title="Удалить проект"
+                            onclick="openDeleteProjectModal(${project.id})">
+                            <i class="fas fa-trash-can"></i>
+                        </button>
+                    ` : ""}
                 </div>
 
-                <span class="project-open-indicator" aria-hidden="true">
-                    <i class="fas fa-angle-right"></i>
+                <span class="project-card-status">
+                    ${statusText} · команда ${project.membersCount || 0}
                 </span>
             </div>
         </div>
@@ -1107,25 +1100,25 @@ function showProjectDetails(id) {
                 <div class="summary-mini">
                     <div class="label">Общий прогресс</div>
                     <div class="value">${progress}%</div>
-                    <div class="sub">по задачам проекта</div>
+                    <div class="sub">Готовность по задачам</div>
                 </div>
 
                 <div class="summary-mini">
                     <div class="label">Текущий этап</div>
                     <div class="value">${currentStage ? `${currentStage.name} · ${currentStage.progress}%` : "—"}</div>
-                    <div class="sub">первый незавершённый этап</div>
+                    <div class="sub">Первый незавершённый этап</div>
                 </div>
 
                 <div class="summary-mini">
                     <div class="label">Следующий этап</div>
                     <div class="value">${nextStage ? nextStage.name : "—"}</div>
-                    <div class="sub">идёт после текущего</div>
+                    <div class="sub">После текущего этапа</div>
                 </div>
 
                 <div class="summary-mini">
                     <div class="label">Задач завершено</div>
                     <div class="value">${doneTasks} / ${projectTasks.length}</div>
-                    <div class="sub">локальная сводка</div>
+                    <div class="sub">Состояние задач проекта</div>
                 </div>
             </div>
         </div>
@@ -1135,16 +1128,24 @@ function showProjectDetails(id) {
         <div class="detail-block">
             <h3 class="detail-block-title">
                 <i class="fas fa-bolt"></i>
-                Быстрые действия
+                Действия с проектом
             </h3>
 
             <div class="action-grid">
                 ${!isEmployee ? `
+                    <div class="action-card" onclick="openEditProjectModal(${project.id})" style="cursor:pointer;">
+                        <i class="fas fa-pen-to-square"></i>
+                        <div>
+                            <strong>Редактировать проект</strong>
+                            <span>Название, описание, команда и этапы</span>
+                        </div>
+                    </div>
+
                     <div class="action-card" onclick="showAddTaskModal(${project.id}, '${selectedProjectStageFilter ? selectedProjectStageFilter.replace(/'/g, "\\'") : ""}')" style="cursor:pointer;">
                         <i class="fas fa-plus"></i>
                         <div>
                             <strong>Добавить задачу</strong>
-                            <span>Сразу в нужный этап проекта</span>
+                            <span>Создать задачу в выбранном этапе</span>
                         </div>
                     </div>
 
@@ -1155,6 +1156,14 @@ function showProjectDetails(id) {
                             <span>Добавить, удалить, переименовать, перенести</span>
                         </div>
                     </div>
+
+                    <div class="action-card is-danger" onclick="openDeleteProjectModal(${project.id})" style="cursor:pointer;">
+                        <i class="fas fa-trash-can"></i>
+                        <div>
+                            <strong>Удалить проект</strong>
+                            <span>Удаление вместе со связанными задачами</span>
+                        </div>
+                    </div>
                 ` : ""}
 
                 <div class="action-card" onclick="setProjectStageFilter(${project.id}, '')" style="cursor:pointer;">
@@ -1162,46 +1171,6 @@ function showProjectDetails(id) {
                     <div>
                         <strong>Показать все этапы</strong>
                         <span>Сбросить текущий фильтр этапа</span>
-                    </div>
-                </div>
-
-                <div class="action-card future-action">
-                    <i class="fas fa-user-group"></i>
-                    <div>
-                        <strong>Состав команды</strong>
-                        <span>Подключить участников проекта</span>
-                    </div>
-                </div>
-
-                <div class="action-card future-action">
-                    <i class="fas fa-file-export"></i>
-                    <div>
-                        <strong>Экспорт по проекту</strong>
-                        <span>Выгрузка задач, часов и сводки</span>
-                    </div>
-                </div>
-
-                <div class="action-card future-action">
-                    <i class="fas fa-arrows-up-down-left-right"></i>
-                    <div>
-                        <strong>Перенос задач</strong>
-                        <span>Потом сюда можно добавить drag & drop</span>
-                    </div>
-                </div>
-
-                <div class="action-card future-action">
-                    <i class="fas fa-calendar-days"></i>
-                    <div>
-                        <strong>Календарь проекта</strong>
-                        <span>События, митапы и дедлайны</span>
-                    </div>
-                </div>
-
-                <div class="action-card future-action">
-                    <i class="fas fa-triangle-exclamation"></i>
-                    <div>
-                        <strong>Риски и просрочки</strong>
-                        <span>Сводка проблемных задач</span>
                     </div>
                 </div>
             </div>
@@ -1215,7 +1184,7 @@ function showProjectDetails(id) {
                 Этапы проекта
             </div>
 
-            <div class="inline-pills" style="margin-bottom:14px;">
+            <div class="project-stage-filter-row">
                 <button
                     class="btn ${!selectedProjectStageFilter ? "btn-primary" : "btn-outline"}"
                     type="button"
@@ -1223,14 +1192,7 @@ function showProjectDetails(id) {
                     Все этапы
                 </button>
 
-                ${tasksByStages.map(stage => `
-                    <button
-                        class="btn ${selectedProjectStageFilter === stage.name ? "btn-primary" : "btn-outline"}"
-                        type="button"
-                        onclick="setProjectStageFilter(${project.id}, '${stage.name.replace(/'/g, "\\'")}')">
-                        ${stage.name}
-                    </button>
-                `).join("")}
+                ${selectedProjectStageFilter ? `<span class="tiny-pill">Показан этап: ${selectedProjectStageFilter}</span>` : ""}
             </div>
 
             <div class="stage-timeline">
@@ -1250,14 +1212,14 @@ function showProjectDetails(id) {
         }
 
         const stageStatusText = cls === "done"
-            ? "Готов"
+            ? "Завершён"
             : cls === "current"
-                ? "Текущий"
+                ? "Текущий этап"
                 : cls === "next"
                     ? "Следующий"
                     : cls === "empty"
-                        ? "Без задач"
-                        : "В очереди";
+                        ? "Нет задач"
+                        : "Запланирован";
 
         return `
                         <div class="timeline-step ${cls}" style="cursor:pointer;" onclick="setProjectStageFilter(${project.id}, '${stage.name.replace(/'/g, "\\'")}')">
@@ -1298,7 +1260,23 @@ function showProjectDetails(id) {
                                     <div class="stage-section-sub">Завершено задач: ${stage.done} из ${stage.total}</div>
                                 </div>
 
-                                <div class="local-progress-pill">${stage.progress}%</div>
+                                <div class="stage-section-actions">
+                                    <div class="local-progress-pill">${stage.progress}%</div>
+
+                                    <button
+                                        class="btn btn-sm ${selectedProjectStageFilter === stage.name ? "btn-primary" : "btn-outline"}"
+                                        type="button"
+                                        title="Показать задачи этого этапа"
+                                        onclick="setProjectStageFilter(${project.id}, '${stage.name.replace(/'/g, "\\'")}')">
+                                        <i class="fas fa-filter"></i>
+                                    </button>
+
+                                    ${!isEmployee ? `
+                                        <button class="btn btn-sm btn-outline" type="button" title="Добавить задачу в этап" onclick="showAddTaskModal(${project.id}, '${stage.name.replace(/'/g, "\\'")}')">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    ` : ""}
+                                </div>
                             </div>
 
                             <div class="progress-bar">
@@ -1333,7 +1311,7 @@ function showProjectDetails(id) {
                                                     </button>
                                                 ` : ""}
 
-                                                ${(isEmployee || isAdmin || isManager) ? `
+                                                ${(isEmployee || isAdmin || isManager) && task.status !== "done" ? `
                                                     <button class="btn btn-sm btn-success" type="button" title="Запустить задачу"
                                                         onclick="event.stopPropagation(); startTask(${task.id})">
                                                         <i class="fas fa-play"></i>
@@ -1356,28 +1334,6 @@ function showProjectDetails(id) {
         }
                             </div>
 
-                            <div class="stage-tools">
-                                <div class="inline-pills">
-                                    <button
-                                        class="btn ${selectedProjectStageFilter === stage.name ? "btn-primary" : "btn-outline"}"
-                                        type="button"
-                                        onclick="setProjectStageFilter(${project.id}, '${stage.name.replace(/'/g, "\\'")}')">
-                                        <i class="fas fa-filter"></i>
-                                        Только этот этап
-                                    </button>
-
-                                    <span class="tiny-pill">
-                                        <i class="fas fa-list-check"></i>
-                                        ${stage.total} задач
-                                    </span>
-                                </div>
-
-                                ${!isEmployee ? `
-                                    <button class="btn btn-outline" type="button" onclick="showAddTaskModal(${project.id}, '${stage.name.replace(/'/g, "\\'")}')">
-                                        Добавить задачу в этап
-                                    </button>
-                                ` : ""}
-                            </div>
                         </div>
                     </div>
                 `).join("")}
@@ -1394,9 +1350,14 @@ function showProjectDetails(id) {
                 </div>
 
                 ${!isEmployee ? `
-                    <button class="btn btn-outline" type="button" onclick="event.stopPropagation(); openEditProjectModal(${project.id})">
-                        <i class="fas fa-pen-to-square"></i> Редактировать
-                    </button>
+                    <div class="detail-hero-actions">
+                        <button class="btn btn-outline" type="button" onclick="event.stopPropagation(); openEditProjectModal(${project.id})">
+                            <i class="fas fa-pen-to-square"></i> Редактировать
+                        </button>
+                        <button class="btn btn-danger" type="button" onclick="event.stopPropagation(); openDeleteProjectModal(${project.id})">
+                            <i class="fas fa-trash-can"></i> Удалить
+                        </button>
+                    </div>
                 ` : ""}
             </div>
 
@@ -1439,7 +1400,7 @@ function showProjectDetails(id) {
     const modal = document.getElementById("projectViewModal");
 
     if (title) {
-        title.textContent = project.name;
+        title.textContent = "Подробности проекта";
     }
 
     if (content) {

@@ -583,8 +583,7 @@ namespace RemoteControl1.Services
             var bonusPercent = metrics.BonusPercent;
             var bonusReason = metrics.BonusReason;
 
-            var rate = selectedUser?.HourlyRate ?? 0;
-            var bonusAmount = Math.Round(actualHours * rate * bonusPercent / 100m, 2);
+            var bonusAmount = CalculateBonusAmount(scopedLogs, scopedWorkDays, allUsers, selectedUser, bonusPercent);
 
             return new ReportsVm
             {
@@ -2234,6 +2233,7 @@ namespace RemoteControl1.Services
         {
             return new ReportEntryVm
             {
+                TaskId = a.TaskItemId,
                 Date = (a.EndedAtUtc ?? a.StartedAtUtc).ToLocalTime().ToString("dd.MM.yyyy HH:mm"),
                 Task = a.TaskItem?.Title ?? "Без задачи",
                 Project = a.TaskItem?.Project?.Name ?? "Без проекта",
@@ -2313,6 +2313,46 @@ namespace RemoteControl1.Services
                 "review" => true,
                 _ => false
             };
+        }
+
+        private static decimal CalculateBonusAmount(
+            List<ActivityLog> taskLogs,
+            List<ActivityLog> workDayLogs,
+            List<User> users,
+            User? selectedUser,
+            int bonusPercent)
+        {
+            if (bonusPercent <= 0)
+                return 0m;
+
+            var ratesByUserId = users.ToDictionary(x => x.Id, x => x.HourlyRate);
+            var taskHoursByUser = taskLogs
+                .GroupBy(x => x.UserId)
+                .ToDictionary(g => g.Key, g => Math.Round(g.Sum(x => x.DurationHours), 2));
+            var workHoursByUser = workDayLogs
+                .GroupBy(x => x.UserId)
+                .ToDictionary(g => g.Key, g => Math.Round(g.Sum(x => x.TrackedHours), 2));
+            var userIds = taskHoursByUser.Keys
+                .Concat(workHoursByUser.Keys)
+                .Distinct()
+                .ToList();
+
+            if (userIds.Count == 0 && selectedUser != null)
+                userIds.Add(selectedUser.Id);
+
+            var amount = 0m;
+
+            foreach (var userId in userIds)
+            {
+                var taskHours = taskHoursByUser.TryGetValue(userId, out var logged) ? logged : 0m;
+                var workHours = workHoursByUser.TryGetValue(userId, out var worked) ? worked : 0m;
+                var hours = Math.Max(taskHours, workHours);
+                var rate = ratesByUserId.TryGetValue(userId, out var userRate) ? userRate : selectedUser?.HourlyRate ?? 0m;
+
+                amount += hours * rate * bonusPercent / 100m;
+            }
+
+            return Math.Round(amount, 2);
         }
 
         private static string GetProductivityState(

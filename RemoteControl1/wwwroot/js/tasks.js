@@ -771,6 +771,25 @@ function renderTaskListMetric(label, value, options = {}) {
     `;
 }
 
+function renderTaskPriorityChip(task) {
+    return `
+        <span class="task-priority-chip ${getPriorityClass(task.priority)}">
+            <i class="fas fa-flag" aria-hidden="true"></i>
+            <span>Приоритет</span>
+            <strong>${escapeTaskText(getPriorityText(task.priority))}</strong>
+        </span>
+    `;
+}
+
+function renderTaskStatusBlock(task) {
+    return `
+        <div class="task-list-status-block">
+            <span>Статус выполнения</span>
+            ${renderTaskStatusControl(task)}
+        </div>
+    `;
+}
+
 function getTaskDeadlineDashboard(items) {
     const summary = {
         overdue: 0,
@@ -810,35 +829,35 @@ function renderTaskDeadlineDashboard(items) {
             icon: "fa-calendar-days",
             title: "Сроки",
             value: summary.active,
-            note: `${summary.active} активных · ${summary.done} завершено`
+            note: `Готово: ${summary.done}`
         },
         {
             tone: "is-overdue",
             icon: "fa-circle-exclamation",
             title: "Просрочено",
             value: summary.overdue,
-            note: summary.overdue ? "Нужно перенести срок, закрыть задачу или оставить отчёт" : "Критичных дедлайнов нет"
+            note: summary.overdue ? "Нужно действие" : "Нет"
         },
         {
             tone: "is-today",
             icon: "fa-calendar-day",
             title: "Сегодня",
             value: summary.today,
-            note: summary.today ? "Фокус дня: выполнить и зафиксировать результат" : "На сегодня без срочных задач"
+            note: summary.today ? "В фокусе" : "Нет"
         },
         {
             tone: "is-soon",
             icon: "fa-calendar-week",
             title: "Скоро",
             value: summary.soon,
-            note: summary.soon ? "Подготовьте следующий шаг заранее" : "Ближайших сроков нет"
+            note: summary.soon ? "Ближайшие" : "Нет"
         },
         {
             tone: "is-unscheduled",
             icon: "fa-inbox",
             title: "Без срока",
             value: summary.unscheduled,
-            note: summary.unscheduled ? "Добавьте дату, чтобы задача не потерялась" : "Все задачи со сроками"
+            note: summary.unscheduled ? "Назначьте срок" : "Нет"
         }
     ];
 
@@ -856,7 +875,7 @@ function renderTaskDeadlineDashboard(items) {
     `).join("");
 
     if (caption) {
-        caption.textContent = `${items.length} задач по фильтрам · ${summary.active} активных · ${summary.done} завершённых`;
+        caption.textContent = `${items.length} задач · активные ${summary.active} · завершённые ${summary.done}`;
     }
 }
 
@@ -919,7 +938,7 @@ function renderTaskPeriodItems(tasksInPeriod) {
                         <div class="task-list-copy">
                             <div class="task-list-title-row">
                                 <h3 class="task-list-title">${escapeTaskText(task.name || "—")}</h3>
-                                <span class="badge ${getPriorityClass(task.priority)}">${getPriorityText(task.priority)}</span>
+                                ${renderTaskPriorityChip(task)}
                             </div>
                             <div class="task-list-inline-meta">
                                 ${renderTaskListInlineMeta("Проект", task.project || "Без проекта")}
@@ -931,14 +950,14 @@ function renderTaskPeriodItems(tasksInPeriod) {
 
                     <div class="task-list-aside">
                         <div class="task-list-metrics">
-                            ${renderTaskListMetric("План", `${Number(task.plannedTime || 0).toFixed(1)} ч`)}
-                            ${renderTaskListMetric("Срок", formatTaskBoardDate(task), {
+                            ${renderTaskListMetric("Плановые часы", `${Number(task.plannedTime || 0).toFixed(1)} ч`)}
+                            ${renderTaskListMetric("Дедлайн", formatTaskBoardDate(task), {
             tone: deadlineTone
         })}
                         </div>
 
                         <div class="task-list-side">
-                            ${renderTaskStatusControl(task)}
+                            ${renderTaskStatusBlock(task)}
                             ${renderTaskRowActions(task)}
                         </div>
                     </div>
@@ -1046,22 +1065,22 @@ function renderTaskExpandedRow(task) {
     const description = String(task.description || "").trim();
     const project = projects.find(x => Number(x.id) === Number(task.projectId));
     const reportText = String(task.completionReportText || "").trim();
-    const contextSection = renderTaskDetailSection("Контекст задачи", [
+    const contextSection = renderTaskDetailSection("Основные данные", [
         renderTaskExpandItem("ID", `#${task.id}`),
-        renderTaskExpandItem("Приоритет", getPriorityText(task.priority)),
+        renderTaskExpandItem("Категория приоритета", getPriorityText(task.priority)),
         renderTaskExpandItem("Менеджер", project?.managerName || "Не назначен"),
-        renderTaskExpandItem("План", `${Number(task.plannedTime || 0).toFixed(1)} ч`)
+        renderTaskExpandItem("Плановые часы", `${Number(task.plannedTime || 0).toFixed(1)} ч`)
     ].join(""));
     const reviewSection = reportText
         ? renderTaskDetailSection("Проверка результата", [
             renderTaskExpandItem("Отправил", task.completionReportedBy || task.assignee || "Исполнитель"),
             renderTaskExpandItem("Когда", formatTaskReportDate(task.completionReportedAt)),
-            renderTaskExpandItem("Статус", task.status === "review" ? "Ожидает проверки менеджера" : getStatusText(task.status)),
-            renderTaskExpandItem("Срок", formatTaskBoardFullDate(task))
+            renderTaskExpandItem("Статус выполнения", task.status === "review" ? "Ожидает проверки менеджера" : getStatusText(task.status)),
+            renderTaskExpandItem("Дедлайн", formatTaskBoardFullDate(task))
         ].join(""))
         : renderTaskDetailSection("Статус и следующий шаг", [
-            renderTaskExpandItem("Текущий статус", getStatusText(task.status)),
-            renderTaskExpandItem("Срок", formatTaskBoardFullDate(task)),
+            renderTaskExpandItem("Статус выполнения", getStatusText(task.status)),
+            renderTaskExpandItem("Дедлайн", formatTaskBoardFullDate(task)),
             renderTaskExpandItem("Следующий шаг", task.status === "review"
                 ? "Менеджеру нужно принять результат или вернуть задачу на доработку"
                 : task.status === "done"
@@ -1093,12 +1112,25 @@ function renderTaskExpandedRow(task) {
     return `
         <div class="task-card-expand" data-expand-stage data-enter="true">
             <div class="task-detail-panel">
+                <div class="task-detail-hero">
+                    <div class="task-detail-title">
+                        <span>Задача #${escapeTaskText(task.id)}</span>
+                        <h4>${escapeTaskText(task.name || "—")}</h4>
+                        <p>${escapeTaskText(task.project || "Без проекта")} · ${escapeTaskText(task.stageName || "Этап не указан")} · ${escapeTaskText(task.assignee || "Не назначен")}</p>
+                    </div>
+
+                    <div class="task-detail-state">
+                        ${renderTaskPriorityChip(task)}
+                        ${renderTaskStatusControl(task)}
+                    </div>
+                </div>
+
                 <div class="task-detail-grid">
                     ${contextSection}
                     ${reviewSection}
                 </div>
 
-                ${renderTaskDetailNote("Описание задачи", description || "Описание пока не заполнено. Добавьте короткий контекст, ожидаемый результат или ограничение, чтобы исполнитель видел цель работы.", {
+                ${renderTaskDetailNote("Описание задачи", description || "Описание не заполнено.", {
             muted: !description
         })}
 
@@ -2000,10 +2032,19 @@ async function confirmDeleteTask() {
 }
 
 async function startTask(id) {
-    const task = getAvailableTimerTasks().find(t => Number(t.id) === Number(id));
+    let task = getAvailableTimerTasks().find(t => Number(t.id) === Number(id));
+
+    if (!task && (isAdmin || isManager)) {
+        task = (Array.isArray(tasks) ? tasks : []).find(t => Number(t.id) === Number(id));
+    }
 
     if (!task) {
-        showNotification("Задача не найдена");
+        showNotification("Задача недоступна для запуска");
+        return;
+    }
+
+    if (task.status === "done") {
+        showNotification("Завершённую задачу нельзя запустить");
         return;
     }
 
