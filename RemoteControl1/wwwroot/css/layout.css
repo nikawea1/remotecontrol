@@ -430,22 +430,27 @@ body.sidebar-collapsed {
 }
 
 .sidebar-brand-row {
-    position: relative;
     display: flex;
     align-items: center;
-    min-height: 56px;
-    padding: 0 0 14px;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 52px;
+    padding: 0 2px 14px;
     border-bottom: 1px solid var(--sidebar-border);
 }
 
 .sidebar-brand {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    flex: 1 1 auto;
     min-width: 0;
-    max-width: 100%;
-    padding-right: 54px;
-    transition: opacity .18s ease, transform .18s ease;
+    max-width: 190px;
+    gap: 10px;
+    color: var(--sidebar-foreground);
+    text-decoration: none;
+    overflow: hidden;
+    opacity: 1;
+    transition: max-width 0.22s ease, opacity 0.18s ease, flex-basis 0.22s ease;
 }
 
 .sidebar-brand:hover {
@@ -481,29 +486,20 @@ body.sidebar-collapsed {
     transition: width 0.18s ease, opacity 0.18s ease;
 }
 
-.sidebar-collapse-btn {
-    position: absolute;
-    top: 0;
-    right: 0;
-    z-index: 3;
-}
-
-body.sidebar-collapsed .sidebar-brand-text {
-    opacity: 0;
-    width: 0;
-    overflow: hidden;
-}
-
-body.sidebar-collapsed .sidebar-brand {
-    opacity: 1;
-}
-
-body.sidebar-collapsed .sidebar-brand-icon {
-    opacity: .18;
-}
-
-body.sidebar-collapsed .sidebar-collapse-btn {
-    right: 0;
+.sidebar-collapse-btn,
+.topbar-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    border: 1px solid var(--sidebar-border);
+    border-radius: 12px;
+    background: var(--sidebar-accent);
+    color: var(--sidebar-accent-foreground);
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .sidebar-collapse-btn:hover {

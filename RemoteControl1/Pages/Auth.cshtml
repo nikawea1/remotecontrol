@@ -49,6 +49,7 @@
             overflow: hidden;
         }
 
+            /* ✅ УЗОР НА ФОНЕ (как ты просила) */
             body::before {
                 content: '';
                 position: absolute;
@@ -74,15 +75,18 @@
         }
 
         @@keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
+            from
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
         }
 
         .auth-left {
@@ -137,53 +141,53 @@
                 stroke-linejoin: round;
             }
 
-        .auth-brand-mark {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 96px;
-            height: 96px;
-            margin-bottom: 25px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.12);
-            border: 1px solid rgba(255,255,255,0.18);
-            color: #ffffff;
-            box-shadow: none;
-        }
-
-            .auth-brand-mark .rc-icon-svg {
-                width: 46px !important;
-                height: 46px !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                background: transparent !important;
-                border: 0 !important;
-                border-radius: 0 !important;
-                box-shadow: none !important;
-                color: inherit !important;
-                stroke: currentColor !important;
+            .auth-brand-mark {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 96px;
+                height: 96px;
+                margin-bottom: 25px;
+                border-radius: 50%;
+                background: rgba(255,255,255,0.12);
+                border: 1px solid rgba(255,255,255,0.18);
+                color: #ffffff;
+                box-shadow: none;
             }
 
-        .left-content h1 {
-            font-size: 2.8rem;
-            font-weight: 700;
-            margin-bottom: 15px;
-            letter-spacing: 2px;
-            text-shadow: none;
-        }
+                .auth-brand-mark .rc-icon-svg {
+                    width: 46px !important;
+                    height: 46px !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    background: transparent !important;
+                    border: 0 !important;
+                    border-radius: 0 !important;
+                    box-shadow: none !important;
+                    color: inherit !important;
+                    stroke: currentColor !important;
+                }
 
-        .left-content p {
-            font-size: 1.2rem;
-            line-height: 1.6;
-            opacity: 0.95;
-            margin-bottom: 50px;
-            font-weight: 300;
-        }
+            .left-content h1 {
+                font-size: 2.8rem;
+                font-weight: 700;
+                margin-bottom: 15px;
+                letter-spacing: 2px;
+                text-shadow: none;
+            }
+
+            .left-content p {
+                font-size: 1.2rem;
+                line-height: 1.6;
+                opacity: 0.95;
+                margin-bottom: 50px;
+                font-weight: 300;
+            }
 
         .features-mini {
-            background: rgba(255,255,255,0.12);
-            backdrop-filter: none;
-            border-radius: 16px;
+                background: rgba(255,255,255,0.12);
+                backdrop-filter: none;
+                border-radius: 16px;
             padding: 30px;
             border: 1px solid rgba(255,255,255,0.15);
             text-align: left;
@@ -312,7 +316,7 @@
             border-radius: 16px;
             font-size: 1rem;
             transition: all 0.3s ease;
-            background: #ffffff;
+                background: #ffffff;
         }
 
             .form-control:focus {
@@ -570,21 +574,22 @@
             .notification.hidden {
                 display: none;
             }
-
         @@keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
+            from
 
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
+        {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
         }
     </style>
 
-    <script src="~/js/site.js" asp-append-version="true"></script>
     <script>
         function togglePassword(inputId, btn) {
             const input = document.getElementById(inputId);
@@ -615,10 +620,11 @@
 
             setTimeout(() => {
                 notification.classList.add('hidden');
-            }, 2500);
+            }, 2000);
         }
     </script>
 
+    <!-- ВАЖНО: section в Layout=null не отработает, поэтому так подключаем внизу -->
     <partial name="_ValidationScriptsPartial" />
 </body>
 </html>

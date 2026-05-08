@@ -1,5 +1,7 @@
 //projects.js
 
+
+
 let currentOpenedProjectId = null;
 let filteredProjects = Array.isArray(projects) ? [...projects] : [];
 let projectStages = [];
@@ -116,7 +118,9 @@ function getProjectStageSnapshot(project) {
 
     const projectTypeKey = getProjectPresetKey(project);
     const currentStage = tasksByStages.find(stage => stage.total > 0 && stage.progress < 100)
-        || tasksByStages.find(stage => stage.total > 0)
+        || tasksByStages.find(stage => stage.total === 0)
+        || tasksByStages.find(stage => stage.progress < 100)
+        || tasksByStages[tasksByStages.length - 1]
         || null;
 
     const currentStageIndex = currentStage
@@ -250,23 +254,22 @@ function renderProjects() {
                 <div class="stages-preview-title">Этапы проекта</div>
                 <div class="stages-preview-list">
                     ${(project.stageNames && project.stageNames.length)
-                    ? `
+                        ? `
                             ${project.stageNames.slice(0, 3).map(stage => `
                                 <span class="stage-chip">
                                     ${stage}
                                 </span>
                             `).join("")}
-
                             ${project.stageNames.length > 3 ? `
                                 <span class="stage-chip">+${project.stageNames.length - 3}</span>
                             ` : ""}
                         `
-                    : `
+                        : `
                             <span class="stage-chip">
                                 Этапы не заданы
                             </span>
                         `
-                }
+                    }
                 </div>
             </div>
 
@@ -821,6 +824,7 @@ function openEditProjectModal(id) {
     openModal("editProjectModal");
 }
 
+
 async function addProject() {
     const name = document.getElementById("projectName")?.value.trim() || "";
     const description = document.getElementById("projectDescription")?.value.trim() || "";
@@ -1040,7 +1044,9 @@ async function confirmDeleteProject() {
     }
 }
 
+
 let suspendedProjectViewId = null;
+
 let suspendedProjectTaskProjectId = null;
 
 function suspendProjectViewBeforeTaskModal(taskId) {
@@ -1352,7 +1358,8 @@ function showProjectDetails(id) {
                                             </div>
 
                                             <div class="task-row-meta">
-                                                <div class="mini-tag">Этап пуст</div>
+                                                <div class="status-badge status-new">Пусто</div>
+                                                <div class="mini-tag">Без задач</div>
                                             </div>
                                         </div>
                                     `
@@ -1470,6 +1477,7 @@ function closeProjectViewModal() {
         document.body.style.overflow = "";
     }
 }
+
 
 function getManagersForProjectSelect() {
     return users.filter(u => u.role === "manager" || u.role === "admin");
