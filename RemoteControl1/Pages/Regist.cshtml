@@ -49,7 +49,6 @@
             overflow: hidden;
         }
 
-            /* ✅ УЗОР НА ФОНЕ */
             body::before {
                 content: '';
                 position: absolute;
@@ -65,10 +64,9 @@
             z-index: 1;
             display: flex;
             width: 100%;
-            max-width: 1100px;
-            min-height: 650px;
-            background: #ffffff;
-            border: 1px solid rgba(31, 79, 159, 0.12);
+            max-width: 1080px;
+            min-height: 680px;
+            background: white;
             border-radius: 16px;
             overflow: hidden;
             box-shadow: var(--shadow);
@@ -88,7 +86,7 @@
         }
 
         .auth-left {
-            flex: 1.2;
+            flex: 1.15;
             background: linear-gradient(160deg, #1f4f9f 0%, #2f6fd6 56%, #4f8ee8 100%);
             position: relative;
             display: flex;
@@ -102,8 +100,8 @@
                 position: absolute;
                 width: 200%;
                 height: 200%;
-                background: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.12) 0%, transparent 50%), repeating-linear-gradient(45deg, rgba(255,255,255,0.04) 0px, rgba(255,255,255,0.04) 2px, transparent 2px, transparent 15px);
-                transform: rotate(-10deg);
+                background: radial-gradient(circle at 70% 30%, rgba(255,255,255,0.12) 0%, transparent 50%), repeating-linear-gradient(-45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 18px);
+                transform: rotate(5deg);
                 top: -50%;
                 left: -50%;
             }
@@ -117,161 +115,109 @@
             max-width: 500px;
         }
 
-            .left-content i,
-            .left-content svg {
-                font-size: 5rem;
-                margin-bottom: 25px;
-                background: rgba(255,255,255,0.12);
-                padding: 25px;
-                border-radius: 50%;
-                box-shadow: none;
-                border: 1px solid rgba(255,255,255,0.2);
-                color: #ffffff;
-            }
-
-            .left-content svg {
-                width: 5rem;
-                height: 5rem;
-                stroke: currentColor;
-                fill: none;
-                stroke-width: 2;
-                stroke-linecap: round;
-                stroke-linejoin: round;
-            }
-
-            .auth-brand-mark {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                width: 96px;
-                height: 96px;
-                margin-bottom: 25px;
-                border-radius: 50%;
-                background: rgba(255,255,255,0.12);
-                border: 1px solid rgba(255,255,255,0.18);
-                color: #ffffff;
-                box-shadow: none;
-            }
-
-                .auth-brand-mark .rc-icon-svg {
-                    width: 46px !important;
-                    height: 46px !important;
-                    margin: 0 !important;
-                    padding: 0 !important;
-                    background: transparent !important;
-                    border: 0 !important;
-                    border-radius: 0 !important;
-                    box-shadow: none !important;
-                    color: inherit !important;
-                    stroke: currentColor !important;
-                }
-
-            .left-content h1 {
-                font-size: 2.8rem;
-                font-weight: 700;
-                margin-bottom: 15px;
-                letter-spacing: 2px;
-                text-shadow: none;
-            }
-
-            .left-content p {
-                font-size: 1.2rem;
-                line-height: 1.6;
-                opacity: 0.95;
-                margin-bottom: 50px;
-                font-weight: 300;
-            }
-
-        .quote-block {
+        .left-quote {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 82px;
+            height: 82px;
+            margin-bottom: 22px;
+            border-radius: 24px;
             background: rgba(255,255,255,0.12);
-            backdrop-filter: none;
-            border-radius: 16px;
-            padding: 35px 30px;
-            border: 1px solid rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.18);
+        }
+
+            .left-quote i {
+                font-size: 2rem;
+                color: #ffffff;
+            }
+
+        .testimonial-card {
+            background: rgba(255,255,255,0.12);
+            border-radius: 18px;
+            padding: 28px;
+            border: 1px solid rgba(255,255,255,0.16);
             text-align: left;
         }
 
-        .quote-text {
-            font-size: 1.3rem;
-            font-style: italic;
-            line-height: 1.6;
-            margin-bottom: 25px;
-            color: rgba(255,255,255,0.95);
-            font-weight: 300;
-        }
-
-            .quote-text i {
-                font-size: 1.8rem;
-                padding: 0;
-                background: none;
-                box-shadow: none;
-                margin: 0 10px 0 0;
-                color: var(--secondary);
-                border: none;
-            }
-
-        .quote-author {
+        .testimonial-user {
             display: flex;
             align-items: center;
-            gap: 15px;
-            color: rgba(255,255,255,0.8);
-            font-size: 1rem;
+            gap: 14px;
+            margin-top: 18px;
         }
 
-            .quote-author i {
-                font-size: 2rem;
-                padding: 0;
-                background: none;
-                box-shadow: none;
-                border: none;
-                margin: 0;
-            }
+        .testimonial-avatar {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .left-content h1 {
+            font-size: 2.6rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+            letter-spacing: 1.2px;
+        }
+
+        .left-content p {
+            font-size: 1.08rem;
+            line-height: 1.65;
+            opacity: 0.95;
+            margin-bottom: 32px;
+        }
 
         .auth-right {
-            width: 50%;
-            min-width: 480px;
+            width: 52%;
+            min-width: 460px;
             background: linear-gradient(180deg, #ffffff 0%, #f7fafe 100%);
             border-left: 1px solid rgba(31, 79, 159, 0.10);
             display: flex;
             flex-direction: column;
             justify-content: center;
-            padding: 50px 45px;
+            padding: 44px 42px;
         }
 
         .auth-header {
-            margin-bottom: 30px;
+            margin-bottom: 28px;
         }
 
             .auth-header h2 {
-                font-size: 2.4rem;
+                font-size: 2.2rem;
                 color: var(--primary-dark);
                 font-weight: 700;
-                margin-bottom: 12px;
-                letter-spacing: -0.5px;
+                margin-bottom: 10px;
+                letter-spacing: -0.3px;
             }
 
             .auth-header p {
                 color: var(--gray);
-                font-size: 1.1rem;
+                font-size: 1rem;
             }
 
                 .auth-header p a {
                     color: var(--primary);
                     text-decoration: none;
                     font-weight: 600;
-                    transition: color 0.2s;
                     border-bottom: 1px dashed var(--primary-light);
                 }
-
-                    .auth-header p a:hover {
-                        color: var(--primary-light);
-                        border-bottom: 1px solid var(--primary-light);
-                    }
 
         .auth-form {
             display: flex;
             flex-direction: column;
             gap: 18px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
         }
 
         .form-group {
@@ -282,17 +228,17 @@
 
         .form-label {
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             color: var(--dark);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
 
             .form-label i {
                 color: var(--primary);
-                font-size: 0.9rem;
-                width: 18px;
+                font-size: 1rem;
+                width: 20px;
             }
 
         .input-wrapper {
@@ -305,12 +251,12 @@
                 position: absolute;
                 left: 16px;
                 color: var(--gray);
-                font-size: 1rem;
+                font-size: 1.1rem;
             }
 
         .form-control {
             width: 100%;
-            padding: 16px 20px 16px 48px;
+            padding: 15px 18px 15px 48px;
             border: 2px solid var(--border);
             border-radius: 16px;
             font-size: 1rem;
@@ -325,11 +271,6 @@
                 box-shadow: 0 0 0 3px rgba(47, 111, 214, 0.22);
             }
 
-            .form-control::placeholder {
-                color: #b0bec5;
-                font-weight: 400;
-            }
-
         .password-toggle {
             position: absolute;
             right: 16px;
@@ -337,54 +278,29 @@
             border: none;
             color: var(--gray);
             cursor: pointer;
-            font-size: 1.2rem;
-            transition: color 0.2s;
-            padding: 5px;
+            font-size: 1.15rem;
+            padding: 4px;
         }
-
-            .password-toggle:hover {
-                color: var(--primary);
-            }
-
-        .form-row {
-            display: flex;
-            gap: 15px;
-        }
-
-            .form-row .form-group {
-                flex: 1;
-            }
 
         .checkbox-group {
-            flex-direction: row;
-            align-items: center;
-            gap: 12px;
-            margin: 8px 0 5px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.95rem;
+            color: var(--dark);
         }
 
-            .checkbox-group input[type="checkbox"] {
-                width: 18px;
-                height: 18px;
+            .checkbox-group input {
+                margin-top: 3px;
+                width: 17px;
+                height: 17px;
                 accent-color: var(--primary);
-                cursor: pointer;
-            }
-
-            .checkbox-group label {
-                font-size: 0.95rem;
-                color: var(--dark);
-                cursor: pointer;
             }
 
             .checkbox-group a {
                 color: var(--primary);
                 text-decoration: none;
-                font-weight: 600;
-                border-bottom: 1px dashed var(--primary-light);
             }
-
-                .checkbox-group a:hover {
-                    border-bottom: 1px solid var(--primary-light);
-                }
 
         .btn {
             display: inline-flex;
@@ -394,7 +310,7 @@
             padding: 16px 24px;
             border: none;
             border-radius: 8px;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -404,16 +320,14 @@
             background: var(--primary);
             color: white;
             width: 100%;
-            margin-top: 10px;
         }
 
             .btn-primary:hover {
                 background: var(--primary-light);
-                transform: none;
-                box-shadow: none;
             }
 
         .error-box {
+            margin-top: 0;
             padding: 12px 14px;
             border-radius: 14px;
             background: #fee2e2;
@@ -437,44 +351,45 @@
                 width: 100%;
                 min-width: auto;
             }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         @@media (max-width: 576px) {
             .auth-right {
-                padding: 35px 25px;
-            }
-
-            .form-row {
-                flex-direction: column;
-                gap: 18px;
+                padding: 34px 24px;
             }
 
             .auth-header h2 {
-                font-size: 2rem;
+                font-size: 1.9rem;
             }
         }
     </style>
 </head>
-
 <body>
     <div class="auth-container">
         <div class="auth-left">
             <div class="left-content">
-                <span class="auth-brand-mark" aria-hidden="true">
-                    @await Html.PartialAsync("_RcIcon", "brand")
-                </span>
-                <h1>REMOTE CONTROL</h1>
-                <p>Управляй временем эффективно</p>
+                <div class="left-quote">
+                    <i class="fas fa-quote-left"></i>
+                </div>
 
-                <div class="quote-block">
-                    <div class="quote-text">
-                        <i class="fas fa-quote-left"></i>
-                        Время — самый ограниченный капитал, и если не можешь им распоряжаться, не сможешь распоряжаться ничем другим.
+                <div class="testimonial-card">
+                    <div class="testimonial-user">
+                        <div class="testimonial-avatar">
+                            <i class="fas fa-circle-user"></i>
+                        </div>
+                        <div>
+                            <strong>Remote Control</strong>
+                            <div style="opacity:.84;">Командная платформа</div>
+                        </div>
                     </div>
-                    <div class="quote-author">
-                        <i class="fas fa-circle-user"></i>
-                        <span>Питер Друкер, основоположник менеджмента</span>
-                    </div>
+
+                    <p style="margin-top:18px; margin-bottom:0;">
+                        Управляйте задачами, временем, проектами и отчётами в одном рабочем пространстве.
+                    </p>
                 </div>
             </div>
         </div>
@@ -488,12 +403,12 @@
             <form class="auth-form" method="post">
                 @Html.AntiForgeryToken()
 
-                <div class="form-row">
+                <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label"><i class="fas fa-user"></i> Имя</label>
                         <div class="input-wrapper">
                             <i class="fas fa-user input-icon"></i>
-                            <input type="text" class="form-control" asp-for="Input.FirstName" placeholder="Имя" required>
+                            <input type="text" class="form-control" asp-for="Input.FirstName" placeholder="Введите имя" required>
                         </div>
                         <div class="field-error" asp-validation-for="Input.FirstName"></div>
                     </div>
@@ -502,7 +417,7 @@
                         <label class="form-label"><i class="fas fa-user-circle"></i> Фамилия</label>
                         <div class="input-wrapper">
                             <i class="fas fa-user-circle input-icon"></i>
-                            <input type="text" class="form-control" asp-for="Input.LastName" placeholder="Фамилия" required>
+                            <input type="text" class="form-control" asp-for="Input.LastName" placeholder="Введите фамилию" required>
                         </div>
                         <div class="field-error" asp-validation-for="Input.LastName"></div>
                     </div>
@@ -512,7 +427,7 @@
                     <label class="form-label"><i class="fas fa-envelope"></i> Email</label>
                     <div class="input-wrapper">
                         <i class="fas fa-envelope input-icon"></i>
-                        <input type="text" class="form-control" asp-for="Input.Email" placeholder="Введите email" required>
+                        <input type="email" class="form-control" asp-for="Input.Email" placeholder="Введите email" required>
                     </div>
                     <div class="field-error" asp-validation-for="Input.Email"></div>
                 </div>
@@ -533,8 +448,8 @@
                     <label class="form-label"><i class="fas fa-lock"></i> Подтвердите пароль</label>
                     <div class="input-wrapper">
                         <i class="fas fa-lock input-icon"></i>
-                        <input type="password" class="form-control" id="registerConfirmPassword" asp-for="Input.ConfirmPassword" placeholder="••••••••" required>
-                        <button type="button" class="password-toggle" onclick="togglePassword('registerConfirmPassword', this)">
+                        <input type="password" class="form-control" id="confirmPassword" asp-for="Input.ConfirmPassword" placeholder="••••••••" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword', this)">
                             <i class="fas fa-lock"></i>
                         </button>
                     </div>
@@ -558,6 +473,7 @@
         </div>
     </div>
 
+    <script src="~/js/site.js" asp-append-version="true"></script>
     <script>
         function togglePassword(inputId, btn) {
             const input = document.getElementById(inputId);

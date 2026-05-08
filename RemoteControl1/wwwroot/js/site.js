@@ -4,186 +4,266 @@ window.remoteControlData = window.remoteControlData || {};
 window.rcSidebarResizeTimer = window.rcSidebarResizeTimer || 0;
 window.rcSidebarLastMobileState = window.rcSidebarLastMobileState ?? null;
 
-(function setupRemoteLucideIcons() {
+(function setupRemoteSvgIcons() {
     const iconMap = {
         "fa-home": "home",
         "fa-house": "home",
         "fa-house-chimney": "home",
-        "fa-gauge-high": "gauge",
-        "fa-tachometer-alt": "gauge",
-        "fa-tasks": "check-square",
-        "fa-list-check": "check-square",
-        "fa-project-diagram": "folder-kanban",
-        "fa-diagram-project": "folder-kanban",
-        "fa-layer-group": "folder-kanban",
-        "fa-stopwatch": "clock",
+        "fa-stopwatch": "tracker",
         "fa-clock": "clock",
-        "fa-chart-bar": "file-text",
-        "fa-chart-simple": "file-text",
-        "fa-file-alt": "file-text",
-        "fa-file-lines": "file-text",
-        "fa-file-csv": "file-spreadsheet",
-        "fa-file-excel": "file-spreadsheet",
-        "fa-file-word": "file-text",
-        "fa-file-pdf": "file-text",
-        "fa-print": "printer",
+        "fa-business-time": "clock",
+        "fa-play": "play",
+        "fa-pause": "pause",
+        "fa-stop": "stop",
+        "fa-list-check": "tasks",
+        "fa-tasks": "tasks",
+        "fa-project-diagram": "projects",
+        "fa-diagram-project": "projects",
+        "fa-layer-group": "projects",
+        "fa-sitemap": "route",
+        "fa-file-signature": "edit",
+        "fa-tag": "flag",
+        "fa-folder": "folder",
+        "fa-folder-open": "folder",
+        "fa-chart-bar": "reports",
+        "fa-chart-column": "reports",
+        "fa-chart-line": "reports",
+        "fa-chart-pie": "reports",
+        "fa-file-csv": "save",
+        "fa-file-excel": "save",
+        "fa-file-word": "save",
+        "fa-file-pdf": "save",
+        "fa-file-lines": "save",
+        "fa-file-code": "save",
+        "fa-print": "print",
         "fa-calendar": "calendar",
-        "fa-calendar-alt": "calendar",
         "fa-calendar-days": "calendar",
-        "fa-users": "users",
+        "fa-calendar-day": "calendar",
+        "fa-calendar-week": "calendar",
         "fa-user-group": "users",
-        "fa-user": "user",
-        "fa-user-circle": "circle-user",
+        "fa-users": "users",
+        "fa-user": "profile",
+        "fa-user-circle": "profile",
+        "fa-circle-user": "profile",
+        "fa-user-plus": "user-plus",
+        "fa-user-tag": "user-check",
+        "fa-user-tie": "briefcase",
         "fa-bell": "bell",
-        "fa-table-columns": "layout-dashboard",
-        "fa-sparkles": "sparkles",
         "fa-moon": "moon",
         "fa-sun": "sun",
-        "fa-sign-out-alt": "log-out",
-        "fa-right-from-bracket": "log-out",
+        "fa-sign-out-alt": "logout",
+        "fa-right-from-bracket": "logout",
+        "fa-right-to-bracket": "login",
         "fa-cog": "settings",
         "fa-gear": "settings",
-        "fa-sliders": "sliders-horizontal",
-        "fa-palette": "palette",
+        "fa-sliders": "settings",
+        "fa-sliders-h": "settings",
+        "fa-palette": "settings",
         "fa-bars": "menu",
         "fa-chevron-up": "chevron-up",
         "fa-chevron-down": "chevron-down",
         "fa-chevron-left": "chevron-left",
         "fa-chevron-right": "chevron-right",
         "fa-plus": "plus",
+        "fa-plus-circle": "plus",
+        "fa-bolt": "warning",
         "fa-filter": "filter",
+        "fa-sort": "sort",
+        "fa-angles-up": "chevron-up",
+        "fa-angles-down": "chevron-down",
         "fa-search": "search",
         "fa-magnifying-glass": "search",
-        "fa-edit": "pencil",
-        "fa-pen-to-square": "pencil",
-        "fa-trash": "trash-2",
-        "fa-trash-alt": "trash-2",
-        "fa-trash-can": "trash-2",
+        "fa-edit": "edit",
+        "fa-pen-to-square": "edit",
+        "fa-trash": "trash",
+        "fa-trash-alt": "trash",
+        "fa-trash-can": "trash",
         "fa-save": "save",
         "fa-floppy-disk": "save",
-        "fa-eye": "eye",
-        "fa-eye-slash": "eye-off",
+        "fa-eye": "info",
+        "fa-eye-slash": "warning",
         "fa-lock": "lock",
         "fa-lock-open": "unlock",
-        "fa-mail": "mail",
         "fa-envelope": "mail",
         "fa-phone": "phone",
-        "fa-play": "play",
-        "fa-pause": "pause",
-        "fa-stop": "square",
-        "fa-info-circle": "circle-info",
-        "fa-circle-info": "circle-info",
-        "fa-circle-exclamation": "circle-alert",
-        "fa-exclamation-triangle": "triangle-alert",
-        "fa-triangle-exclamation": "triangle-alert",
-        "fa-check-circle": "circle-check",
-        "fa-circle-check": "circle-check",
+        "fa-info-circle": "info",
+        "fa-circle-info": "info",
+        "fa-circle-exclamation": "warning",
+        "fa-exclamation-triangle": "warning",
+        "fa-triangle-exclamation": "warning",
+        "fa-check-circle": "done",
+        "fa-circle-check": "done",
+        "fa-file-circle-check": "done",
         "fa-check": "check",
+        "fa-circle": "dot",
         "fa-times": "x",
         "fa-xmark": "x",
-        "fa-sync-alt": "refresh-cw",
-        "fa-rotate": "refresh-cw",
-        "fa-undo": "rotate-ccw",
-        "fa-rotate-left": "rotate-ccw",
-        "fa-redo": "rotate-cw",
-        "fa-rotate-right": "rotate-cw",
+        "fa-sync-alt": "refresh",
+        "fa-rotate": "refresh",
+        "fa-rotate-left": "reset",
+        "fa-rotate-right": "refresh",
         "fa-arrow-up": "arrow-up",
         "fa-arrow-down": "arrow-down",
-        "fa-arrow-down-wide-short": "arrow-down-wide-narrow",
-        "fa-calendar-day": "calendar-days",
-        "fa-calendar-week": "calendar-range",
-        "fa-inbox": "inbox",
+        "fa-arrow-down-wide-short": "sort",
+        "fa-arrow-up-right-from-square": "external",
         "fa-paper-plane": "send",
         "fa-paperclip": "paperclip",
-        "fa-download": "download",
-        "fa-upload": "upload",
+        "fa-download": "save",
+        "fa-upload": "plus",
         "fa-shield-alt": "shield",
         "fa-shield-halved": "shield",
         "fa-user-shield": "shield",
-        "fa-user-gear": "settings",
-        "fa-briefcase": "briefcase-business",
-        "fa-business-time": "clock-3",
-        "fa-wallet": "wallet",
+        "fa-briefcase": "briefcase",
+        "fa-wallet": "money",
         "fa-gift": "gift",
-        "fa-chart-pie": "chart-pie",
-        "fa-rocket": "clock"
+        "fa-location-dot": "location",
+        "fa-note-sticky": "note",
+        "fa-quote-left": "info",
+        "fa-flag": "flag",
+        "fa-columns": "columns",
+        "fa-circle-notch": "refresh",
+        "fa-spinner": "refresh",
+        "fa-circle-half-stroke": "contrast",
+        "fa-compress": "compact",
+        "fa-route": "route",
+        "fa-id-card": "profile",
+        "fa-address-book": "users",
+        "fa-history": "clock",
+        "fa-key": "lock",
+        "fa-toggle-on": "done",
+        "fa-sparkles": "done"
     };
+
+    const svgAttrs = "class=\"rc-icon-svg\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"";
+
+    function wrap(paths) {
+        return `<svg ${svgAttrs}>${paths}</svg>`;
+    }
+
+    function getIconMarkup(key) {
+        switch (key) {
+            case "home": return wrap("<path d=\"M3 11.5 12 4l9 7.5\"/><path d=\"M5.5 10.5V20h13v-9.5\"/><path d=\"M9.5 20v-5h5v5\"/>");
+            case "tracker": return wrap("<circle cx=\"12\" cy=\"13\" r=\"7\"/><path d=\"M12 13l3-2\"/><path d=\"M9 3h6\"/><path d=\"M12 6V4\"/>");
+            case "clock": return wrap("<circle cx=\"12\" cy=\"12\" r=\"8\"/><path d=\"M12 8v4l3 2\"/>");
+            case "tasks": return wrap("<rect x=\"7\" y=\"3\" width=\"10\" height=\"18\" rx=\"2\"/><path d=\"M9 8h6\"/><path d=\"M9 13h6\"/><path d=\"M9 18h6\"/><path d=\"M4.5 8.5l1.5 1.5 2-2\"/><path d=\"M4.5 13.5l1.5 1.5 2-2\"/>");
+            case "projects": return wrap("<path d=\"M3 7h7v5H3z\"/><path d=\"M14 4h7v5h-7z\"/><path d=\"M14 15h7v5h-7z\"/><path d=\"M10 9h4\"/><path d=\"M12 9v8\"/>");
+            case "reports": return wrap("<path d=\"M5 19V9\"/><path d=\"M12 19V5\"/><path d=\"M19 19v-7\"/><path d=\"M3 19h18\"/>");
+            case "calendar": return wrap("<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M3 10h18\"/><path d=\"M8 3v4\"/><path d=\"M16 3v4\"/>");
+            case "users": return wrap("<circle cx=\"9\" cy=\"9\" r=\"3\"/><circle cx=\"17\" cy=\"10\" r=\"2.5\"/><path d=\"M4 19a5 5 0 0 1 10 0\"/><path d=\"M14.5 19a3.5 3.5 0 0 1 5-3\"/>");
+            case "profile": return wrap("<circle cx=\"12\" cy=\"8\" r=\"3.5\"/><path d=\"M5 20a7 7 0 0 1 14 0\"/>");
+            case "settings": return wrap("<path d=\"M4 6h8\"/><path d=\"M16 6h4\"/><circle cx=\"14\" cy=\"6\" r=\"2\"/><path d=\"M4 12h4\"/><path d=\"M12 12h8\"/><circle cx=\"10\" cy=\"12\" r=\"2\"/><path d=\"M4 18h10\"/><path d=\"M18 18h2\"/><circle cx=\"16\" cy=\"18\" r=\"2\"/>");
+            case "folder": return wrap("<path d=\"M3 8h6l2 2h10v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/><path d=\"M3 8V6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2\"/>");
+            case "briefcase": return wrap("<rect x=\"3\" y=\"7\" width=\"18\" height=\"12\" rx=\"2\"/><path d=\"M9 7V5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 5v2\"/><path d=\"M3 12h18\"/>");
+            case "shield": return wrap("<path d=\"M12 3l7 3v5c0 4.5-2.7 7.7-7 10-4.3-2.3-7-5.5-7-10V6z\"/><path d=\"M12 7v10\"/>");
+            case "money": return wrap("<rect x=\"3\" y=\"6\" width=\"18\" height=\"12\" rx=\"2\"/><circle cx=\"12\" cy=\"12\" r=\"2.5\"/><path d=\"M7 9h.01\"/><path d=\"M17 15h.01\"/>");
+            case "done": return wrap("<circle cx=\"12\" cy=\"12\" r=\"8\"/><path d=\"M8.5 12.5l2.2 2.2 4.8-5\"/>");
+            case "warning": return wrap("<path d=\"M12 4l8 14H4z\"/><path d=\"M12 10v4\"/><path d=\"M12 17h.01\"/>");
+            case "play": return wrap("<circle cx=\"12\" cy=\"12\" r=\"8\"/><path d=\"m11 9 5 3-5 3z\"/>");
+            case "pause": return wrap("<circle cx=\"12\" cy=\"12\" r=\"8\"/><path d=\"M10 9v6\"/><path d=\"M14 9v6\"/>");
+            case "stop": return wrap("<circle cx=\"12\" cy=\"12\" r=\"8\"/><rect x=\"9.5\" y=\"9.5\" width=\"5\" height=\"5\" rx=\"1\"/>");
+            case "plus": return wrap("<path d=\"M12 5v14\"/><path d=\"M5 12h14\"/>");
+            case "search": return wrap("<circle cx=\"11\" cy=\"11\" r=\"6\"/><path d=\"m20 20-4.2-4.2\"/>");
+            case "filter": return wrap("<path d=\"M4 6h16\"/><path d=\"M7 12h10\"/><path d=\"M10 18h4\"/>");
+            case "sort": return wrap("<path d=\"M8 6h10\"/><path d=\"M8 12h7\"/><path d=\"M8 18h4\"/><path d=\"M5 5v14\"/><path d=\"m3.5 17 1.5 2 1.5-2\"/>");
+            case "reset": return wrap("<path d=\"M5 12a7 7 0 1 0 2-4.95\"/><path d=\"M3 7v5h5\"/>");
+            case "refresh": return wrap("<path d=\"M20 11a8 8 0 0 0-14.5-4.5\"/><path d=\"M4 4v5h5\"/><path d=\"M4 13a8 8 0 0 0 14.5 4.5\"/><path d=\"M20 20v-5h-5\"/>");
+            case "save": return wrap("<path d=\"M5 4h11l3 3v13H5z\"/><path d=\"M8 4v6h8\"/><path d=\"M9 18h6\"/>");
+            case "trash": return wrap("<path d=\"M5 7h14\"/><path d=\"M9 7V5h6v2\"/><path d=\"M8 10v7\"/><path d=\"M12 10v7\"/><path d=\"M16 10v7\"/><path d=\"M6 7l1 12h10l1-12\"/>");
+            case "edit": return wrap("<path d=\"M4 20h4l10-10-4-4L4 16z\"/><path d=\"m12 6 4 4\"/>");
+            case "bell": return wrap("<path d=\"M6 16h12\"/><path d=\"M8 16V11a4 4 0 1 1 8 0v5\"/><path d=\"M10 19a2 2 0 0 0 4 0\"/>");
+            case "moon": return wrap("<path d=\"M18 14.5A7 7 0 0 1 9.5 6 7.5 7.5 0 1 0 18 14.5z\"/>");
+            case "sun": return wrap("<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2\"/><path d=\"M12 20v2\"/><path d=\"m4.93 4.93 1.41 1.41\"/><path d=\"m17.66 17.66 1.41 1.41\"/><path d=\"M2 12h2\"/><path d=\"M20 12h2\"/><path d=\"m4.93 19.07 1.41-1.41\"/><path d=\"m17.66 6.34 1.41-1.41\"/>");
+            case "logout": return wrap("<path d=\"M10 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4\"/><path d=\"M14 16l5-4-5-4\"/><path d=\"M19 12H9\"/>");
+            case "login": return wrap("<path d=\"M14 5h4a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-4\"/><path d=\"M10 16l-5-4 5-4\"/><path d=\"M5 12h10\"/>");
+            case "menu": return wrap("<path d=\"M4 7h16\"/><path d=\"M4 12h16\"/><path d=\"M4 17h16\"/>");
+            case "chevron-up": return wrap("<path d=\"m6 14 6-6 6 6\"/>");
+            case "chevron-down": return wrap("<path d=\"m6 10 6 6 6-6\"/>");
+            case "chevron-left": return wrap("<path d=\"m14 6-6 6 6 6\"/>");
+            case "chevron-right": return wrap("<path d=\"m10 6 6 6-6 6\"/>");
+            case "mail": return wrap("<rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2\"/><path d=\"m4 7 8 6 8-6\"/>");
+            case "phone": return wrap("<path d=\"M6 4h3l1 4-2 2a14 14 0 0 0 6 6l2-2 4 1v3c0 1-1 2-2 2A16 16 0 0 1 4 6c0-1 1-2 2-2z\"/>");
+            case "send": return wrap("<path d=\"m4 12 16-7-4 14-4-5-8-2z\"/>");
+            case "paperclip": return wrap("<path d=\"M8 12.5 14.5 6a3 3 0 1 1 4.2 4.2L10.8 18a5 5 0 1 1-7-7L12 3.8\"/>");
+            case "print": return wrap("<path d=\"M7 8V4h10v4\"/><rect x=\"6\" y=\"14\" width=\"12\" height=\"6\" rx=\"1\"/><rect x=\"4\" y=\"8\" width=\"16\" height=\"8\" rx=\"2\"/>");
+            case "gift": return wrap("<rect x=\"4\" y=\"10\" width=\"16\" height=\"10\" rx=\"2\"/><path d=\"M12 10v10\"/><path d=\"M4 14h16\"/><path d=\"M12 10H8.5A2.5 2.5 0 1 1 11 6.5L12 8l1-1.5A2.5 2.5 0 1 1 15.5 10H12z\"/>");
+            case "location": return wrap("<path d=\"M12 20s6-5.3 6-10a6 6 0 1 0-12 0c0 4.7 6 10 6 10z\"/><circle cx=\"12\" cy=\"10\" r=\"2\"/>");
+            case "note": return wrap("<rect x=\"5\" y=\"4\" width=\"14\" height=\"16\" rx=\"2\"/><path d=\"M8 8h8\"/><path d=\"M8 12h8\"/><path d=\"M8 16h5\"/>");
+            case "flag": return wrap("<path d=\"M6 20V5\"/><path d=\"M6 5h9l-1.5 3L15 11H6\"/>");
+            case "columns": return wrap("<rect x=\"4\" y=\"5\" width=\"6\" height=\"14\" rx=\"2\"/><rect x=\"14\" y=\"5\" width=\"6\" height=\"14\" rx=\"2\"/>");
+            case "route": return wrap("<circle cx=\"6\" cy=\"6\" r=\"2\"/><circle cx=\"18\" cy=\"18\" r=\"2\"/><path d=\"M8 6h4a3 3 0 0 1 3 3v1a3 3 0 0 0 3 3h0\"/><path d=\"M16 18h-4a3 3 0 0 1-3-3v-1a3 3 0 0 0-3-3H6\"/>");
+            case "check": return wrap("<path d=\"m5 12 4 4 10-10\"/>");
+            case "x": return wrap("<path d=\"m7 7 10 10\"/><path d=\"m17 7-10 10\"/>");
+            case "dot": return wrap("<circle cx=\"12\" cy=\"12\" r=\"2.2\" fill=\"currentColor\" stroke=\"none\"/>");
+            case "contrast": return wrap("<circle cx=\"12\" cy=\"12\" r=\"8\"/><path d=\"M12 4a8 8 0 0 1 0 16z\"/>");
+            case "compact": return wrap("<path d=\"M4 9h16\"/><path d=\"M4 15h16\"/><path d=\"M8 5h8\"/><path d=\"M8 19h8\"/>");
+            case "external": return wrap("<path d=\"M14 5h5v5\"/><path d=\"M10 14 19 5\"/><path d=\"M19 14v5H5V5h5\"/>");
+            case "user-plus": return wrap("<circle cx=\"9\" cy=\"8\" r=\"3\"/><path d=\"M4 19a5 5 0 0 1 10 0\"/><path d=\"M17 8v6\"/><path d=\"M14 11h6\"/>");
+            case "user-check": return wrap("<circle cx=\"9\" cy=\"8\" r=\"3\"/><path d=\"M4 19a5 5 0 0 1 10 0\"/><path d=\"M16 11l2 2 3-4\"/>");
+            case "unlock": return wrap("<rect x=\"5\" y=\"11\" width=\"14\" height=\"9\" rx=\"2\"/><path d=\"M8 11V8a4 4 0 0 1 7-2\"/>");
+            default: return wrap("<circle cx=\"12\" cy=\"12\" r=\"8\"/>");
+        }
+    }
 
     function findIconName(icon) {
         for (const className of icon.classList || []) {
             if (iconMap[className]) return iconMap[className];
         }
-
         return "";
     }
 
-    function markIcon(icon) {
-        if (!icon || icon.dataset?.lucideReady === "true") return false;
+    function applyIcon(icon) {
+        if (!icon) return false;
+        const iconName = findIconName(icon);
+        if (!iconName) return false;
 
-        const lucideName = findIconName(icon);
-        if (!lucideName) return false;
+        const nextMarkup = getIconMarkup(iconName);
+        if (icon.dataset?.rcIconKey === iconName && icon.innerHTML === nextMarkup) {
+            return false;
+        }
 
-        icon.setAttribute("data-lucide", lucideName);
-        icon.dataset.lucideReady = "true";
-        icon.classList.add("rc-lucide-icon");
+        icon.dataset.rcIconKey = iconName;
+        icon.classList.add("rc-icon-host");
+        icon.setAttribute("aria-hidden", "true");
+        icon.innerHTML = nextMarkup;
         return true;
     }
 
-    function runLucide(root) {
+    function run(root) {
         const scope = root || document;
-        let changed = false;
 
         if (scope.matches?.("i[class*='fa-']")) {
-            changed = markIcon(scope) || changed;
+            applyIcon(scope);
         }
 
-        scope.querySelectorAll?.("i[class*='fa-']").forEach(icon => {
-            changed = markIcon(icon) || changed;
-        });
-
-        if (changed && window.lucide?.createIcons) {
-            window.lucide.createIcons({
-                attrs: {
-                    "stroke-width": 2,
-                    "aria-hidden": "true"
-                }
-            });
-        }
+        scope.querySelectorAll?.("i[class*='fa-']").forEach(applyIcon);
     }
 
-    window.renderRemoteIcons = runLucide;
+    window.getRemoteIconMarkup = getIconMarkup;
+    window.renderRemoteIcons = run;
 
     document.addEventListener("DOMContentLoaded", () => {
-        runLucide(document);
+        run(document);
 
         const observer = new MutationObserver(mutations => {
-            let changed = false;
-
             mutations.forEach(mutation => {
+                if (mutation.type === "attributes" && mutation.target?.matches?.("i[class*='fa-']")) {
+                    applyIcon(mutation.target);
+                    return;
+                }
+
                 mutation.addedNodes.forEach(node => {
                     if (node.nodeType !== 1) return;
-
-                    if (node.matches?.("i[class*='fa-']")) {
-                        changed = markIcon(node) || changed;
-                    }
-
-                    node.querySelectorAll?.("i[class*='fa-']").forEach(icon => {
-                        changed = markIcon(icon) || changed;
-                    });
+                    run(node);
                 });
             });
-
-            if (changed && window.lucide?.createIcons) {
-                window.lucide.createIcons({
-                    attrs: {
-                        "stroke-width": 2,
-                        "aria-hidden": "true"
-                    }
-                });
-            }
         });
 
-        observer.observe(document.body, { childList: true, subtree: true });
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ["class"]
+        });
     });
 })();
 
@@ -365,14 +445,14 @@ function normalizeUser(user) {
         trackedHours: toNumber(user.trackedHours ?? user.TrackedHours),
         idleHours: toNumber(user.idleHours ?? user.IdleHours),
         salaryHours: toNumber(user.salaryHours ?? user.SalaryHours),
-          workloadDiff: toNumber(user.workloadDiff ?? user.WorkloadDiff),
-          completionPercent: toNumber(user.completionPercent ?? user.CompletionPercent),
-          productivityState: user.productivityState ?? user.ProductivityState ?? "normal",
-          bonusPercent: toNumber(user.bonusPercent ?? user.BonusPercent),
-          bonusReason: user.bonusReason ?? user.BonusReason ?? "",
-          bonusAmount: toNumber(user.bonusAmount ?? user.BonusAmount)
-      };
-  }
+        workloadDiff: toNumber(user.workloadDiff ?? user.WorkloadDiff),
+        completionPercent: toNumber(user.completionPercent ?? user.CompletionPercent),
+        productivityState: user.productivityState ?? user.ProductivityState ?? "normal",
+        bonusPercent: toNumber(user.bonusPercent ?? user.BonusPercent),
+        bonusReason: user.bonusReason ?? user.BonusReason ?? "",
+        bonusAmount: toNumber(user.bonusAmount ?? user.BonusAmount)
+    };
+}
 
 function normalizeActivity(item) {
     if (!item) return item;
@@ -491,7 +571,6 @@ function setSidebarCollapsedState(isCollapsed) {
         return;
     }
 
-    document.body.classList.add("sidebar-transitioning");
     syncSidebarRootState(isCollapsed);
 
     try {
@@ -499,9 +578,6 @@ function setSidebarCollapsedState(isCollapsed) {
     } catch {
         // Storage can be unavailable in private modes.
     }
-
-    window.clearTimeout(window.rcSidebarTransitionTimer);
-    window.rcSidebarTransitionTimer = window.setTimeout(finishSidebarTransition, 360);
 }
 
 function applySidebarStoredState() {

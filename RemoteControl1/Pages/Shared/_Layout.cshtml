@@ -21,6 +21,20 @@
     bool isAdmin = sessionUserRole == "admin";
     bool isManager = sessionUserRole == "manager";
     bool isEmployee = !isAdmin && !isManager;
+    var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? "";
+    var currentPageIcon = currentPage switch
+    {
+        "/MainPage" => "home",
+        "/Tasks" => "tasks",
+        "/Projects" => "projects",
+        "/Tracker" => "tracker",
+        "/Reports" => "reports",
+        "/Calendar" => "calendar",
+        "/Users" => "users",
+        "/Profile" => "profile",
+        "/Settings" => "settings",
+        _ => "brand"
+    };
 }
 
 <!DOCTYPE html>
@@ -151,87 +165,90 @@
                     </button>
 
                     <div class="topbar-page">
-                        <span>Remote Control</span>
-                        <strong>@(ViewData["Title"] ?? "Панель")</strong>
+                        <span class="topbar-page-icon" aria-hidden="true">@await Html.PartialAsync("_RcIcon", currentPageIcon)</span>
+                        <div class="topbar-page-text">
+                            <span>Remote Control</span>
+                            <strong>@(ViewData["Title"] ?? "Панель")</strong>
+                        </div>
                     </div>
                 </div>
 
                 <div class="nav-right">
-                <div class="nav-utilities">
-                    <button class="nav-utility-btn nav-theme-btn" type="button" onclick="toggleThemePlaceholder()" title="Тёмная тема" aria-label="Тёмная тема">
-                        <i class="fas fa-moon"></i>
-                    </button>
-
-                    <div class="nav-notifications" id="navNotifications">
-                        <button class="nav-utility-btn nav-notifications-btn" type="button" onclick="toggleNotificationsDropdown(event)" title="Уведомления" aria-label="Уведомления">
-                            <i class="far fa-bell"></i>
-                            <span class="nav-utility-dot hidden" id="navNotificationsDot"></span>
+                    <div class="nav-utilities">
+                        <button class="nav-utility-btn nav-theme-btn" type="button" onclick="toggleThemePlaceholder()" title="Тёмная тема" aria-label="Тёмная тема">
+                            <i class="fas fa-moon"></i>
                         </button>
 
-                        <div class="notifications-dropdown" id="notificationsDropdown">
-                            <div class="notifications-dropdown-header">
-                                <div>
-                                    <strong>Уведомления</strong>
-                                    <span>События по задачам, заявкам и проверкам</span>
+                        <div class="nav-notifications" id="navNotifications">
+                            <button class="nav-utility-btn nav-notifications-btn" type="button" onclick="toggleNotificationsDropdown(event)" title="Уведомления" aria-label="Уведомления">
+                                <i class="far fa-bell"></i>
+                                <span class="nav-utility-dot hidden" id="navNotificationsDot"></span>
+                            </button>
+
+                            <div class="notifications-dropdown" id="notificationsDropdown">
+                                <div class="notifications-dropdown-header">
+                                    <div>
+                                        <strong>Уведомления</strong>
+                                        <span>События по задачам, заявкам и проверкам</span>
+                                    </div>
+                                    <span class="notifications-dropdown-badge hidden" id="notificationsUnreadBadge">0</span>
                                 </div>
-                                <span class="notifications-dropdown-badge hidden" id="notificationsUnreadBadge">0</span>
+
+                                <div class="notifications-dropdown-list" id="notificationsDropdownList">
+                                    <div class="notifications-dropdown-empty">Загрузка уведомлений...</div>
+                                </div>
+
+                                <div class="notifications-dropdown-footer">
+                                    <button class="notifications-dropdown-action" type="button" onclick="markAllNotificationsAsRead()">
+                                        Отметить как просмотренные
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="header-user-block" onclick="toggleProfileDropdown()" id="headerUserBlock">
+                        <div class="header-user-text-wrap">
+                            <div class="header-user-name" id="userNameHeader">@sessionUserName</div>
+                            <div class="header-user-role @(sessionUserRole == "admin" ? "is-admin" : "")" id="userRoleHeader">@roleText</div>
+                        </div>
+
+                        <div class="header-user-avatar" id="userAvatar">
+                            @avatarLetter
+                        </div>
+
+                        <div class="profile-dropdown" id="profileDropdown">
+                            <div class="profile-dropdown-header">
+                                <div class="profile-dropdown-avatar" id="dropdownAvatar">@avatarLetter</div>
+                                <div class="profile-dropdown-info">
+                                    <h4 id="dropdownName">@sessionUserName</h4>
+                                    <p id="dropdownRole">@roleText</p>
+                                    <p class="profile-dropdown-email" id="dropdownEmail">@sessionUserEmail</p>
+                                </div>
                             </div>
 
-                            <div class="notifications-dropdown-list" id="notificationsDropdownList">
-                                <div class="notifications-dropdown-empty">Загрузка уведомлений...</div>
+                            <div class="profile-dropdown-menu">
+                                <div class="profile-dropdown-item" onclick="window.location.href='@Url.Page("/Profile")'">
+                                    <i class="fas fa-user"></i>
+                                    <span>Мой профиль</span>
+                                </div>
+
+                                <div class="profile-dropdown-item" onclick="window.location.href='@Url.Page("/Settings")'">
+                                    <i class="fas fa-sliders"></i>
+                                    <span>Настройки</span>
+                                </div>
+
+                                <div class="profile-dropdown-divider"></div>
+
+                                <div class="profile-dropdown-item" onclick="logout()">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span>Выйти</span>
+                                </div>
                             </div>
 
-                            <div class="notifications-dropdown-footer">
-                                <button class="notifications-dropdown-action" type="button" onclick="markAllNotificationsAsRead()">
-                                    Отметить как просмотренные
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>
-
-                <div class="header-user-block" onclick="toggleProfileDropdown()" id="headerUserBlock">
-                    <div class="header-user-text-wrap">
-                        <div class="header-user-name" id="userNameHeader">@sessionUserName</div>
-                        <div class="header-user-role @(sessionUserRole == "admin" ? "is-admin" : "")" id="userRoleHeader">@roleText</div>
-                    </div>
-
-                    <div class="header-user-avatar" id="userAvatar">
-                        @avatarLetter
-                    </div>
-
-                    <div class="profile-dropdown" id="profileDropdown">
-                        <div class="profile-dropdown-header">
-                            <div class="profile-dropdown-avatar" id="dropdownAvatar">@avatarLetter</div>
-                            <div class="profile-dropdown-info">
-                                <h4 id="dropdownName">@sessionUserName</h4>
-                                <p id="dropdownRole">@roleText</p>
-                                <p class="profile-dropdown-email" id="dropdownEmail">@sessionUserEmail</p>
-                            </div>
-                        </div>
-
-                        <div class="profile-dropdown-menu">
-                            <div class="profile-dropdown-item" onclick="window.location.href='@Url.Page("/Profile")'">
-                                <i class="fas fa-user"></i>
-                                <span>Мой профиль</span>
-                            </div>
-
-                            <div class="profile-dropdown-item" onclick="window.location.href='@Url.Page("/Settings")'">
-                                <i class="fas fa-sliders"></i>
-                                <span>Настройки</span>
-                            </div>
-
-                            <div class="profile-dropdown-divider"></div>
-
-                            <div class="profile-dropdown-item" onclick="logout()">
-                                <i class="fas fa-sign-out-alt"></i>
-                                <span>Выйти</span>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
             </header>
 
             <main role="main" class="app-content">
@@ -291,7 +308,6 @@
         </div>
     </div>
 
-    <script src="https://unpkg.com/lucide@0.487.0/dist/umd/lucide.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/modals.js" asp-append-version="true"></script>
     <script src="~/js/notify.js" asp-append-version="true"></script>
