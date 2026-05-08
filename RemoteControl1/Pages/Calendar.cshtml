@@ -12,11 +12,10 @@
         <div class="calendar-page-header">
             <div class="page-heading">
                 <span class="page-heading-icon" aria-hidden="true">
-                    <i class="fas fa-calendar-days"></i>
+                    @await Html.PartialAsync("_RcIcon", "calendar")
                 </span>
                 <div>
                     <h1 class="calendar-page-title">Календарь</h1>
-                    <p class="calendar-page-subtitle">События, сроки и рабочие даты по проектам.</p>
                 </div>
             </div>
 

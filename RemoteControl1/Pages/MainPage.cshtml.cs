@@ -538,6 +538,13 @@ namespace RemoteControl1.Pages
                 .Select(t => t.Id)
                 .ToListAsync();
 
+            var manualTimeRequests = await _db.ManualTimeRequests
+                .Where(x => (x.ProjectId.HasValue && x.ProjectId.Value == dto.Id) || projectTaskIds.Contains(x.TaskItemId))
+                .ToListAsync();
+
+            if (manualTimeRequests.Count > 0)
+                _db.ManualTimeRequests.RemoveRange(manualTimeRequests);
+
             var activityLogs = await _db.ActivityLogs
                 .Where(a => a.ProjectId == dto.Id || (a.TaskItemId.HasValue && projectTaskIds.Contains(a.TaskItemId.Value)))
                 .ToListAsync();

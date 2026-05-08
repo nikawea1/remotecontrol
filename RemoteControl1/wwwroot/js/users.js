@@ -225,6 +225,34 @@ function renderTableExpandNote(title, value, options = {}) {
     `;
 }
 
+function renderRowExpandButton(tableKey, rowId, isExpanded) {
+    return `
+        <button class="btn btn-sm btn-outline row-expand-toggle" type="button" onclick="toggleAdminRowFromButton(event, '${escapeUserText(tableKey)}', ${rowId})" title="${isExpanded ? "Свернуть" : "Развернуть"}" aria-label="${isExpanded ? "Свернуть строку" : "Развернуть строку"}">
+            <i class="fas fa-chevron-${isExpanded ? "up" : "down"}"></i>
+        </button>
+    `;
+}
+
+function renderManualRowExpandButton(rowId, isExpanded) {
+    return `
+        <button class="btn btn-sm btn-outline row-expand-toggle" type="button" onclick="toggleManualRequestFromButton(event, ${rowId})" title="${isExpanded ? "Свернуть" : "Развернуть"}" aria-label="${isExpanded ? "Свернуть заявку" : "Развернуть заявку"}">
+            <i class="fas fa-chevron-${isExpanded ? "up" : "down"}"></i>
+        </button>
+    `;
+}
+
+function renderUsersInlineIcon(iconKey) {
+    const icons = {
+        warning: "<svg class=\"rc-icon-svg\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" style=\"display:block;width:20px;height:20px;color:#ffffff;stroke:#ffffff;fill:none;overflow:visible\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 4l8 14H4z\"></path><path d=\"M12 10v4\"></path><path d=\"M12 17h.01\"></path></svg>",
+        hourglass: "<svg class=\"rc-icon-svg\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" style=\"display:block;width:20px;height:20px;color:#ffffff;stroke:#ffffff;fill:none;overflow:visible\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M7 4h10\"></path><path d=\"M7 20h10\"></path><path d=\"M8 4c0 4 4 4 4 8s-4 4-4 8\"></path><path d=\"M16 4c0 4-4 4-4 8s4 4 4 8\"></path></svg>",
+        pause: "<svg class=\"rc-icon-svg\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" style=\"display:block;width:20px;height:20px;color:#ffffff;stroke:#ffffff;fill:none;overflow:visible\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"8\"></circle><path d=\"M10 9v6\"></path><path d=\"M14 9v6\"></path></svg>",
+        userSlash: "<svg class=\"rc-icon-svg\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" style=\"display:block;width:20px;height:20px;color:#ffffff;stroke:#ffffff;fill:none;overflow:visible\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"10\" cy=\"8\" r=\"3\"></circle><path d=\"M4 19a6 6 0 0 1 8-5\"></path><path d=\"M4 4l16 16\"></path></svg>",
+        done: "<svg class=\"rc-icon-svg\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" style=\"display:block;width:20px;height:20px;color:#ffffff;stroke:#ffffff;fill:none;overflow:visible\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"8\"></circle><path d=\"M8.5 12.5l2.2 2.2 4.8-5\"></path></svg>"
+    };
+
+    return icons[iconKey] || icons.done;
+}
+
 function getExpandedAdminTableRowId(tableKey) {
     return Number(expandedAdminTableRows[tableKey] || 0);
 }
@@ -825,6 +853,13 @@ function selectAdminTableRow(event, tableKey, rowId) {
     mountAdminExpandedRow(nextRow, tableKey, nextId);
 }
 
+function toggleAdminRowFromButton(event, tableKey, rowId) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    const row = event?.currentTarget?.closest?.(".admin-table-row");
+    selectAdminTableRow({ target: row }, tableKey, rowId);
+}
+
 function enhanceAdminTables() {
     document.querySelectorAll("#usersPage .table th, #usersPage .table td").forEach(cell => {
         if (cell.closest(".manual-request-expanded-row") || cell.closest(".table-expand-row")) return;
@@ -924,6 +959,7 @@ function renderUsersTable() {
                                 <i class="fas ${u.status === "active" ? "fa-user-lock" : "fa-user-check"}"></i>
                             </button>
                         ` : ``}
+                        ${renderRowExpandButton("employees", u.id, isExpanded)}
                     </div>
                 </td>
             </tr>
@@ -962,7 +998,12 @@ function renderWorkloadTable() {
                 <td>${Number(u.trackedHours || 0).toFixed(1)}</td>
                 <td>${Number(u.workDayHours || 0).toFixed(1)}</td>
                 <td>${Number(u.idleHours || 0).toFixed(1)}</td>
-                <td>${Number(u.workloadDiff || 0) >= 0 ? "+" : ""}${Number(u.workloadDiff || 0).toFixed(1)}</td>
+                <td>
+                    <div class="admin-row-tail">
+                        <span>${Number(u.workloadDiff || 0) >= 0 ? "+" : ""}${Number(u.workloadDiff || 0).toFixed(1)}</span>
+                        ${renderRowExpandButton("workload", u.id, isExpanded)}
+                    </div>
+                </td>
             </tr>
             ${isExpanded ? renderAdminExpandedRow("workload", 10, u) : ""}
         `;
@@ -999,7 +1040,12 @@ function renderProductivityTable() {
                   <td>${u.tasksInProgress}</td>
                   <td>${u.completedTasks}</td>
                   <td>${index.toFixed(0)}%</td>
-                  <td><span class="badge ${stateView.badge}">${stateView.text}</span></td>
+                  <td>
+                      <div class="admin-row-tail">
+                          <span class="badge ${stateView.badge}">${stateView.text}</span>
+                          ${renderRowExpandButton("productivity", u.id, isExpanded)}
+                      </div>
+                  </td>
               </tr>
               ${isExpanded ? renderAdminExpandedRow("productivity", 7, u) : ""}
           `;
@@ -1039,7 +1085,12 @@ function renderSalaryTable() {
                 <td>${workDayHours.toFixed(1)}</td>
                 <td>${idleHours.toFixed(1)}</td>
                 <td>${rate.toLocaleString("ru-RU")}</td>
-                <td><strong>${salary.toLocaleString("ru-RU")}</strong></td>
+                <td>
+                    <div class="admin-row-tail">
+                        <strong>${salary.toLocaleString("ru-RU")}</strong>
+                        ${renderRowExpandButton("salary", u.id, isExpanded)}
+                    </div>
+                </td>
             </tr>
             ${isExpanded ? renderAdminExpandedRow("salary", 7, u) : ""}
         `;
@@ -1091,7 +1142,12 @@ function renderBonusesTable() {
                   <td>${diff >= 0 ? "+" : ""}${diff.toFixed(1)}</td>
                   <td><span class="badge ${badgeClass}">${escapeUserText(statusText)}</span></td>
                   <td class="bonus-reason-cell" title="${escapeUserText(reason || "Бонус не назначен")}">${escapeUserText(reason || "Бонус не назначен")}</td>
-                  <td class="bonus-amount-cell">${bonusAmount > 0 ? `${bonusAmount.toLocaleString("ru-RU")} руб.` : "0 руб."}</td>
+                  <td class="bonus-amount-cell">
+                      <div class="admin-row-tail">
+                          <span>${bonusAmount > 0 ? `${bonusAmount.toLocaleString("ru-RU")} руб.` : "0 руб."}</span>
+                          ${renderRowExpandButton("bonuses", u.id, isExpanded)}
+                      </div>
+                  </td>
               </tr>
               ${isExpanded ? renderAdminExpandedRow("bonuses", 9, u) : ""}
           `;
@@ -1136,7 +1192,7 @@ function renderControlTab() {
     const groups = [
         {
             id: "overloaded",
-            icon: "fa-triangle-exclamation",
+            icon: "warning",
             title: "Перегруженные",
             hint: "Много активных задач или часов по задачам",
             tone: "danger",
@@ -1145,7 +1201,7 @@ function renderControlTab() {
         },
         {
             id: "underloaded",
-            icon: "fa-hourglass-half",
+            icon: "hourglass",
             title: "Недогруженные",
             hint: "Факт ниже плановой нагрузки",
             tone: "warning",
@@ -1154,7 +1210,7 @@ function renderControlTab() {
         },
         {
             id: "idle",
-            icon: "fa-circle-pause",
+            icon: "pause",
             title: "Высокий простой",
             hint: "Много рабочего времени без задач",
             tone: "warning",
@@ -1163,7 +1219,7 @@ function renderControlTab() {
         },
         {
             id: "noActivity",
-            icon: "fa-user-slash",
+            icon: "userSlash",
             title: "Без активности",
             hint: "Есть план или задачи, но нет списанных часов",
             tone: "info",
@@ -1172,7 +1228,7 @@ function renderControlTab() {
         },
         {
             id: "stable",
-            icon: "fa-circle-check",
+            icon: "done",
             title: "Без критичных отклонений",
             hint: "Активные сотрудники без явных проблем по нагрузке",
             tone: "success",
@@ -1201,7 +1257,7 @@ function renderControlTab() {
             <div class="control-issues-toolbar">
                 <div class="control-issues-heading">
                     <span class="control-issues-icon control-issues-${selected.tone}">
-                        <i class="fas ${selected.icon}"></i>
+                        ${renderUsersInlineIcon(selected.icon)}
                     </span>
                     <div>
                         <strong>${escapeUserText(selected.title)}</strong>
@@ -1675,6 +1731,96 @@ function exportAdminSalaryCsv() {
     URL.revokeObjectURL(url);
 }
 
+function getActiveAdminTableForExport() {
+    return document.querySelector("#usersPage .admin-tab-content:not(.hidden) table");
+}
+
+function getAdminExportFileBase(table) {
+    const title = table?.closest?.(".card")?.querySelector?.(".card-title")?.textContent?.trim();
+    return (title || "admin-table")
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-zа-яё0-9-]+/gi, "");
+}
+
+function getAdminTableExportRows(table) {
+    if (!table) return [];
+
+    const headers = [...table.querySelectorAll("thead th")].map(th => th.innerText.trim());
+    const rows = [...table.querySelectorAll("tbody tr")]
+        .filter(row => !row.classList.contains("table-expand-row") && !row.classList.contains("manual-request-expanded-row"))
+        .map(row => [...row.children].map(cell => cell.innerText.trim().replace(/\s+/g, " ")));
+
+    return [headers, ...rows].filter(row => row.some(cell => String(cell || "").trim()));
+}
+
+function downloadAdminExport(content, filename, type) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = filename;
+    link.click();
+
+    URL.revokeObjectURL(url);
+}
+
+function exportActiveAdminTable(format) {
+    const table = getActiveAdminTableForExport();
+    const rows = getAdminTableExportRows(table);
+
+    if (!table || rows.length <= 1) {
+        showNotification("Нет данных для экспорта");
+        return;
+    }
+
+    const base = getAdminExportFileBase(table);
+
+    if (format === "json") {
+        const [headers, ...items] = rows;
+        const data = items.map(row => Object.fromEntries(headers.map((key, index) => [key || `Колонка ${index + 1}`, row[index] || ""])));
+        downloadAdminExport(JSON.stringify(data, null, 2), `${base}.json`, "application/json;charset=utf-8;");
+        return;
+    }
+
+    if (format === "xls" || format === "html") {
+        const html = `
+            <html>
+                <head><meta charset="utf-8"></head>
+                <body>
+                    <table>
+                        ${rows.map((row, index) => `
+                            <tr>
+                                ${row.map(cell => index === 0 ? `<th>${escapeUserText(cell)}</th>` : `<td>${escapeUserText(cell)}</td>`).join("")}
+                            </tr>
+                        `).join("")}
+                    </table>
+                </body>
+            </html>
+        `;
+        downloadAdminExport(
+            html,
+            format === "html" ? `${base}.html` : `${base}.xls`,
+            format === "html" ? "text/html;charset=utf-8;" : "application/vnd.ms-excel;charset=utf-8;"
+        );
+        return;
+    }
+
+    if (format === "txt") {
+        const txt = rows
+            .map(row => row.map(cell => String(cell || "").replace(/\s+/g, " ").trim()).join("\t"))
+            .join("\n");
+        downloadAdminExport(`\uFEFF${txt}`, `${base}.txt`, "text/plain;charset=utf-8;");
+        return;
+    }
+
+    const csv = rows
+        .map(row => row.map(cell => `"${String(cell || "").replaceAll('"', '""')}"`).join(";"))
+        .join("\n");
+    downloadAdminExport(`\uFEFF${csv}`, `${base}.csv`, "text/csv;charset=utf-8;");
+}
+
 async function loadManualTimeRequests() {
     try {
         const res = await fetch("/MainPage?handler=ManualTimeRequests");
@@ -1848,34 +1994,34 @@ function getManualRequestStateInfo(request) {
         case "approved":
             return {
                 title: "Проверка завершена",
-                text: "Заявка одобрена. Часы будут учтены в расчётах и отчётах.",
+                text: "Заявка одобрена.",
                 tone: "success",
                 actionTitle: "Результат",
-                actionText: "Заявка принята. Часы будут учтены автоматически, дополнительных действий не требуется."
+                actionText: "Заявка принята."
             };
         case "rejected":
             return {
                 title: "Проверка завершена",
-                text: "Заявка отклонена и не будет учтена в расчётах.",
+                text: "Заявка отклонена.",
                 tone: "danger",
                 actionTitle: "Результат проверки",
-                actionText: "Если это время всё же нужно учесть, оформите новую заявку с уточнениями и подтверждением."
+                actionText: getManualRequestManagerCommentText(request)
             };
         case "needs_revision":
             return {
                 title: "Нужны правки",
-                text: "Менеджер запросил уточнения. Повторная отправка доступна после исправлений.",
+                text: "Заявку нужно уточнить.",
                 tone: "warning",
-                actionTitle: "Что изменить",
-                actionText: "Ниже указано замечание менеджера. После правок можно повторно отправить заявку на проверку."
+                actionTitle: "Комментарий менеджера",
+                actionText: getManualRequestManagerCommentText(request)
             };
         default:
             return {
                 title: "Ожидает проверки",
-                text: "Заявка передана менеджеру и ожидает решения.",
+                text: "Ожидает решения.",
                 tone: "info",
                 actionTitle: "Состояние заявки",
-                actionText: "Заявка находится на проверке у менеджера. Дополнительных действий пока не требуется."
+                actionText: "Ожидает решения менеджера."
             };
     }
 }
@@ -1889,37 +2035,31 @@ function normalizeManualRequestDecisionText(value) {
 
 function getManualRequestManagerCommentText(request) {
     const raw = String(request.managerComment || "").trim();
-    const status = String(request.status || "pending").toLowerCase();
 
     if (!raw) {
-        if (status === "pending") {
-            return "Решение менеджера ещё не добавлено.";
-        }
-
-        return "Подробный комментарий менеджера не указан.";
+        return "Без комментариев";
     }
 
+    const status = String(request.status || "pending").toLowerCase();
+
     const normalized = normalizeManualRequestDecisionText(raw);
+    const stateTitle = status === "approved"
+        ? "Проверка завершена"
+        : status === "rejected"
+            ? "Проверка завершена"
+            : status === "needs_revision"
+                ? "Нужны правки"
+                : "Ожидает проверки";
     const duplicateLabels = [
         getManualRequestStatusText(status),
-        getManualRequestStateInfo(request).title,
+        stateTitle,
         "требуется доработка",
         "на доработке",
         "возвращена на доработку"
     ].map(normalizeManualRequestDecisionText);
 
     if (duplicateLabels.includes(normalized)) {
-        if (status === "needs_revision") {
-            return "Менеджер запросил правки без подробного комментария.";
-        }
-
-        if (status === "rejected") {
-            return "Менеджер отклонил заявку без подробного комментария.";
-        }
-
-        if (status === "approved") {
-            return "Менеджер одобрил заявку без дополнительного комментария.";
-        }
+        return "Без комментариев";
     }
 
     return raw;
@@ -2014,7 +2154,7 @@ function getManualRequestHistoryMarkup(request) {
             </div>
 
             <div class="manual-request-history-detail is-${escapeUserText(activeItem.tone)}">
-                <span class="manual-request-history-detail-kicker">Выбранный этап</span>
+                <span class="manual-request-history-detail-kicker">Событие</span>
                 <div class="manual-request-history-detail-head">
                     <h6 data-history-detail-title>${escapeUserText(activeItem.title)}</h6>
                     <span data-history-detail-date>${escapeUserText(formatManualRequestReadableDate(activeItem.time))}</span>
@@ -2105,6 +2245,21 @@ function renderManualRequestExpandedDetails(request) {
     const projectName = request.projectName || "Без проекта";
     const taskName = request.taskName || "Без задачи";
     const employeeName = request.employee || "—";
+    const repeatsManagerComment = normalizeManualRequestDecisionText(stateInfo.actionText) === normalizeManualRequestDecisionText(managerCommentText);
+    const managerCommentSection = repeatsManagerComment
+        ? (canResubmitAction ? `
+            <section class="manual-request-details-section">
+                <h5>Действие</h5>
+                <div class="manual-request-state-actions">${canResubmitAction}</div>
+            </section>
+        ` : "")
+        : `
+            <section class="manual-request-details-section">
+                <h5>Комментарий менеджера</h5>
+                <div class="manual-request-details-text">${escapeUserText(managerCommentText)}</div>
+                ${canResubmitAction ? `<div class="manual-request-state-actions">${canResubmitAction}</div>` : ""}
+            </section>
+        `;
 
     return `
         <div class="manual-request-details-clean">
@@ -2116,8 +2271,6 @@ function renderManualRequestExpandedDetails(request) {
                 </div>
                 <div class="manual-request-details-status">
                     ${statusMarkup}
-                    <strong>${escapeUserText(stateInfo.title)}</strong>
-                    <span>${escapeUserText(stateInfo.text)}</span>
                 </div>
             </div>
 
@@ -2163,12 +2316,12 @@ function renderManualRequestExpandedDetails(request) {
             <div class="manual-request-modal-panel is-active" data-tab-panel="overview">
                 <div class="manual-request-details-grid">
                     <section class="manual-request-details-section">
-                        <h5>Что запросил сотрудник</h5>
+                        <h5>Комментарий сотрудника</h5>
                         <div class="manual-request-details-text">${escapeUserText(request.comment || "Комментарий не добавлен.")}</div>
                     </section>
 
                     <section class="manual-request-details-section">
-                        <h5>Связанные данные</h5>
+                        <h5>Данные заявки</h5>
                         <div class="manual-request-details-list">
                             <div><span>Проект</span><strong>${escapeUserText(projectName)}</strong></div>
                             <div><span>Задача</span><strong>${escapeUserText(taskName)}</strong></div>
@@ -2185,11 +2338,7 @@ function renderManualRequestExpandedDetails(request) {
                         <div class="manual-request-details-text is-emphasis">${escapeUserText(stateInfo.actionText)}</div>
                     </section>
 
-                    <section class="manual-request-details-section">
-                        <h5>Комментарий менеджера</h5>
-                        <div class="manual-request-details-text">${escapeUserText(managerCommentText)}</div>
-                        ${canResubmitAction ? `<div class="manual-request-state-actions">${canResubmitAction}</div>` : ""}
-                    </section>
+                    ${managerCommentSection}
                 </div>
             </div>
 
@@ -2210,7 +2359,17 @@ function renderManualRequestExpandedSummary(request, canShowActions) {
            </a>`
         : `<span class="manual-request-muted">Файл не прикреплён</span>`;
     const managerCommentText = getManualRequestManagerCommentText(request);
-    const employeeCommentText = request.comment || "Комментарий не добавлен";
+    const employeeCommentText = String(request.comment || "").trim();
+    const hasManagerComment = managerCommentText !== "Без комментариев";
+    const fileSection = request.attachmentPath
+        ? renderTableExpandSection("Файл", renderTableExpandItem("Вложение", attachmentMarkup, { html: true }), { wide: true })
+        : "";
+    const employeeCommentSection = employeeCommentText
+        ? renderTableExpandNote("Комментарий сотрудника", employeeCommentText)
+        : "";
+    const managerCommentSection = hasManagerComment
+        ? renderTableExpandNote("Комментарий менеджера", managerCommentText)
+        : "";
     const quickActions = canShowActions
         ? `
             <button class="btn btn-success manual-request-inline-action" type="button" onclick="approveManualTimeRequest(${request.id})">
@@ -2246,26 +2405,14 @@ function renderManualRequestExpandedSummary(request, canShowActions) {
                 </div>
 
                 <div class="table-expand-stats manual-request-expand-stats">
-                    ${renderTableExpandStat("Учтено", `${Number(request.hours || 0).toFixed(1)} ч`)}
-                    ${renderTableExpandStat("Дата работы", formatManualRequestReadableDate(request.workDate, false))}
+                    ${renderTableExpandStat("Часы", `${Number(request.hours || 0).toFixed(1)} ч`)}
                     ${renderTableExpandStat("Отправлена", formatManualRequestReadableDate(request.createdAt))}
                 </div>
 
                 <div class="table-expand-content manual-request-expand-content">
-                    ${renderTableExpandSection("Проверка", [
-            renderTableExpandItem("Текущий статус", renderManualTimeStatus(request.status), { html: true }),
-            renderTableExpandItem("Последнее решение", request.reviewedAt ? formatManualRequestReadableDate(request.reviewedAt) : "Ещё не было"),
-            renderTableExpandItem("Файл", attachmentMarkup, { html: true }),
-            renderTableExpandItem(getManualRequestStateInfo(request).actionTitle, getManualRequestStateInfo(request).actionText)
-        ].join(""), { wide: true })}
-
-                    ${renderTableExpandNote("Комментарий сотрудника", employeeCommentText, {
-            muted: !String(request.comment || "").trim()
-        })}
-
-                    ${renderTableExpandNote("Комментарий менеджера", managerCommentText, {
-            muted: !String(request.managerComment || "").trim()
-        })}
+                    ${fileSection}
+                    ${employeeCommentSection}
+                    ${managerCommentSection}
                 </div>
 
                 <div class="table-expand-actions manual-request-expand-actions">
@@ -2307,7 +2454,7 @@ function toggleManualRequestRow(event, row, id) {
         row.classList.add("is-selected");
         row.insertAdjacentHTML("afterend", `
             <tr class="manual-request-expanded-row">
-                <td colspan="10">
+                <td colspan="9">
                     ${renderManualRequestExpandedSummary(request, canShowActions)}
                 </td>
             </tr>
@@ -2336,6 +2483,13 @@ function toggleManualRequestRow(event, row, id) {
     mountExpandedRow();
 }
 
+function toggleManualRequestFromButton(event, id) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    const row = event?.currentTarget?.closest?.(".manual-request-row");
+    toggleManualRequestRow({ target: row }, row, id);
+}
+
 function renderManualTimeRequests() {
     const body = document.getElementById("manualTimeRequestsBody");
     if (!body) return;
@@ -2348,7 +2502,7 @@ function renderManualTimeRequests() {
     if (!items.length) {
         body.innerHTML = `
             <tr>
-                <td colspan="10" style="text-align:center; color: var(--gray);">Заявок пока нет</td>
+                <td colspan="9" style="text-align:center; color: var(--gray);">Заявок пока нет</td>
             </tr>
         `;
         enhanceAdminTables();
@@ -2377,17 +2531,17 @@ function renderManualTimeRequests() {
                         <i class="fas fa-arrow-up-right-from-square"></i>
                     </button>
                 `}
+                ${renderManualRowExpandButton(x.id, isExpanded)}
             </div>
         `;
 
         return `
             <tr class="manual-request-row ${isExpanded ? "is-selected" : ""}" onclick="toggleManualRequestRow(event, this, ${x.id})">
                 <td>${escapeUserText(x.id)}</td>
-                <td title="${escapeUserText(x.employee || "-")}">${escapeUserText(x.employee || "-")}</td>
-                <td title="${escapeUserText(x.taskName || "-")}">${escapeUserText(x.taskName || "-")}</td>
-                <td title="${escapeUserText(x.projectName || "-")}">${escapeUserText(x.projectName || "-")}</td>
-                <td>${Number(x.hours || 0).toFixed(1)}</td>
-                <td>${renderManualRequestPreview(x)}</td>
+                <td class="manual-request-employee-cell" title="${escapeUserText(x.employee || "-")}">${escapeUserText(x.employee || "-")}</td>
+                <td class="manual-request-task-cell" title="${escapeUserText(x.taskName || "-")}">${escapeUserText(x.taskName || "-")}</td>
+                <td class="manual-request-project-cell" title="${escapeUserText(x.projectName || "-")}">${escapeUserText(x.projectName || "-")}</td>
+                <td class="manual-request-hours-cell">${Number(x.hours || 0).toFixed(1)}</td>
                 <td class="manual-request-file-cell">
                     ${x.attachmentPath
                 ? `<a href="${escapeUserText(x.attachmentPath)}" target="_blank" class="btn btn-sm btn-outline manual-file-btn" title="${escapeUserText(x.attachmentName || "Файл")}">
@@ -2396,13 +2550,13 @@ function renderManualTimeRequests() {
                 : `<span class="manual-request-muted">—</span>`
             }
                 </td>
-                <td>${renderManualTimeStatus(status)}</td>
-                <td>${formatManualRequestDate(x.createdAt)}</td>
-                <td>${actionsMarkup}</td>
+                <td class="manual-request-status-cell">${renderManualTimeStatus(status)}</td>
+                <td class="manual-request-date-cell">${formatManualRequestDate(x.createdAt)}</td>
+                <td class="manual-request-actions-cell">${actionsMarkup}</td>
             </tr>
             ${isExpanded ? `
                 <tr class="manual-request-expanded-row">
-                    <td colspan="10">${renderManualRequestExpandedSummary(x, canShowActions)}</td>
+                    <td colspan="9">${renderManualRequestExpandedSummary(x, canShowActions)}</td>
                 </tr>
             ` : ""}
         `;
@@ -2462,21 +2616,21 @@ function openManualRequestActionModal(id, actionType) {
         approve: {
             title: "Одобрение заявки",
             label: "Комментарий менеджера",
-            hint: "Можно оставить пустым, если дополнительных пояснений не нужно.",
+            hint: "",
             submitText: "Одобрить",
             value: ""
         },
         needs_revision: {
             title: "Возврат на доработку",
             label: "Что нужно исправить",
-            hint: "Опишите, что нужно дополнить или переделать, чтобы сотрудник смог отправить заявку повторно.",
+            hint: "",
             submitText: "Вернуть на доработку",
             value: request.managerComment || ""
         },
         reject: {
             title: "Отклонение заявки",
             label: "Причина отклонения",
-            hint: "Укажи причину, чтобы сотрудник понимал, почему заявка не принята.",
+            hint: "",
             submitText: "Отклонить",
             value: request.managerComment || ""
         }

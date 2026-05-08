@@ -772,11 +772,11 @@ function renderTaskListMetric(label, value, options = {}) {
 }
 
 function renderTaskPriorityChip(task) {
+    const label = getPriorityText(task.priority);
     return `
-        <span class="task-priority-chip ${getPriorityClass(task.priority)}">
+        <span class="task-priority-chip ${getPriorityClass(task.priority)}" title="Приоритет: ${escapeTaskText(label)}">
             <i class="fas fa-flag" aria-hidden="true"></i>
-            <span>Приоритет</span>
-            <strong>${escapeTaskText(getPriorityText(task.priority))}</strong>
+            <strong>${escapeTaskText(label)}</strong>
         </span>
     `;
 }
@@ -784,7 +784,6 @@ function renderTaskPriorityChip(task) {
 function renderTaskStatusBlock(task) {
     return `
         <div class="task-list-status-block">
-            <span>Статус выполнения</span>
             ${renderTaskStatusControl(task)}
         </div>
     `;
@@ -826,38 +825,33 @@ function renderTaskDeadlineDashboard(items) {
     const cards = [
         {
             tone: "is-overview",
-            icon: "fa-calendar-days",
-            title: "Сроки",
-            value: summary.active,
-            note: `Готово: ${summary.done}`
+            icon: "fa-list-check",
+            title: "Активные",
+            value: summary.active
         },
         {
             tone: "is-overdue",
             icon: "fa-circle-exclamation",
             title: "Просрочено",
-            value: summary.overdue,
-            note: summary.overdue ? "Нужно действие" : "Нет"
+            value: summary.overdue
         },
         {
             tone: "is-today",
             icon: "fa-calendar-day",
             title: "Сегодня",
-            value: summary.today,
-            note: summary.today ? "В фокусе" : "Нет"
+            value: summary.today
         },
         {
             tone: "is-soon",
             icon: "fa-calendar-week",
             title: "Скоро",
-            value: summary.soon,
-            note: summary.soon ? "Ближайшие" : "Нет"
+            value: summary.soon
         },
         {
             tone: "is-unscheduled",
             icon: "fa-inbox",
             title: "Без срока",
-            value: summary.unscheduled,
-            note: summary.unscheduled ? "Назначьте срок" : "Нет"
+            value: summary.unscheduled
         }
     ];
 
@@ -870,12 +864,11 @@ function renderTaskDeadlineDashboard(items) {
                 </span>
             </div>
             <div class="tasks-deadline-card-value">${escapeTaskText(card.value)}</div>
-            <div class="tasks-deadline-card-note">${escapeTaskText(card.note)}</div>
         </article>
     `).join("");
 
     if (caption) {
-        caption.textContent = `${items.length} задач · активные ${summary.active} · завершённые ${summary.done}`;
+        caption.textContent = "";
     }
 }
 
@@ -942,15 +935,12 @@ function renderTaskPeriodItems(tasksInPeriod) {
                             </div>
                             <div class="task-list-inline-meta">
                                 ${renderTaskListInlineMeta("Проект", task.project || "Без проекта")}
-                                ${renderTaskListInlineMeta("Этап", task.stageName || "Этап не указан")}
-                                ${renderTaskListInlineMeta("Исполнитель", task.assignee || "Не назначен")}
                             </div>
                         </div>
                     </div>
 
                     <div class="task-list-aside">
                         <div class="task-list-metrics">
-                            ${renderTaskListMetric("Плановые часы", `${Number(task.plannedTime || 0).toFixed(1)} ч`)}
                             ${renderTaskListMetric("Дедлайн", formatTaskBoardDate(task), {
             tone: deadlineTone
         })}
@@ -1030,6 +1020,7 @@ function renderTaskStatusControl(task) {
 }
 
 function renderTaskRowActions(task) {
+    const isExpanded = Number(expandedTaskId) === Number(task.id);
     const managerButtons = !isEmployee
         ? `
             <button class="btn btn-sm btn-outline" type="button" onclick="openEditTaskModal(${task.id})" title="Редактировать">
@@ -1057,6 +1048,9 @@ function renderTaskRowActions(task) {
         <div class="task-list-actions table-actions">
             ${managerButtons}
             ${startButton}
+            <button class="btn btn-sm btn-outline task-list-expand-toggle" type="button" onclick="toggleTaskCardFromButton(event, ${task.id})" title="${isExpanded ? "Свернуть" : "Раскрыть"}" aria-label="${isExpanded ? "Свернуть задачу" : "Раскрыть задачу"}">
+                <i class="fas fa-chevron-${isExpanded ? "up" : "down"}"></i>
+            </button>
         </div>
     `;
 }
@@ -1065,29 +1059,19 @@ function renderTaskExpandedRow(task) {
     const description = String(task.description || "").trim();
     const project = projects.find(x => Number(x.id) === Number(task.projectId));
     const reportText = String(task.completionReportText || "").trim();
-    const contextSection = renderTaskDetailSection("Основные данные", [
-        renderTaskExpandItem("ID", `#${task.id}`),
-        renderTaskExpandItem("Категория приоритета", getPriorityText(task.priority)),
+    const contextSection = renderTaskDetailSection("Контекст", [
+        renderTaskExpandItem("Этап", task.stageName || "Не указан"),
+        renderTaskExpandItem("Ответственный", task.assignee || "Не назначен"),
         renderTaskExpandItem("Менеджер", project?.managerName || "Не назначен"),
-        renderTaskExpandItem("Плановые часы", `${Number(task.plannedTime || 0).toFixed(1)} ч`)
+        renderTaskExpandItem("Срок", formatTaskBoardFullDate(task))
     ].join(""));
     const reviewSection = reportText
-        ? renderTaskDetailSection("Проверка результата", [
+        ? renderTaskDetailSection("Проверка", [
             renderTaskExpandItem("Отправил", task.completionReportedBy || task.assignee || "Исполнитель"),
             renderTaskExpandItem("Когда", formatTaskReportDate(task.completionReportedAt)),
-            renderTaskExpandItem("Статус выполнения", task.status === "review" ? "Ожидает проверки менеджера" : getStatusText(task.status)),
-            renderTaskExpandItem("Дедлайн", formatTaskBoardFullDate(task))
+            renderTaskExpandItem("Решение", task.status === "review" ? "Ожидает проверки" : getStatusText(task.status))
         ].join(""))
-        : renderTaskDetailSection("Статус и следующий шаг", [
-            renderTaskExpandItem("Статус выполнения", getStatusText(task.status)),
-            renderTaskExpandItem("Дедлайн", formatTaskBoardFullDate(task)),
-            renderTaskExpandItem("Следующий шаг", task.status === "review"
-                ? "Менеджеру нужно принять результат или вернуть задачу на доработку"
-                : task.status === "done"
-                    ? "Задача закрыта, можно использовать данные в отчётах"
-                    : "Выполните работу, кратко опишите результат и отправьте на проверку"),
-            renderTaskExpandItem("Менеджер", project?.managerName || "Не назначен")
-        ].join(""));
+        : "";
     const completionAction = isEmployee && task.status !== "done"
         ? `
             <button class="btn btn-primary task-expand-primary-btn" type="button" onclick="openCompleteTaskModal(${task.id})">
@@ -1099,12 +1083,8 @@ function renderTaskExpandedRow(task) {
     const managerActions = !isEmployee
         ? `
             <button class="btn btn-outline" type="button" onclick="openEditTaskModal(${task.id})">
-                <i class="fas fa-pen-to-square"></i>
-                <span>Редактировать</span>
-            </button>
-            <button class="btn btn-danger" type="button" onclick="openDeleteTaskModal(${task.id})">
-                <i class="fas fa-trash-can"></i>
-                <span>Удалить</span>
+                <i class="fas fa-arrow-up-right-from-square"></i>
+                <span>Открыть задачу</span>
             </button>
         `
         : "";
@@ -1116,12 +1096,12 @@ function renderTaskExpandedRow(task) {
                     <div class="task-detail-title">
                         <span>Задача #${escapeTaskText(task.id)}</span>
                         <h4>${escapeTaskText(task.name || "—")}</h4>
-                        <p>${escapeTaskText(task.project || "Без проекта")} · ${escapeTaskText(task.stageName || "Этап не указан")} · ${escapeTaskText(task.assignee || "Не назначен")}</p>
+                        <p>${escapeTaskText(project?.name || task.project || "Без проекта")}</p>
                     </div>
 
                     <div class="task-detail-state">
                         ${renderTaskPriorityChip(task)}
-                        ${renderTaskStatusControl(task)}
+                        <span class="task-status ${getStatusBadgeClass(task.status)}">${getStatusText(task.status)}</span>
                     </div>
                 </div>
 
@@ -1145,6 +1125,13 @@ function renderTaskExpandedRow(task) {
             </div>
         </div>
     `;
+}
+
+function toggleTaskCardFromButton(event, taskId) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    const card = event?.currentTarget?.closest?.("[data-task-card]");
+    selectTaskTableRow({ target: card }, taskId);
 }
 
 function playTaskExpandStageEnter(root) {
@@ -1434,7 +1421,6 @@ function renderTaskPeriodGroup(group) {
     const taskCount = group.tasks.length;
     const groupTone = getTaskPeriodGroupTone(group);
     const groupIcon = getTaskPeriodGroupIcon(group);
-    const pills = renderTaskPeriodPills(group.tasks);
 
     return `
         <section class="tasks-period-group ${groupTone} ${isCollapsed ? "is-collapsed" : ""}" data-period-group="${escapeTaskText(group.key)}">
@@ -1446,10 +1432,6 @@ function renderTaskPeriodGroup(group) {
                         </span>
                         <strong class="tasks-period-title">${escapeTaskText(group.label)}</strong>
                         <span class="tasks-period-count">${escapeTaskText(taskCount)}</span>
-                    </div>
-                    <div class="tasks-period-meta-row">
-                        <span class="tasks-period-summary">${escapeTaskText(group.hint)} · ${escapeTaskText(renderTaskPeriodSummary(group.tasks))}</span>
-                        ${pills ? `<span class="tasks-period-pills">${pills}</span>` : ""}
                     </div>
                 </div>
                 <span class="tasks-period-chevron" aria-hidden="true">
@@ -1741,7 +1723,6 @@ async function addTask() {
         renderProjects();
 
         if (typeof showProjectDetails === "function" && currentOpenedProjectId) {
-            selectedProjectStageFilter = stageName || "";
             showProjectDetails(currentOpenedProjectId);
         }
 
@@ -1758,7 +1739,7 @@ function openEditTaskModal(id) {
         suspendProjectViewBeforeTaskModal(id);
     }
 
-    const task = tasks.find(t => t.id === id);
+    const task = tasks.find(t => Number(t.id) === Number(id));
     if (!task) {
         showNotification("Задача не найдена");
         return;
@@ -1989,26 +1970,52 @@ function openDeleteTaskModal(id) {
 async function confirmDeleteTask() {
     const id = Number(document.getElementById("deleteTaskId")?.value || 0);
 
-    try {
-        const res = await fetch(`/api/tasks/${id}`, {
-            method: "DELETE",
-            headers: {
-                "Content-Type": "application/json",
-                "RequestVerificationToken": getRequestVerificationToken()
-            }
-        });
+    if (!id) {
+        showNotification("Задача не найдена");
+        return;
+    }
 
-        const data = await res.json();
+    try {
+        let res = null;
+        let data = null;
+
+        try {
+            res = await fetch(`/api/tasks/${id}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    "RequestVerificationToken": getRequestVerificationToken()
+                }
+            });
+
+            data = await res.json().catch(() => ({}));
+        } catch {
+            res = null;
+            data = null;
+        }
+
+        if (!res || !res.ok || !data?.ok) {
+            res = await fetch("/MainPage?handler=DeleteTask", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "RequestVerificationToken": getRequestVerificationToken()
+                },
+                body: JSON.stringify({ id: id })
+            });
+
+            data = await res.json().catch(() => ({}));
+        }
 
         if (!res.ok || !data.ok) {
             showNotification(data?.error || "Ошибка удаления");
             return;
         }
 
-        const deletedTask = tasks.find(t => t.id === id);
+        const deletedTask = tasks.find(t => Number(t.id) === id);
         const deletedProjectId = deletedTask ? deletedTask.projectId : 0;
 
-        tasks = tasks.filter(t => t.id !== id);
+        tasks = tasks.filter(t => Number(t.id) !== id);
 
         closeModal("deleteTaskModal");
         renderTasksTable();
