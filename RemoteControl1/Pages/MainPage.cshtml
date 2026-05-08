@@ -10,7 +10,7 @@
         <div class="page-header-row">
             <div class="page-heading">
                 <span class="page-heading-icon" aria-hidden="true">
-                    <i class="fas fa-gauge-high"></i>
+                    @await Html.PartialAsync("_RcIcon", "home")
                 </span>
                 <div>
                     <h1 class="page-title">Главная панель</h1>
@@ -43,7 +43,7 @@
 
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                <div class="stat-icon">@await Html.PartialAsync("_RcIcon", "clock")</div>
                 <div class="stat-info">
                     <div class="stat-value" id="totalHours">0.0</div>
                     <div class="stat-label">Отработано часов</div>
@@ -51,7 +51,7 @@
             </div>
 
             <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-list-check"></i></div>
+                <div class="stat-icon">@await Html.PartialAsync("_RcIcon", "tasks")</div>
                 <div class="stat-info">
                     <div class="stat-value" id="activeTasks">0</div>
                     <div class="stat-label">Активных задач</div>
@@ -59,7 +59,7 @@
             </div>
 
             <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-diagram-project"></i></div>
+                <div class="stat-icon">@await Html.PartialAsync("_RcIcon", "projects")</div>
                 <div class="stat-info">
                     <div class="stat-value" id="activeProjects">0</div>
                     <div class="stat-label">Активных проектов</div>
@@ -67,7 +67,7 @@
             </div>
 
             <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-calendar-days"></i></div>
+                <div class="stat-icon">@await Html.PartialAsync("_RcIcon", "calendar")</div>
                 <div class="stat-info">
                     <div class="stat-value" id="completedTasks">0</div>
                     <div class="stat-label">Выполненных задач</div>

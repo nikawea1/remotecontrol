@@ -52,8 +52,33 @@ function normalizeWorkDayEntry(item) {
         date: item?.date ?? item?.Date ?? "-",
         start: item?.start ?? item?.Start ?? "-",
         end: item?.end ?? item?.End ?? "-",
-        hours: Number(item?.hours ?? item?.Hours ?? 0)
+        hours: Number(item?.hours ?? item?.Hours ?? 0),
+        task: item?.task ?? item?.Task ?? "",
+        project: item?.project ?? item?.Project ?? "",
+        comment: item?.comment ?? item?.Comment ?? ""
     };
+}
+
+function isTimerBrandText(value) {
+    return /^(remote\s*control|remotecontrol)$/i.test(String(value || "").trim());
+}
+
+function getTimerSessionTitle(item) {
+    const task = String(item?.task || "").trim();
+    const project = String(item?.project || "").trim();
+    const comment = String(item?.comment || "").trim();
+
+    if (task && !isTimerBrandText(task)) return task;
+    if (project && !isTimerBrandText(project)) return `Проект: ${project}`;
+    if (comment && !isTimerBrandText(comment)) return comment;
+    if (project || task) return "Работа по проекту";
+
+    return "Рабочая сессия";
+}
+
+function getTimerSessionProject(item) {
+    const project = String(item?.project || "").trim();
+    return project && !isTimerBrandText(project) ? project : "";
 }
 
 function escapeTimerText(value) {
@@ -835,12 +860,13 @@ function renderWorkDayHistory() {
     body.innerHTML = items.map(item => `
         <article class="session-history-item">
             <div class="session-history-title">
-                <strong>Рабочая сессия</strong>
+                <strong>${escapeTimerText(getTimerSessionTitle(item))}</strong>
                 <span>${escapeTimerText(item.date || "-")}</span>
             </div>
             <div class="session-history-meta">
                 <span><i class="far fa-calendar-days"></i>${escapeTimerText(item.date || "-")}</span>
-                <span><i class="fas fa-table-columns"></i>Remote Control</span>
+                ${getTimerSessionProject(item) ? `<span><i class="fas fa-folder-open"></i>${escapeTimerText(getTimerSessionProject(item))}</span>` : ""}
+                ${!getTimerSessionProject(item) && item.comment && !isTimerBrandText(item.comment) ? `<span><i class="fas fa-note-sticky"></i>${escapeTimerText(item.comment)}</span>` : ""}
                 <span><i class="far fa-clock"></i>${escapeTimerText(item.start || "-")} - ${escapeTimerText(item.end || "-")}</span>
             </div>
             <div class="session-history-duration">${formatWorkDayDuration(item.hours)}</div>

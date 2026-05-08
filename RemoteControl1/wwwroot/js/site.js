@@ -1,6 +1,8 @@
 ﻿// Файл: RemoteControl1/wwwroot/js/site.js
 
 window.remoteControlData = window.remoteControlData || {};
+window.rcSidebarResizeTimer = window.rcSidebarResizeTimer || 0;
+window.rcSidebarLastMobileState = window.rcSidebarLastMobileState ?? null;
 
 (function setupRemoteLucideIcons() {
     const iconMap = {
@@ -464,19 +466,74 @@ function isMobileShell() {
     return window.matchMedia("(max-width: 992px)").matches;
 }
 
-function applySidebarStoredState() {
-    if (isMobileShell()) {
-        document.body.classList.remove("sidebar-collapsed", "sidebar-open");
+function getSidebarStorageKey() {
+    return "rc_sidebar_collapsed";
+}
+
+function syncSidebarRootState(isCollapsed) {
+    const collapsed = Boolean(isCollapsed);
+    document.documentElement.classList.toggle("rc-sidebar-collapsed", collapsed);
+    document.body.classList.toggle("sidebar-collapsed", collapsed);
+
+    document.querySelectorAll(".sidebar-collapse-btn").forEach(button => {
+        button.setAttribute("aria-expanded", collapsed ? "false" : "true");
+        button.setAttribute("aria-label", collapsed ? "Развернуть меню" : "Свернуть меню");
+    });
+}
+
+function finishSidebarTransition() {
+    document.body.classList.remove("sidebar-transitioning");
+}
+
+function setSidebarCollapsedState(isCollapsed) {
+    if (document.body.classList.contains("sidebar-collapsed") === Boolean(isCollapsed)) {
+        syncSidebarRootState(isCollapsed);
+        return;
     }
+
+    document.body.classList.add("sidebar-transitioning");
+    syncSidebarRootState(isCollapsed);
+
+    try {
+        window.localStorage.setItem(getSidebarStorageKey(), isCollapsed ? "1" : "0");
+    } catch {
+        // Storage can be unavailable in private modes.
+    }
+
+    window.clearTimeout(window.rcSidebarTransitionTimer);
+    window.rcSidebarTransitionTimer = window.setTimeout(finishSidebarTransition, 360);
+}
+
+function applySidebarStoredState() {
+    const isMobile = isMobileShell();
+    window.rcSidebarLastMobileState = isMobile;
+
+    if (isMobile) {
+        document.documentElement.classList.remove("rc-sidebar-collapsed");
+        document.body.classList.remove("sidebar-collapsed", "sidebar-transitioning");
+        return;
+    }
+
+    document.body.classList.remove("sidebar-open");
+
+    try {
+        syncSidebarRootState(window.localStorage.getItem(getSidebarStorageKey()) === "1");
+    } catch {
+        syncSidebarRootState(false);
+    }
+
+    finishSidebarTransition();
 }
 
 function toggleSidebar() {
     if (isMobileShell()) {
+        document.documentElement.classList.remove("rc-sidebar-collapsed");
+        document.body.classList.remove("sidebar-collapsed", "sidebar-transitioning");
         document.body.classList.toggle("sidebar-open");
         return;
     }
 
-    document.body.classList.toggle("sidebar-collapsed");
+    setSidebarCollapsedState(!document.body.classList.contains("sidebar-collapsed"));
 }
 
 function closeSidebarMobile() {
@@ -494,7 +551,14 @@ function initAppShell() {
         });
     });
 
-    window.addEventListener("resize", applySidebarStoredState);
+    window.addEventListener("resize", () => {
+        window.clearTimeout(window.rcSidebarResizeTimer);
+        window.rcSidebarResizeTimer = window.setTimeout(() => {
+            if (isMobileShell() !== window.rcSidebarLastMobileState) {
+                applySidebarStoredState();
+            }
+        }, 80);
+    });
 }
 
 function toggleProfileDropdown() {

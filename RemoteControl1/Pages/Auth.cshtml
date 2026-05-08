@@ -119,7 +119,8 @@
             max-width: 500px;
         }
 
-            .left-content i {
+            .left-content i,
+            .left-content svg {
                 font-size: 5rem;
                 margin-bottom: 25px;
                 background: rgba(255,255,255,0.12);
@@ -127,7 +128,45 @@
                 border-radius: 50%;
                 box-shadow: none;
                 border: 1px solid rgba(255,255,255,0.2);
+                color: #ffffff;
             }
+
+            .left-content svg {
+                width: 5rem;
+                height: 5rem;
+                stroke: currentColor;
+                fill: none;
+                stroke-width: 2;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+
+            .auth-brand-mark {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 96px;
+                height: 96px;
+                margin-bottom: 25px;
+                border-radius: 50%;
+                background: rgba(255,255,255,0.12);
+                border: 1px solid rgba(255,255,255,0.18);
+                color: #ffffff;
+                box-shadow: none;
+            }
+
+                .auth-brand-mark .rc-icon-svg {
+                    width: 46px !important;
+                    height: 46px !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    background: transparent !important;
+                    border: 0 !important;
+                    border-radius: 0 !important;
+                    box-shadow: none !important;
+                    color: inherit !important;
+                    stroke: currentColor !important;
+                }
 
             .left-content h1 {
                 font-size: 2.8rem;
@@ -424,7 +463,9 @@
 
         <div class="auth-left">
             <div class="left-content">
-                <i class="fas fa-rocket"></i>
+                <span class="auth-brand-mark" aria-hidden="true">
+                    @await Html.PartialAsync("_RcIcon", "brand")
+                </span>
                 <h1>REMOTE CONTROL</h1>
                 <p>Ваш персональный помощник</p>
 
