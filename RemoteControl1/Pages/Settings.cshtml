@@ -8,153 +8,125 @@
     <div class="page-header-row">
         <div class="page-heading">
             <span class="page-heading-icon" aria-hidden="true">
-                @await Html.PartialAsync("_RcIcon", "settings")
+                <i class="fas fa-sliders"></i>
             </span>
             <div>
                 <h1 class="page-title">Настройки</h1>
+                <p class="page-subtitle">Параметры интерфейса, уведомлений и рабочего процесса, которые применяются сразу.</p>
             </div>
         </div>
     </div>
 
-    <div class="settings-layout">
-        <aside class="settings-nav" aria-label="Разделы настроек">
-            <a href="#settingsInterface" class="settings-nav-link">
-                <i class="fas fa-palette"></i>
-                <span>Интерфейс</span>
-            </a>
-            <a href="#settingsNotifications" class="settings-nav-link">
-                <i class="far fa-bell"></i>
-                <span>Уведомления</span>
-            </a>
-            <a href="#settingsWorkflow" class="settings-nav-link">
-                <i class="fas fa-list-check"></i>
-                <span>Рабочий процесс</span>
-            </a>
-            <a href="#settingsAccess" class="settings-nav-link">
-                <i class="far fa-user"></i>
-                <span>Профиль и доступ</span>
-            </a>
-        </aside>
+    <div class="settings-grid settings-grid-wide">
+        <section class="card settings-card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fas fa-palette"></i>
+                    Интерфейс
+                </h2>
+                <span class="settings-card-badge">Вид</span>
+            </div>
 
-        <div class="settings-sections">
-            <section class="card settings-card" id="settingsInterface">
-                <div class="settings-section-head">
-                    <span class="settings-section-icon">@await Html.PartialAsync("_RcIcon", "settings")</span>
-                    <div>
-                        <h2>Интерфейс</h2>
-                        <p>Внешний вид, плотность и визуальная читаемость.</p>
-                    </div>
+            <div class="settings-row">
+                <div>
+                    <div class="settings-row-title">Повышенный контраст</div>
+                    <div class="settings-row-text">Усиливает границы карточек, таблиц и полей, чтобы блоки лучше отделялись друг от друга.</div>
                 </div>
+                <button class="btn btn-outline" type="button" id="settingsContrastToggle" onclick="toggleHighContrastMode()">
+                    <i class="fas fa-circle-half-stroke"></i>
+                    Включить
+                </button>
+            </div>
 
-                <div class="settings-list">
-                    <div class="settings-row">
-                        <div>
-                            <div class="settings-row-title">Повышенный контраст</div>
-                            <div class="settings-row-text">Более заметные границы карточек, таблиц и полей.</div>
-                        </div>
-                        <button class="btn btn-outline" type="button" id="settingsContrastToggle" onclick="toggleHighContrastMode()">
-                            <i class="fas fa-circle-half-stroke"></i>
-                            Включить
-                        </button>
-                    </div>
-
-                    <div class="settings-row">
-                        <div>
-                            <div class="settings-row-title">Компактная плотность</div>
-                            <div class="settings-row-text">Меньше пустого места в карточках, таблицах и списках.</div>
-                        </div>
-                        <button class="btn btn-outline" type="button" id="settingsCompactToggle" onclick="toggleCompactDensity()">
-                            <i class="fas fa-compress"></i>
-                            Включить
-                        </button>
-                    </div>
+            <div class="settings-row">
+                <div>
+                    <div class="settings-row-title">Плотность интерфейса</div>
+                    <div class="settings-row-text">Уменьшает высоту карточек, строк таблиц и рабочих списков на больших экранах.</div>
                 </div>
-            </section>
+                <button class="btn btn-outline" type="button" id="settingsCompactToggle" onclick="toggleCompactDensity()">
+                    <i class="fas fa-compress"></i>
+                    Включить
+                </button>
+            </div>
+        </section>
 
-            <section class="card settings-card" id="settingsNotifications">
-                <div class="settings-section-head">
-                    <span class="settings-section-icon">@await Html.PartialAsync("_RcIcon", "calendar")</span>
-                    <div>
-                        <h2>Уведомления</h2>
-                        <p>События задач, заявок и сроков.</p>
-                    </div>
+        <section class="card settings-card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="far fa-bell"></i>
+                    Уведомления
+                </h2>
+                <span class="settings-card-badge">Центр событий</span>
+            </div>
+
+            <div class="settings-row">
+                <div>
+                    <div class="settings-row-title">Панель уведомлений</div>
+                    <div class="settings-row-text">Иконка рядом с пользователем показывает новые события красной точкой и раскрывает список уведомлений.</div>
                 </div>
+                <span class="settings-status-pill is-active">Включено</span>
+            </div>
 
-                <div class="settings-list">
-                    <div class="settings-row">
-                        <div>
-                            <div class="settings-row-title">Центр уведомлений</div>
-                            <div class="settings-row-text">Новые события отображаются рядом с профилем.</div>
-                        </div>
-                        <span class="settings-status-pill is-active">Включено</span>
-                    </div>
-
-                    <div class="settings-row">
-                        <div>
-                            <div class="settings-row-title">События задач</div>
-                            <div class="settings-row-text">Сроки, проверки и ручные заявки попадают в общий поток.</div>
-                        </div>
-                        <span class="settings-status-pill">По проекту</span>
-                    </div>
+            <div class="settings-row">
+                <div>
+                    <div class="settings-row-title">События задач</div>
+                    <div class="settings-row-text">Важные изменения по срокам, проверкам и заявкам отображаются в общем центре уведомлений.</div>
                 </div>
-            </section>
+                <span class="settings-status-pill">По проекту</span>
+            </div>
+        </section>
 
-            <section class="card settings-card" id="settingsWorkflow">
-                <div class="settings-section-head">
-                    <span class="settings-section-icon">@await Html.PartialAsync("_RcIcon", "tasks")</span>
-                    <div>
-                        <h2>Рабочий процесс</h2>
-                        <p>Быстрые переходы к задачам и учёту времени.</p>
-                    </div>
+        <section class="card settings-card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fas fa-list-check"></i>
+                    Рабочий процесс
+                </h2>
+                <span class="settings-card-badge">Задачи</span>
+            </div>
+
+            <div class="settings-row">
+                <div>
+                    <div class="settings-row-title">Сроки задач</div>
+                    <div class="settings-row-text">Задачи сгруппированы по периодам: просрочено, сегодня, скоро и без срока. Это помогает видеть риски без лишнего шума.</div>
                 </div>
+                <a class="btn btn-outline" asp-page="/Tasks">
+                    <i class="fas fa-calendar-days"></i>
+                    Открыть
+                </a>
+            </div>
 
-                <div class="settings-list">
-                    <div class="settings-row">
-                        <div>
-                            <div class="settings-row-title">Задачи</div>
-                            <div class="settings-row-text">Списки задач, сроки, приоритеты и статусы.</div>
-                        </div>
-                        <a class="btn btn-outline" asp-page="/Tasks">
-                            <i class="fas fa-calendar-days"></i>
-                            Открыть
-                        </a>
-                    </div>
-
-                    <div class="settings-row">
-                        <div>
-                            <div class="settings-row-title">Трекер</div>
-                            <div class="settings-row-text">Рабочее время, сессии и ручные заявки.</div>
-                        </div>
-                        <a class="btn btn-outline" asp-page="/Tracker">
-                            <i class="fas fa-stopwatch"></i>
-                            Открыть
-                        </a>
-                    </div>
+            <div class="settings-row">
+                <div>
+                    <div class="settings-row-title">Учёт времени</div>
+                    <div class="settings-row-text">Основные параметры трекера и ручных заявок остаются в разделе трекера, чтобы профиль не был перегружен.</div>
                 </div>
-            </section>
+                <a class="btn btn-outline" asp-page="/Tracker">
+                    <i class="fas fa-stopwatch"></i>
+                    Трекер
+                </a>
+            </div>
+        </section>
 
-            <section class="card settings-card" id="settingsAccess">
-                <div class="settings-section-head">
-                    <span class="settings-section-icon">@await Html.PartialAsync("_RcIcon", "profile")</span>
-                    <div>
-                        <h2>Профиль и доступ</h2>
-                        <p>Личные данные, контакты и рабочие параметры.</p>
-                    </div>
-                </div>
+        <section class="card settings-card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="far fa-user"></i>
+                    Профиль и доступ
+                </h2>
+                <span class="settings-card-badge">Доступ</span>
+            </div>
 
-                <div class="settings-list">
-                    <div class="settings-row">
-                        <div>
-                            <div class="settings-row-title">Профиль</div>
-                            <div class="settings-row-text">Имя, контакты, должность, режим работы и ставка.</div>
-                        </div>
-                        <a class="btn btn-primary" asp-page="/Profile">
-                            <i class="far fa-user"></i>
-                            Открыть профиль
-                        </a>
-                    </div>
+            <div class="settings-row">
+                <div>
+                    <div class="settings-row-title">Личные данные</div>
+                    <div class="settings-row-text">Имя, контакты, должность и рабочая ставка хранятся в профиле. Здесь оставлены только общие настройки продукта.</div>
                 </div>
-            </section>
-        </div>
+                <a class="btn btn-primary" asp-page="/Profile">
+                    <i class="far fa-user"></i>
+                    Открыть профиль
+                </a>
+            </div>
+        </section>
     </div>
 </div>

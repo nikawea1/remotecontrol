@@ -611,10 +611,10 @@ function renderHorizontalBars(items, formatter) {
 function renderStatusDistribution(data) {
     const perf = data.performance;
     const segments = [
-        { label: "Новые", value: num(perf.newCount), color: "#93c5fd" },
-        { label: "В работе", value: num(perf.progressCount), color: "#60a5fa" },
-        { label: "На проверке", value: num(perf.reviewCount), color: "#3b82f6" },
-        { label: "Готово", value: num(perf.doneCount), color: "#2563eb" }
+        { label: "Новые", value: num(perf.newCount), color: "#60a5fa" },
+        { label: "В работе", value: num(perf.progressCount), color: "#f59e0b" },
+        { label: "На проверке", value: num(perf.reviewCount), color: "#8b5cf6" },
+        { label: "Готово", value: num(perf.doneCount), color: "#22c55e" }
     ];
     const total = segments.reduce((sum, item) => sum + item.value, 0);
     let cursor = 0;

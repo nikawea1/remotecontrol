@@ -3,26 +3,6 @@
 let currentOpenedProjectId = null;
 let filteredProjects = Array.isArray(projects) ? [...projects] : [];
 let projectStages = [];
-let highlightedProjectStageIndex = -1;
-let highlightedEditProjectStageIndex = -1;
-let projectStageHighlightTimer = 0;
-let editProjectStageHighlightTimer = 0;
-
-function renderProjectTaskPriorityFlag(task) {
-    const label = typeof getPriorityText === "function"
-        ? getPriorityText(task?.priority)
-        : ({ high: "Высокий", medium: "Средний", low: "Низкий" }[String(task?.priority || "").toLowerCase()] || "Средний");
-    const className = typeof getPriorityClass === "function"
-        ? getPriorityClass(task?.priority)
-        : "badge-warning";
-
-    return `
-        <span class="project-task-priority ${className}" title="Приоритет: ${label}">
-            <i class="fas fa-flag" aria-hidden="true"></i>
-            <span>${label}</span>
-        </span>
-    `;
-}
 
 function getProjectPresetKey(project) {
     const rawType = String(project?.projectType || project?.projectTypeName || "").toLowerCase();
@@ -53,33 +33,6 @@ function getProjectStageNames(project, projectTasks = []) {
     const baseStageNames = stageNames.length ? stageNames : presetStageNames;
 
     return [...new Set([...baseStageNames, ...taskStageNames])];
-}
-
-function flashProjectStageHighlight(mode, index) {
-    const isEditMode = mode === "edit";
-    const nextIndex = Number(index);
-    if (nextIndex < 0) {
-        return;
-    }
-
-    if (isEditMode) {
-        highlightedEditProjectStageIndex = nextIndex;
-        window.clearTimeout(editProjectStageHighlightTimer);
-        renderEditProjectStages();
-        editProjectStageHighlightTimer = window.setTimeout(() => {
-            highlightedEditProjectStageIndex = -1;
-            renderEditProjectStages();
-        }, 780);
-        return;
-    }
-
-    highlightedProjectStageIndex = nextIndex;
-    window.clearTimeout(projectStageHighlightTimer);
-    renderProjectPresetStages();
-    projectStageHighlightTimer = window.setTimeout(() => {
-        highlightedProjectStageIndex = -1;
-        renderProjectPresetStages();
-    }, 780);
 }
 
 function getProjectCreatedSortValue(project) {
@@ -300,7 +253,7 @@ function renderProjects() {
                 </div>
 
                 <span class="project-card-status">
-                    ${statusText} · участники ${project.membersCount || 0}
+                    ${statusText} · команда ${project.membersCount || 0}
                 </span>
             </div>
         </div>
@@ -366,7 +319,7 @@ const projectPresets = {
         key: "functional",
         title: "Функциональный",
         badge: "Функциональный",
-        description: "Этапы сгруппированы по направлениям работы.",
+        description: "Этапы — это направления работы. Команда движется параллельно по блокам.",
         stages: ["Backend", "Frontend", "UI/UX", "QA", "Docs"]
     },
     linear: {
@@ -428,7 +381,6 @@ function renderProjectPresetCards() {
 function selectProjectPreset(presetKey) {
     selectedProjectPreset = presetKey;
     projectStages = [...(projectPresets[presetKey]?.stages || [])];
-    highlightedProjectStageIndex = -1;
 
     const input = document.getElementById("newProjectStageName");
     if (input) input.value = "";
@@ -454,7 +406,7 @@ function renderProjectPresetStages() {
     }
 
     box.innerHTML = projectStages.map((stage, index) => `
-        <div class="stage-editor-item ${index === highlightedProjectStageIndex ? "is-just-moved" : ""}">
+        <div class="stage-editor-item">
             <div style="flex:1; min-width:0;">
                 <input
                     type="text"
@@ -543,7 +495,7 @@ function moveProjectStageUp(index) {
     [projectStages[index - 1], projectStages[index]] =
         [projectStages[index], projectStages[index - 1]];
 
-    flashProjectStageHighlight("create", index - 1);
+    renderProjectPresetStages();
 }
 
 function moveProjectStageDown(index) {
@@ -552,7 +504,7 @@ function moveProjectStageDown(index) {
     [projectStages[index + 1], projectStages[index]] =
         [projectStages[index], projectStages[index + 1]];
 
-    flashProjectStageHighlight("create", index + 1);
+    renderProjectPresetStages();
 }
 
 function moveProjectStageToStart(index) {
@@ -560,7 +512,7 @@ function moveProjectStageToStart(index) {
 
     const [stage] = projectStages.splice(index, 1);
     projectStages.unshift(stage);
-    flashProjectStageHighlight("create", 0);
+    renderProjectPresetStages();
 }
 
 function moveProjectStageToEnd(index) {
@@ -568,7 +520,7 @@ function moveProjectStageToEnd(index) {
 
     const [stage] = projectStages.splice(index, 1);
     projectStages.push(stage);
-    flashProjectStageHighlight("create", projectStages.length - 1);
+    renderProjectPresetStages();
 }
 
 function renderEditProjectPresetCards() {
@@ -599,7 +551,6 @@ function renderEditProjectPresetCards() {
 function selectEditProjectPreset(presetKey) {
     selectedEditProjectPreset = presetKey;
     editProjectStages = [...(projectPresets[presetKey]?.stages || [])];
-    highlightedEditProjectStageIndex = -1;
 
     const input = document.getElementById("newEditStageName");
     if (input) input.value = "";
@@ -650,7 +601,7 @@ function renderEditProjectStages() {
         const isLocked = stageTaskCount > 0;
 
         return `
-        <div class="stage-editor-item ${index === highlightedEditProjectStageIndex ? "is-just-moved" : ""}">
+        <div class="stage-editor-item">
             <div style="flex:1; min-width:0;">
                 <input
                     type="text"
@@ -755,7 +706,7 @@ function moveEditProjectStageUp(index) {
     [editProjectStages[index - 1], editProjectStages[index]] =
         [editProjectStages[index], editProjectStages[index - 1]];
 
-    flashProjectStageHighlight("edit", index - 1);
+    renderEditProjectStages();
 }
 
 function moveEditProjectStageDown(index) {
@@ -764,7 +715,7 @@ function moveEditProjectStageDown(index) {
     [editProjectStages[index + 1], editProjectStages[index]] =
         [editProjectStages[index], editProjectStages[index + 1]];
 
-    flashProjectStageHighlight("edit", index + 1);
+    renderEditProjectStages();
 }
 
 function moveEditProjectStageToStart(index) {
@@ -772,7 +723,7 @@ function moveEditProjectStageToStart(index) {
 
     const [stage] = editProjectStages.splice(index, 1);
     editProjectStages.unshift(stage);
-    flashProjectStageHighlight("edit", 0);
+    renderEditProjectStages();
 }
 
 function moveEditProjectStageToEnd(index) {
@@ -780,7 +731,7 @@ function moveEditProjectStageToEnd(index) {
 
     const [stage] = editProjectStages.splice(index, 1);
     editProjectStages.push(stage);
-    flashProjectStageHighlight("edit", editProjectStages.length - 1);
+    renderEditProjectStages();
 }
 
 function openEditProjectModal(id) {
@@ -1138,7 +1089,7 @@ function showProjectDetails(id) {
     const progress = Number(project.progress || 0);
 
     const summaryCards = `
-        <div class="detail-block project-summary-block">
+        <div class="detail-block">
             <div class="summary-grid grid-4">
                 <div class="summary-mini">
                     <div class="label">Общий прогресс</div>
@@ -1168,7 +1119,7 @@ function showProjectDetails(id) {
     `;
 
     const actionBlock = `
-        <div class="detail-block action-detail-block">
+        <div class="detail-block">
             <h3 class="detail-block-title">
                 <i class="fas fa-bolt"></i>
                 Действия с проектом
@@ -1180,7 +1131,7 @@ function showProjectDetails(id) {
                         <i class="fas fa-pen-to-square"></i>
                         <div>
                             <strong>Редактировать проект</strong>
-                            <span>Название, описание, участники и этапы</span>
+                            <span>Название, описание, команда и этапы</span>
                         </div>
                     </div>
 
@@ -1188,7 +1139,7 @@ function showProjectDetails(id) {
                         <i class="fas fa-plus"></i>
                         <div>
                             <strong>Добавить задачу</strong>
-                            <span>${selectedProjectStageFilter ? "Создать задачу в выбранном этапе" : "Создать задачу в проекте"}</span>
+                            <span>Создать задачу в выбранном этапе</span>
                         </div>
                     </div>
 
@@ -1221,7 +1172,7 @@ function showProjectDetails(id) {
     `;
 
     const timelineBlock = `
-        <div class="detail-block timeline-detail-block">
+        <div class="detail-block">
             <div class="detail-block-title">
                 <i class="fas fa-route"></i>
                 Этапы проекта
@@ -1240,20 +1191,38 @@ function showProjectDetails(id) {
 
             <div class="stage-timeline">
                 ${tasksByStages.map((stage, index) => {
-        const isCurrentStage = index === currentStageIndex;
-        const isFilteredStage = selectedProjectStageFilter === stage.name;
-        const cls = [
-            stage.total > 0 && stage.progress === 100 ? "is-complete" : "",
-            stage.total === 0 ? "is-empty" : "",
-            isCurrentStage ? "is-current-status" : ""
-        ].filter(Boolean).join(" ");
-        const stageStatusText = isCurrentStage ? "Текущий этап" : "";
+        let cls = "";
+
+        if (stage.total > 0 && stage.progress === 100) {
+            cls = "done";
+        } else if (index === currentStageIndex) {
+            cls = "current";
+        } else if (projectTypeKey === "linear" && index === currentStageIndex + 1) {
+            cls = "next";
+        } else if (stage.total === 0) {
+            cls = "empty";
+        } else {
+            cls = "waiting";
+        }
+
+        const stageStatusText = cls === "done"
+            ? "Завершён"
+            : cls === "current"
+                ? "Текущий этап"
+                : cls === "next"
+                    ? "Следующий"
+                    : cls === "empty"
+                        ? "Нет задач"
+                        : "Запланирован";
 
         return `
-                        <div class="timeline-step ${cls} ${isFilteredStage ? "is-filtered" : ""}" style="cursor:pointer;" onclick="setProjectStageFilter(${project.id}, '${stage.name.replace(/'/g, "\\'")}')">
+                        <div class="timeline-step ${cls}" style="cursor:pointer;" onclick="setProjectStageFilter(${project.id}, '${stage.name.replace(/'/g, "\\'")}')">
                             <div class="timeline-top">
                                 <div class="timeline-index">Этап ${index + 1}</div>
-                                ${stageStatusText ? `<div class="timeline-meta"><span class="timeline-status">${stageStatusText}</span></div>` : ""}
+                                <div class="timeline-meta">
+                                    <span class="timeline-status">${stageStatusText}</span>
+                                    <span class="timeline-percent">${stage.progress}%</span>
+                                </div>
                             </div>
 
                             <div class="timeline-name">${stage.name}</div>
@@ -1269,7 +1238,7 @@ function showProjectDetails(id) {
     `;
 
     const sectionsBlock = `
-        <div class="detail-block stage-detail-block">
+        <div class="detail-block">
             <div class="detail-block-title">
                 <i class="fas fa-columns"></i>
                 ${selectedProjectStageFilter ? `Задачи этапа: ${selectedProjectStageFilter}` : "Задачи по этапам"}
@@ -1277,14 +1246,17 @@ function showProjectDetails(id) {
 
             <div class="stage-sections">
                 ${visibleStages.map(stage => `
-                    <div class="stage-section ${selectedProjectStageFilter === stage.name ? "is-filtered" : ""}">
-                        <div class="stage-section-header">
+                    <div class="stage-section">
+                        <div class="stage-section-inner">
+                            <div class="stage-section-header">
                                 <div>
                                     <div class="stage-section-name">${stage.name}</div>
                                     <div class="stage-section-sub">Завершено задач: ${stage.done} из ${stage.total}</div>
                                 </div>
 
                                 <div class="stage-section-actions">
+                                    <div class="local-progress-pill">${stage.progress}%</div>
+
                                     <button
                                         class="btn btn-sm ${selectedProjectStageFilter === stage.name ? "btn-primary" : "btn-outline"}"
                                         type="button"
@@ -1309,56 +1281,60 @@ function showProjectDetails(id) {
                                 ${stage.tasks.length > 0
             ? stage.tasks.map(task => `
                                         <div class="task-row task-status-${task.status || "new"}">
-                                            <div class="task-row-main">
+                                            <div>
                                                 <div class="task-row-title">${task.name}</div>
                                                 <div class="task-row-sub">Исполнитель: ${task.assignee || "не назначен"}</div>
                                             </div>
 
-                                            <div class="task-row-meta">
-                                                <div class="status-badge status-${task.status || "new"}">
-                                                    ${getStatusText(task.status || "new")}
-                                                </div>
+                                            <div class="status-badge status-${task.status || "new"}">
+                                                ${getStatusText(task.status || "new")}
+                                            </div>
 
-                                                <div class="project-stage-task-actions">
-                                                    ${renderProjectTaskPriorityFlag(task)}
+                                            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+                                                <div class="mini-tag">${stage.name}</div>
 
-                                                    ${(isAdmin || isManager) ? `
-                                                        <button class="btn btn-sm btn-outline" type="button" title="Редактировать задачу"
-                                                            onclick="event.stopPropagation(); openEditTaskModal(${task.id})">
-                                                            <i class="fas fa-pen-to-square"></i>
-                                                        </button>
+                                                ${(isAdmin || isManager) ? `
+                                                    <button class="btn btn-sm btn-outline" type="button" title="Редактировать задачу"
+                                                        onclick="event.stopPropagation(); openEditTaskModal(${task.id})">
+                                                        <i class="fas fa-pen-to-square"></i>
+                                                    </button>
 
-                                                        <button class="btn btn-sm btn-danger" type="button" title="Удалить задачу"
-                                                            onclick="event.stopPropagation(); openDeleteTaskModal(${task.id})">
-                                                            <i class="fas fa-trash-can"></i>
-                                                        </button>
-                                                    ` : ""}
+                                                    <button class="btn btn-sm btn-danger" type="button" title="Удалить задачу"
+                                                        onclick="event.stopPropagation(); openDeleteTaskModal(${task.id})">
+                                                        <i class="fas fa-trash-can"></i>
+                                                    </button>
+                                                ` : ""}
 
-                                                    ${(isEmployee || isAdmin || isManager) && task.status !== "done" ? `
-                                                        <button class="btn btn-sm btn-success" type="button" title="Запустить задачу"
-                                                            onclick="event.stopPropagation(); startTask(${task.id})">
-                                                            <i class="fas fa-play"></i>
-                                                        </button>
-                                                    ` : ""}
-                                                </div>
+                                                ${(isEmployee || isAdmin || isManager) && task.status !== "done" ? `
+                                                    <button class="btn btn-sm btn-success" type="button" title="Запустить задачу"
+                                                        onclick="event.stopPropagation(); startTask(${task.id})">
+                                                        <i class="fas fa-play"></i>
+                                                    </button>
+                                                ` : ""}
                                             </div>
                                         </div>
                                     `).join("")
             : `
                                         <div class="task-row">
-                                            <div class="task-row-main">
+                                            <div>
                                                 <div class="task-row-title">Задач пока нет</div>
                                                 <div class="task-row-sub">На этом этапе пока нет задач</div>
                                             </div>
 
+<<<<<<< HEAD
                                             <div class="task-row-meta">
                                                 <div class="mini-tag">Этап пуст</div>
                                             </div>
+=======
+                                            <div class="status-badge status-new">Пусто</div>
+                                            <div class="mini-tag">${stage.name}</div>
+>>>>>>> parent of fc6a7ff (переделать)
                                         </div>
                                     `
         }
                             </div>
 
+                        </div>
                     </div>
                 `).join("")}
             </div>
@@ -1395,7 +1371,7 @@ function showProjectDetails(id) {
                 </div>
 
                 <div class="detail-pill">
-                    <i class="fas fa-user-group"></i>Участники: ${membersCount}
+                    <i class="fas fa-user-group"></i>Команда: ${membersCount}
                 </div>
 
                 <div class="detail-pill">
@@ -1578,25 +1554,6 @@ function toggleProjectMemberSelection(selectId, userId) {
     if (!option) return;
 
     option.selected = !option.selected;
-
-    const managerSelectId = selectId === "editProjectMembersSelect"
-        ? "editProjectManagerSelect"
-        : "projectManagerSelect";
-    const managerSelect = document.getElementById(managerSelectId);
-    const linkedUser = users.find(user => Number(user.id) === Number(userId));
-
-    if (managerSelect && linkedUser) {
-        const canManageProject = linkedUser.role === "manager" || linkedUser.role === "admin";
-        const managerOptionExists = [...managerSelect.options].some(x => Number(x.value) === Number(userId));
-
-        if (option.selected && canManageProject && managerOptionExists) {
-            managerSelect.value = String(userId);
-        }
-
-        if (!option.selected && Number(managerSelect.value || 0) === Number(userId)) {
-            managerSelect.value = "";
-        }
-    }
 
     const ui = getProjectMembersUiConfig(selectId);
     if (!ui) return;

@@ -1,8 +1,6 @@
 ﻿// Файл: RemoteControl1/wwwroot/js/site.js
 
 window.remoteControlData = window.remoteControlData || {};
-window.rcSidebarResizeTimer = window.rcSidebarResizeTimer || 0;
-window.rcSidebarLastMobileState = window.rcSidebarLastMobileState ?? null;
 
 (function setupRemoteSvgIcons() {
     const iconMap = {
@@ -546,6 +544,7 @@ function isMobileShell() {
     return window.matchMedia("(max-width: 992px)").matches;
 }
 
+<<<<<<< HEAD
 function getSidebarStorageKey() {
     return "rc_sidebar_collapsed";
 }
@@ -580,36 +579,21 @@ function setSidebarCollapsedState(isCollapsed) {
     }
 }
 
+=======
+>>>>>>> parent of fc6a7ff (переделать)
 function applySidebarStoredState() {
-    const isMobile = isMobileShell();
-    window.rcSidebarLastMobileState = isMobile;
-
-    if (isMobile) {
-        document.documentElement.classList.remove("rc-sidebar-collapsed");
-        document.body.classList.remove("sidebar-collapsed", "sidebar-transitioning");
-        return;
+    if (isMobileShell()) {
+        document.body.classList.remove("sidebar-collapsed", "sidebar-open");
     }
-
-    document.body.classList.remove("sidebar-open");
-
-    try {
-        syncSidebarRootState(window.localStorage.getItem(getSidebarStorageKey()) === "1");
-    } catch {
-        syncSidebarRootState(false);
-    }
-
-    finishSidebarTransition();
 }
 
 function toggleSidebar() {
     if (isMobileShell()) {
-        document.documentElement.classList.remove("rc-sidebar-collapsed");
-        document.body.classList.remove("sidebar-collapsed", "sidebar-transitioning");
         document.body.classList.toggle("sidebar-open");
         return;
     }
 
-    setSidebarCollapsedState(!document.body.classList.contains("sidebar-collapsed"));
+    document.body.classList.toggle("sidebar-collapsed");
 }
 
 function closeSidebarMobile() {
@@ -627,14 +611,7 @@ function initAppShell() {
         });
     });
 
-    window.addEventListener("resize", () => {
-        window.clearTimeout(window.rcSidebarResizeTimer);
-        window.rcSidebarResizeTimer = window.setTimeout(() => {
-            if (isMobileShell() !== window.rcSidebarLastMobileState) {
-                applySidebarStoredState();
-            }
-        }, 80);
-    });
+    window.addEventListener("resize", applySidebarStoredState);
 }
 
 function toggleProfileDropdown() {

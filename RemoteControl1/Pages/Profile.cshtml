@@ -10,7 +10,7 @@
         <div class="content-header">
             <div class="page-heading">
                 <span class="page-heading-icon" aria-hidden="true">
-                    @await Html.PartialAsync("_RcIcon", "profile")
+                    <i class="fas fa-user-circle"></i>
                 </span>
                 <div>
                     <h1 class="page-title">Мой профиль</h1>
@@ -152,7 +152,7 @@
                 <div id="profileWork" class="admin-tab-content hidden">
                     <div class="stats-grid">
                         <div class="stat-card">
-                            <div class="stat-icon">@await Html.PartialAsync("_RcIcon", "tasks")</div>
+                            <div class="stat-icon"><i class="fas fa-list-check"></i></div>
                             <div class="stat-info">
                                 <div class="stat-value" id="profileActiveTasks">0</div>
                                 <div class="stat-label">Активных задач</div>
@@ -160,7 +160,7 @@
                         </div>
 
                         <div class="stat-card">
-                            <div class="stat-icon">@await Html.PartialAsync("_RcIcon", "done")</div>
+                            <div class="stat-icon"><i class="fas fa-circle-check"></i></div>
                             <div class="stat-info">
                                 <div class="stat-value" id="profileDoneTasks">0</div>
                                 <div class="stat-label">Выполнено задач</div>
@@ -168,7 +168,7 @@
                         </div>
 
                         <div class="stat-card">
-                            <div class="stat-icon">@await Html.PartialAsync("_RcIcon", "clock")</div>
+                            <div class="stat-icon"><i class="fas fa-clock"></i></div>
                             <div class="stat-info">
                                 <div class="stat-value" id="profileHours">0</div>
                                 <div class="stat-label">Часов отработано</div>
@@ -176,7 +176,7 @@
                         </div>
 
                         <div class="stat-card">
-                            <div class="stat-icon">@await Html.PartialAsync("_RcIcon", "folder")</div>
+                            <div class="stat-icon"><i class="fas fa-folder-open"></i></div>
                             <div class="stat-info">
                                 <div class="stat-value" id="profileProjectsCount">0</div>
                                 <div class="stat-label">Проектов</div>

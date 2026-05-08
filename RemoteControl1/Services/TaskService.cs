@@ -853,20 +853,6 @@ namespace RemoteControl1.Services
             if (role == "manager" && task.Project?.ManagerId != currentUserId)
                 return ServiceResult.Fail("Нет прав на эту задачу");
 
-            var relatedManualRequests = await _db.ManualTimeRequests
-                .Where(x => x.TaskItemId == taskId)
-                .ToListAsync();
-
-            if (relatedManualRequests.Count > 0)
-                _db.ManualTimeRequests.RemoveRange(relatedManualRequests);
-
-            var relatedActivityLogs = await _db.ActivityLogs
-                .Where(x => x.TaskItemId == taskId)
-                .ToListAsync();
-
-            if (relatedActivityLogs.Count > 0)
-                _db.ActivityLogs.RemoveRange(relatedActivityLogs);
-
             _db.Tasks.Remove(task);
             await _db.SaveChangesAsync();
 
@@ -892,22 +878,6 @@ namespace RemoteControl1.Services
                 return ServiceResult.Fail("Нет прав на этот проект");
 
             var projectTasks = await _db.Tasks.Where(t => t.ProjectId == projectId).ToListAsync();
-            var projectTaskIds = projectTasks.Select(t => t.Id).ToList();
-
-            var relatedManualRequests = await _db.ManualTimeRequests
-                .Where(x => (x.ProjectId.HasValue && x.ProjectId.Value == projectId) || projectTaskIds.Contains(x.TaskItemId))
-                .ToListAsync();
-
-            if (relatedManualRequests.Count > 0)
-                _db.ManualTimeRequests.RemoveRange(relatedManualRequests);
-
-            var relatedActivityLogs = await _db.ActivityLogs
-                .Where(x => (x.ProjectId.HasValue && x.ProjectId.Value == projectId) || (x.TaskItemId.HasValue && projectTaskIds.Contains(x.TaskItemId.Value)))
-                .ToListAsync();
-
-            if (relatedActivityLogs.Count > 0)
-                _db.ActivityLogs.RemoveRange(relatedActivityLogs);
-
             if (projectTasks.Count > 0)
                 _db.Tasks.RemoveRange(projectTasks);
 

@@ -10,10 +10,10 @@
         <div class="page-header-row">
             <div class="page-heading">
                 <span class="page-heading-icon" aria-hidden="true">
-                    @await Html.PartialAsync("_RcIcon", "tasks")
+                    <i class="fas fa-list-check"></i>
                 </span>
                 <div>
-                    <h1 class="page-title">Задачи</h1>
+                    <h1 class="page-title">Управление задачами</h1>
                     <p class="page-subtitle">Рабочий список задач с приоритетами, сроками, исполнителями и результатами проверки.</p>
                 </div>
             </div>
@@ -58,8 +58,8 @@
             <div class="filter-group">
                 <i class="fas fa-arrow-down-wide-short"></i>
                 <select class="filter-select" id="taskSortFilter" onchange="filterTasks()">
-                    <option value="deadline_asc">Ближайшие</option>
-                    <option value="deadline_desc">Дальние</option>
+                    <option value="deadline_asc">Сначала ближайшие</option>
+                    <option value="deadline_desc">Сначала дальние</option>
                     <option value="priority_desc">Сначала важные</option>
                     <option value="status">По статусу</option>
                     <option value="name">По названию</option>

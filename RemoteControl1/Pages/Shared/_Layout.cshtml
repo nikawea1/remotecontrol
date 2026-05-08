@@ -43,15 +43,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Remote Control</title>
-    <script>
-        (function () {
-            try {
-                if (window.localStorage.getItem("rc_sidebar_collapsed") === "1") {
-                    document.documentElement.classList.add("rc-sidebar-collapsed");
-                }
-            } catch { }
-        })();
-    </script>
 
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/common.css" asp-append-version="true" />
@@ -68,7 +59,6 @@
     <link rel="stylesheet" href="~/css/users.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/design-system.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/RemoteControl1.styles.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/ui-hotfix.css" asp-append-version="true" />
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -83,55 +73,51 @@
             <div class="sidebar-brand-row">
                 <a class="sidebar-brand" asp-page="/MainPage" aria-label="Remote Control">
                     <span class="sidebar-brand-icon" aria-hidden="true">
-                        @await Html.PartialAsync("_RcIcon", "brand")
+                        <i class="fas fa-table-columns"></i>
                     </span>
-                    <span class="sidebar-brand-text">Remote Control</span>
+                    <span class="sidebar-brand-text">REMOTE CONTROL</span>
                 </a>
 
                 <button class="sidebar-collapse-btn" type="button" onclick="toggleSidebar()" aria-label="Свернуть меню" title="Меню">
-                    <span class="sidebar-collapse-bars" aria-hidden="true">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </span>
+                    <i class="fas fa-bars"></i>
                 </button>
             </div>
 
             <nav class="sidebar-nav">
                 <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/MainPage" ? "active" : "")" asp-page="/MainPage">
-                    @await Html.PartialAsync("_RcIcon", "home")
+                    <i class="fas fa-house-chimney"></i>
                     <span>Главная</span>
                 </a>
 
                 <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Tasks" ? "active" : "")" asp-page="/Tasks">
-                    @await Html.PartialAsync("_RcIcon", "tasks")
+                    <i class="fas fa-list-check"></i>
                     <span>Задачи</span>
                 </a>
 
                 <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Projects" ? "active" : "")" asp-page="/Projects">
-                    @await Html.PartialAsync("_RcIcon", "projects")
+                    <i class="fas fa-layer-group"></i>
                     <span>Проекты</span>
                 </a>
 
                 <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Tracker" ? "active" : "")" asp-page="/Tracker">
-                    @await Html.PartialAsync("_RcIcon", "tracker")
+                    <i class="fas fa-stopwatch"></i>
                     <span>Трекер</span>
                 </a>
 
                 <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Reports" ? "active" : "")" asp-page="/Reports">
-                    @await Html.PartialAsync("_RcIcon", "reports")
+                    <i class="fas fa-chart-simple"></i>
                     <span>Отчеты</span>
                 </a>
 
                 <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Calendar" ? "active" : "")" asp-page="/Calendar">
-                    @await Html.PartialAsync("_RcIcon", "calendar")
+                    <i class="far fa-calendar-days"></i>
                     <span>Календарь</span>
                 </a>
 
                 @if (!isEmployee)
                 {
                     <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Users" ? "active" : "")" asp-page="/Users">
-                        @await Html.PartialAsync("_RcIcon", "users")
+                        <i class="fas fa-user-group"></i>
                         <span>Сотрудники</span>
                     </a>
                 }
@@ -140,12 +126,12 @@
                 <div class="sidebar-nav-section-label">Сервис</div>
 
                 <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Profile" ? "active" : "")" asp-page="/Profile">
-                    @await Html.PartialAsync("_RcIcon", "profile")
+                    <i class="far fa-user"></i>
                     <span>Профиль</span>
                 </a>
 
                 <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Settings" ? "active" : "")" asp-page="/Settings">
-                    @await Html.PartialAsync("_RcIcon", "settings")
+                    <i class="fas fa-sliders"></i>
                     <span>Настройки</span>
                 </a>
             </nav>
@@ -157,11 +143,7 @@
             <header class="app-topbar">
                 <div class="topbar-left">
                     <button class="topbar-menu-btn" type="button" onclick="toggleSidebar()" aria-label="Открыть меню" title="Меню">
-                        <span class="sidebar-collapse-bars is-topbar" aria-hidden="true">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </span>
+                        <i class="fas fa-bars"></i>
                     </button>
 
                     <div class="topbar-page">
