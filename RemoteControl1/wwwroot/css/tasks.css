@@ -1841,3 +1841,62 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Final task page repair: keep status and priority chips inside cards. */
+#tasksPage .task-list-main,
+#tasksPage .task-list-aside,
+#tasksPage .task-list-status-block,
+#tasksPage .task-detail-state {
+    min-width: 0;
+}
+
+#tasksPage .task-list-status-block {
+    align-items: stretch;
+}
+
+#tasksPage .task-list-side .task-status,
+#tasksPage .task-status-badge,
+#tasksPage .task-detail-state .task-status,
+#tasksPage .task-detail-state .task-status-badge,
+#tasksPage .task-priority-chip {
+    box-sizing: border-box;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#tasksPage .task-list-side .task-status,
+#tasksPage .task-status-badge {
+    width: 100%;
+    min-width: 0;
+    min-height: 30px !important;
+    padding: 6px 10px !important;
+    border-radius: 999px !important;
+}
+
+#tasksPage .task-detail-state .task-priority-chip,
+#tasksPage .task-detail-state .task-status,
+#tasksPage .task-detail-state .task-status-badge {
+    width: 100%;
+    justify-content: center;
+}
+
+#tasksPage .task-priority-chip {
+    min-height: 28px;
+    padding: 5px 10px;
+    border-radius: 999px;
+}
+
+#tasksPage .task-list-actions .btn-sm.btn-danger,
+#tasksPage .task-detail-actions .btn.btn-danger {
+    border-color: #e53935 !important;
+    background: #e53935 !important;
+    color: #ffffff !important;
+}
+
+#tasksPage .task-list-actions .btn-sm.btn-danger:hover,
+#tasksPage .task-detail-actions .btn.btn-danger:hover {
+    border-color: #d32f2f !important;
+    background: #d32f2f !important;
+}

@@ -163,7 +163,6 @@
                     border-radius: 0 !important;
                     box-shadow: none !important;
                     color: inherit !important;
-                    stroke: currentColor !important;
                 }
 
             .left-content h1 {
@@ -468,11 +467,11 @@
 
                 <div class="quote-block">
                     <div class="quote-text">
-                        <i class="fas fa-quote-left"></i>
+                        <i class="fas fa-quote-left" aria-hidden="true"></i>
                         Время — самый ограниченный капитал, и если не можешь им распоряжаться, не сможешь распоряжаться ничем другим.
                     </div>
                     <div class="quote-author">
-                        <i class="fas fa-circle-user"></i>
+                        <i class="fas fa-circle-user" aria-hidden="true"></i>
                         <span>Питер Друкер, основоположник менеджмента</span>
                     </div>
                 </div>
@@ -490,18 +489,18 @@
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label"><i class="fas fa-user"></i> Имя</label>
+                        <label class="form-label"><i class="fas fa-user" aria-hidden="true"></i> Имя</label>
                         <div class="input-wrapper">
-                            <i class="fas fa-user input-icon"></i>
+                            <i class="fas fa-user input-icon" aria-hidden="true"></i>
                             <input type="text" class="form-control" asp-for="Input.FirstName" placeholder="Имя" required>
                         </div>
                         <div class="field-error" asp-validation-for="Input.FirstName"></div>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label"><i class="fas fa-user-circle"></i> Фамилия</label>
+                        <label class="form-label"><i class="fas fa-circle-user" aria-hidden="true"></i> Фамилия</label>
                         <div class="input-wrapper">
-                            <i class="fas fa-user-circle input-icon"></i>
+                            <i class="fas fa-circle-user input-icon" aria-hidden="true"></i>
                             <input type="text" class="form-control" asp-for="Input.LastName" placeholder="Фамилия" required>
                         </div>
                         <div class="field-error" asp-validation-for="Input.LastName"></div>
@@ -509,33 +508,33 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label"><i class="fas fa-envelope"></i> Email</label>
+                    <label class="form-label"><i class="fas fa-envelope" aria-hidden="true"></i> Email</label>
                     <div class="input-wrapper">
-                        <i class="fas fa-envelope input-icon"></i>
+                        <i class="fas fa-envelope input-icon" aria-hidden="true"></i>
                         <input type="text" class="form-control" asp-for="Input.Email" placeholder="Введите email" required>
                     </div>
                     <div class="field-error" asp-validation-for="Input.Email"></div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label"><i class="fas fa-lock"></i> Пароль</label>
+                    <label class="form-label"><i class="fas fa-lock" aria-hidden="true"></i> Пароль</label>
                     <div class="input-wrapper">
-                        <i class="fas fa-lock input-icon"></i>
+                        <i class="fas fa-lock input-icon" aria-hidden="true"></i>
                         <input type="password" class="form-control" id="registerPassword" asp-for="Input.Password" placeholder="••••••••" required>
                         <button type="button" class="password-toggle" onclick="togglePassword('registerPassword', this)">
-                            <i class="fas fa-lock"></i>
+                            <i class="fas fa-lock" aria-hidden="true"></i>
                         </button>
                     </div>
                     <div class="field-error" asp-validation-for="Input.Password"></div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label"><i class="fas fa-lock"></i> Подтвердите пароль</label>
+                    <label class="form-label"><i class="fas fa-lock" aria-hidden="true"></i> Подтвердите пароль</label>
                     <div class="input-wrapper">
-                        <i class="fas fa-lock input-icon"></i>
+                        <i class="fas fa-lock input-icon" aria-hidden="true"></i>
                         <input type="password" class="form-control" id="registerConfirmPassword" asp-for="Input.ConfirmPassword" placeholder="••••••••" required>
                         <button type="button" class="password-toggle" onclick="togglePassword('registerConfirmPassword', this)">
-                            <i class="fas fa-lock"></i>
+                            <i class="fas fa-lock" aria-hidden="true"></i>
                         </button>
                     </div>
                     <div class="field-error" asp-validation-for="Input.ConfirmPassword"></div>
@@ -547,7 +546,7 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-user-plus"></i> Зарегистрироваться
+                    <i class="fas fa-user-plus" aria-hidden="true"></i> Зарегистрироваться
                 </button>
 
                 @if (!string.IsNullOrWhiteSpace(Model.Error))
@@ -565,12 +564,12 @@
 
             if (input.type === 'password') {
                 input.type = 'text';
-                icon.classList.remove('fa-lock');
-                icon.classList.add('fa-lock-open');
+                icon?.classList.remove('fa-lock');
+                icon?.classList.add('fa-lock-open');
             } else {
                 input.type = 'password';
-                icon.classList.remove('fa-lock-open');
-                icon.classList.add('fa-lock');
+                icon?.classList.remove('fa-lock-open');
+                icon?.classList.add('fa-lock');
             }
         }
 

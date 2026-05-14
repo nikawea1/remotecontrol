@@ -19,19 +19,19 @@
             </div>
         </div>
 
-        <div style="display:grid; grid-template-columns: 300px 1fr; gap:24px;">
+        <div class="profile-layout">
             <div class="card">
-                <div style="text-align:center; margin-bottom:20px;">
-                    <div class="profile-dropdown-avatar" style="margin:0 auto 16px; width:90px; height:90px; font-size:34px;" id="profileAvatarBig">
+                <div class="profile-summary">
+                    <div class="profile-dropdown-avatar profile-avatar-large" id="profileAvatarBig">
                         U
                     </div>
 
-                    <h3 id="profileCardName" style="margin-bottom:6px;">Пользователь</h3>
-                    <div id="profileCardPosition" style="color:var(--gray); margin-bottom:8px;">—</div>
-                    <div id="profileCardEmail" style="color:var(--gray); font-size:14px;">—</div>
+                    <h3 class="profile-summary-name" id="profileCardName">Пользователь</h3>
+                    <div class="profile-summary-meta" id="profileCardPosition">—</div>
+                    <div class="profile-summary-meta is-email" id="profileCardEmail">—</div>
                 </div>
 
-                <div class="stats-grid" style="grid-template-columns:1fr; gap:12px; margin-bottom:20px;">
+                <div class="stats-grid profile-stats">
                     <div class="project-stat">
                         <div class="stat-label">Роль</div>
                         <div class="project-name" id="profileRoleText">—</div>
@@ -48,7 +48,7 @@
                     </div>
                 </div>
 
-                <div class="admin-tabs" style="flex-direction:column;">
+                <div class="admin-tabs profile-tabs">
                     <button class="admin-tab-btn active" type="button" onclick="showProfileTab('profileInfo', this)">
                         <i class="fas fa-id-card"></i> Основное
                     </button>
@@ -283,8 +283,8 @@
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="modal-footer" style="margin-top:0; justify-content:flex-end;">
+                <div class="card profile-save-card">
+                    <div class="modal-footer">
                         <button class="btn btn-primary" type="button" onclick="saveProfile()">
                             <i class="fas fa-floppy-disk"></i> Сохранить изменения
                         </button>

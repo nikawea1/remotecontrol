@@ -336,10 +336,29 @@
         transform: none;
     }
 
-    .bottom-main-action i {
-        font-size: 13px;
-        line-height: 1;
-    }
+.bottom-main-action-icon,
+.bottom-main-action-icon-glyph {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+}
+
+.bottom-main-action-icon-glyph {
+    display: none;
+}
+
+.bottom-main-action-icon[data-icon="play"] .is-play,
+.bottom-main-action-icon[data-icon="stop"] .is-stop {
+    display: inline-flex;
+}
+
+.bottom-main-action-icon .rc-icon-svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+}
 
 .circle-btn {
     width: 38px;

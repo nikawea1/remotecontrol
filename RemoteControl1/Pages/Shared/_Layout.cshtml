@@ -39,7 +39,6 @@
         })();
     </script>
 
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/common.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/modals.css" asp-append-version="true" />
@@ -50,11 +49,10 @@
     <link rel="stylesheet" href="~/css/reports.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/calendar.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/profile.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/settings.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/tracker.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/users.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/design-system.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/RemoteControl1.styles.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/ui-hotfix.css" asp-append-version="true" />
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -74,49 +72,45 @@
                     <span class="sidebar-brand-text">Remote Control</span>
                 </a>
 
-                <button class="sidebar-collapse-btn" type="button" onclick="toggleSidebar()" aria-label="Свернуть меню" title="Меню">
-                    <span class="sidebar-collapse-bars" aria-hidden="true">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </span>
+                <button class="sidebar-collapse-btn" type="button" onclick="toggleSidebar()" aria-label="Свернуть меню" title="Свернуть меню">
+                    @await Html.PartialAsync("_RcIcon", "collapse")
                 </button>
             </div>
 
             <nav class="sidebar-nav">
-                <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/MainPage" ? "active" : "")" asp-page="/MainPage">
+                <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/MainPage" ? "active" : "")" asp-page="/MainPage" title="Главная" aria-label="Главная">
                     @await Html.PartialAsync("_RcIcon", "home")
                     <span>Главная</span>
                 </a>
 
-                <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Tasks" ? "active" : "")" asp-page="/Tasks">
+                <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Tasks" ? "active" : "")" asp-page="/Tasks" title="Задачи" aria-label="Задачи">
                     @await Html.PartialAsync("_RcIcon", "tasks")
                     <span>Задачи</span>
                 </a>
 
-                <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Projects" ? "active" : "")" asp-page="/Projects">
+                <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Projects" ? "active" : "")" asp-page="/Projects" title="Проекты" aria-label="Проекты">
                     @await Html.PartialAsync("_RcIcon", "projects")
                     <span>Проекты</span>
                 </a>
 
-                <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Tracker" ? "active" : "")" asp-page="/Tracker">
+                <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Tracker" ? "active" : "")" asp-page="/Tracker" title="Трекер" aria-label="Трекер">
                     @await Html.PartialAsync("_RcIcon", "tracker")
                     <span>Трекер</span>
                 </a>
 
-                <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Reports" ? "active" : "")" asp-page="/Reports">
+                <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Reports" ? "active" : "")" asp-page="/Reports" title="Отчеты" aria-label="Отчеты">
                     @await Html.PartialAsync("_RcIcon", "reports")
                     <span>Отчеты</span>
                 </a>
 
-                <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Calendar" ? "active" : "")" asp-page="/Calendar">
+                <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Calendar" ? "active" : "")" asp-page="/Calendar" title="Календарь" aria-label="Календарь">
                     @await Html.PartialAsync("_RcIcon", "calendar")
                     <span>Календарь</span>
                 </a>
 
                 @if (!isEmployee)
                 {
-                    <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Users" ? "active" : "")" asp-page="/Users">
+                    <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Users" ? "active" : "")" asp-page="/Users" title="Сотрудники" aria-label="Сотрудники">
                         @await Html.PartialAsync("_RcIcon", "users")
                         <span>Сотрудники</span>
                     </a>
@@ -125,12 +119,12 @@
                 <div class="sidebar-nav-divider" role="separator" aria-label="Сервис"></div>
                 <div class="sidebar-nav-section-label">Сервис</div>
 
-                <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Profile" ? "active" : "")" asp-page="/Profile">
+                <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Profile" ? "active" : "")" asp-page="/Profile" title="Профиль" aria-label="Профиль">
                     @await Html.PartialAsync("_RcIcon", "profile")
                     <span>Профиль</span>
                 </a>
 
-                <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Settings" ? "active" : "")" asp-page="/Settings">
+                <a class="sidebar-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Settings" ? "active" : "")" asp-page="/Settings" title="Настройки" aria-label="Настройки">
                     @await Html.PartialAsync("_RcIcon", "settings")
                     <span>Настройки</span>
                 </a>
@@ -143,11 +137,7 @@
             <header class="app-topbar">
                 <div class="topbar-left">
                     <button class="topbar-menu-btn" type="button" onclick="toggleSidebar()" aria-label="Открыть меню" title="Меню">
-                        <span class="sidebar-collapse-bars is-topbar" aria-hidden="true">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </span>
+                        @await Html.PartialAsync("_RcIcon", "menu")
                     </button>
 
                     <div class="topbar-page">
@@ -159,12 +149,12 @@
                 <div class="nav-right">
                 <div class="nav-utilities">
                     <button class="nav-utility-btn nav-theme-btn" type="button" onclick="toggleThemePlaceholder()" title="Тёмная тема" aria-label="Тёмная тема">
-                        <i class="fas fa-moon"></i>
+                        @await Html.PartialAsync("_RcIcon", "theme-dark")
                     </button>
 
                     <div class="nav-notifications" id="navNotifications">
                         <button class="nav-utility-btn nav-notifications-btn" type="button" onclick="toggleNotificationsDropdown(event)" title="Уведомления" aria-label="Уведомления">
-                            <i class="far fa-bell"></i>
+                            @await Html.PartialAsync("_RcIcon", "notifications")
                             <span class="nav-utility-dot hidden" id="navNotificationsDot"></span>
                         </button>
 
@@ -212,19 +202,19 @@
 
                         <div class="profile-dropdown-menu">
                             <div class="profile-dropdown-item" onclick="window.location.href='@Url.Page("/Profile")'">
-                                <i class="fas fa-user"></i>
+                                @await Html.PartialAsync("_RcIcon", "profile")
                                 <span>Мой профиль</span>
                             </div>
 
                             <div class="profile-dropdown-item" onclick="window.location.href='@Url.Page("/Settings")'">
-                                <i class="fas fa-sliders"></i>
+                                @await Html.PartialAsync("_RcIcon", "settings")
                                 <span>Настройки</span>
                             </div>
 
                             <div class="profile-dropdown-divider"></div>
 
                             <div class="profile-dropdown-item" onclick="logout()">
-                                <i class="fas fa-sign-out-alt"></i>
+                                @await Html.PartialAsync("_RcIcon", "logout")
                                 <span>Выйти</span>
                             </div>
                         </div>
@@ -260,24 +250,27 @@
 
                 <div class="bottom-tracker-actions-collapsed" id="bottomTrackerCollapsedActions">
                     <button class="bottom-main-action" type="button" onclick="handleBottomMainAction()" id="bottomMainActionBtn">
-                        <i class="fas fa-play" id="bottomMainActionIcon"></i>
+                        <span class="bottom-main-action-icon" id="bottomMainActionIcon" data-icon="play" aria-hidden="true">
+                            <span class="bottom-main-action-icon-glyph is-play">@await Html.PartialAsync("_RcIcon", "play")</span>
+                            <span class="bottom-main-action-icon-glyph is-stop">@await Html.PartialAsync("_RcIcon", "stop")</span>
+                        </span>
                     </button>
                 </div>
             </div>
 
             <div class="bottom-tracker-actions-expanded" id="bottomTrackerExpandedActions">
                 <button class="btn bottom-control-btn start" type="button" onclick="startTracking()" id="bottomStartBtn">
-                    <i class="fas fa-play"></i>
+                    @await Html.PartialAsync("_RcIcon", "play")
                     <span>Старт</span>
                 </button>
 
                 <button class="btn bottom-control-btn pause" type="button" onclick="pauseTracking()" id="bottomPauseBtn">
-                    <i class="fas fa-pause"></i>
+                    @await Html.PartialAsync("_RcIcon", "pause")
                     <span>Пауза</span>
                 </button>
 
                 <button class="btn bottom-control-btn stop" type="button" onclick="stopTracking()" id="bottomStopBtn">
-                    <i class="fas fa-stop"></i>
+                    @await Html.PartialAsync("_RcIcon", "stop")
                     <span>Стоп</span>
                 </button>
             </div>
@@ -291,7 +284,6 @@
         </div>
     </div>
 
-    <script src="https://unpkg.com/lucide@0.487.0/dist/umd/lucide.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/modals.js" asp-append-version="true"></script>
     <script src="~/js/notify.js" asp-append-version="true"></script>

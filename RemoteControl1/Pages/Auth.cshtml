@@ -165,7 +165,6 @@
                     border-radius: 0 !important;
                     box-shadow: none !important;
                     color: inherit !important;
-                    stroke: currentColor !important;
                 }
 
             .left-content h1 {
@@ -471,7 +470,7 @@
 
                 <div class="features-mini">
                     <div class="feature-mini-item">
-                        <i class="fas fa-stopwatch"></i>
+                        <i class="fas fa-stopwatch" aria-hidden="true"></i>
                         <div class="feature-mini-text">
                             <h4>Умный трекер времени</h4>
                             <p>Автоматический учет рабочих часов с детализацией по задачам</p>
@@ -479,7 +478,7 @@
                     </div>
 
                     <div class="feature-mini-item">
-                        <i class="fas fa-chart-pie"></i>
+                        <i class="fas fa-chart-pie" aria-hidden="true"></i>
                         <div class="feature-mini-text">
                             <h4>Детальная аналитика</h4>
                             <p>Наглядные отчеты о продуктивности и эффективности</p>
@@ -487,7 +486,7 @@
                     </div>
 
                     <div class="feature-mini-item">
-                        <i class="fas fa-list-check"></i>
+                        <i class="fas fa-list-check" aria-hidden="true"></i>
                         <div class="feature-mini-text">
                             <h4>Управление задачами</h4>
                             <p>Контроль дедлайнов и приоритетов в одном месте</p>
@@ -507,22 +506,22 @@
                 @Html.AntiForgeryToken()
 
                 <div class="form-group">
-                    <label class="form-label"><i class="fas fa-user"></i> Логин или Email</label>
+                    <label class="form-label"><i class="fas fa-user" aria-hidden="true"></i> Логин или Email</label>
                     <div class="input-wrapper">
-                        <i class="fas fa-user input-icon"></i>
+                        <i class="fas fa-user input-icon" aria-hidden="true"></i>
                         <input type="text" class="form-control" asp-for="Input.Email" placeholder="Email или логин" required>
                     </div>
                     <div class="field-error" asp-validation-for="Input.Email"></div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label"><i class="fas fa-lock"></i> Пароль</label>
+                    <label class="form-label"><i class="fas fa-lock" aria-hidden="true"></i> Пароль</label>
                     <div class="input-wrapper">
-                        <i class="fas fa-lock input-icon"></i>
+                        <i class="fas fa-lock input-icon" aria-hidden="true"></i>
                         <input type="password" class="form-control" id="loginPassword" asp-for="Input.Password" placeholder="••••••••" required>
 
                         <button type="button" class="password-toggle" onclick="togglePassword('loginPassword', this)">
-                            <i class="fas fa-lock"></i>
+                            <i class="fas fa-lock" aria-hidden="true"></i>
                         </button>
                     </div>
                     <div class="field-error" asp-validation-for="Input.Password"></div>
@@ -537,7 +536,7 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-right-to-bracket"></i> Войти
+                    <i class="fas fa-right-to-bracket" aria-hidden="true"></i> Войти
                 </button>
 
                 @if (!string.IsNullOrWhiteSpace(Model.Error))
@@ -550,7 +549,7 @@
 
     <div id="notification" class="notification hidden">
         <div style="display: flex; align-items: center; gap: 10px;">
-            <i class="fas fa-circle-info" style="color: var(--primary); font-size: 20px;"></i>
+            <i class="fas fa-circle-info" aria-hidden="true" style="color: var(--primary); font-size: 20px;"></i>
             <div id="notificationMessage">Уведомление</div>
         </div>
     </div>
@@ -597,12 +596,12 @@
 
             if (input.type === 'password') {
                 input.type = 'text';
-                icon.classList.remove('fa-lock');
-                icon.classList.add('fa-lock-open');
+                icon?.classList.remove('fa-lock');
+                icon?.classList.add('fa-lock-open');
             } else {
                 input.type = 'password';
-                icon.classList.remove('fa-lock-open');
-                icon.classList.add('fa-lock');
+                icon?.classList.remove('fa-lock-open');
+                icon?.classList.add('fa-lock');
             }
         }
 

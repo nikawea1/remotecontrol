@@ -8,6 +8,13 @@ let idleListenersBound = false;
 let idlePauseInProgress = false;
 let currentWorkDayStatus = null;
 
+function setBottomMainActionIcon(iconName) {
+    const icon = document.getElementById("bottomMainActionIcon");
+    if (icon) {
+        icon.dataset.icon = iconName;
+    }
+}
+
 function getTimerTasks() {
     if (typeof getAvailableTimerTasks === "function") {
         return getAvailableTimerTasks();
@@ -176,15 +183,15 @@ function updateBottomTrackerUI() {
 
         if (isTracking) {
             bottomMainActionBtn.classList.add("stop");
-            bottomMainActionIcon.className = "fas fa-stop";
+            setBottomMainActionIcon("stop");
             bottomMainActionText.textContent = "Стоп";
         } else if (isPaused) {
             bottomMainActionBtn.classList.add("start");
-            bottomMainActionIcon.className = "fas fa-play";
+            setBottomMainActionIcon("play");
             bottomMainActionText.textContent = "Продолжить";
         } else {
             bottomMainActionBtn.classList.add("start");
-            bottomMainActionIcon.className = "fas fa-play";
+            setBottomMainActionIcon("play");
             bottomMainActionText.textContent = "Старт";
         }
     }
@@ -199,15 +206,15 @@ function updateBottomTrackerUI() {
         if (isTracking) {
             bottomMainActionBtn.className = "bottom-main-action";
             bottomMainActionBtn.style.background = "#e53935";
-            bottomMainActionIcon.className = "fas fa-stop";
+            setBottomMainActionIcon("stop");
         } else if (isPaused) {
             bottomMainActionBtn.className = "bottom-main-action";
             bottomMainActionBtn.style.background = "#43a047";
-            bottomMainActionIcon.className = "fas fa-play";
+            setBottomMainActionIcon("play");
         } else {
             bottomMainActionBtn.className = "bottom-main-action";
             bottomMainActionBtn.style.background = "var(--primary)";
-            bottomMainActionIcon.className = "fas fa-play";
+            setBottomMainActionIcon("play");
         }
     }
 

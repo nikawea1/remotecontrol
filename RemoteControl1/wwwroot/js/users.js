@@ -243,11 +243,11 @@ function renderManualRowExpandButton(rowId, isExpanded) {
 
 function renderUsersInlineIcon(iconKey) {
     const icons = {
-        warning: "<svg class=\"rc-icon-svg\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" style=\"display:block;width:20px;height:20px;color:#ffffff;stroke:#ffffff;fill:none;overflow:visible\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 4l8 14H4z\"></path><path d=\"M12 10v4\"></path><path d=\"M12 17h.01\"></path></svg>",
-        hourglass: "<svg class=\"rc-icon-svg\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" style=\"display:block;width:20px;height:20px;color:#ffffff;stroke:#ffffff;fill:none;overflow:visible\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M7 4h10\"></path><path d=\"M7 20h10\"></path><path d=\"M8 4c0 4 4 4 4 8s-4 4-4 8\"></path><path d=\"M16 4c0 4-4 4-4 8s4 4 4 8\"></path></svg>",
-        pause: "<svg class=\"rc-icon-svg\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" style=\"display:block;width:20px;height:20px;color:#ffffff;stroke:#ffffff;fill:none;overflow:visible\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"8\"></circle><path d=\"M10 9v6\"></path><path d=\"M14 9v6\"></path></svg>",
-        userSlash: "<svg class=\"rc-icon-svg\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" style=\"display:block;width:20px;height:20px;color:#ffffff;stroke:#ffffff;fill:none;overflow:visible\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"10\" cy=\"8\" r=\"3\"></circle><path d=\"M4 19a6 6 0 0 1 8-5\"></path><path d=\"M4 4l16 16\"></path></svg>",
-        done: "<svg class=\"rc-icon-svg\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" style=\"display:block;width:20px;height:20px;color:#ffffff;stroke:#ffffff;fill:none;overflow:visible\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"8\"></circle><path d=\"M8.5 12.5l2.2 2.2 4.8-5\"></path></svg>"
+        warning: "<i class=\"fas fa-triangle-exclamation rc-icon-fa\" aria-hidden=\"true\"></i>",
+        hourglass: "<i class=\"far fa-hourglass rc-icon-fa\" aria-hidden=\"true\"></i>",
+        pause: "<i class=\"fas fa-pause rc-icon-fa\" aria-hidden=\"true\"></i>",
+        userSlash: "<i class=\"fas fa-user-slash rc-icon-fa\" aria-hidden=\"true\"></i>",
+        done: "<i class=\"far fa-check-circle rc-icon-fa\" aria-hidden=\"true\"></i>"
     };
 
     return icons[iconKey] || icons.done;

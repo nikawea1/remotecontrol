@@ -1,8 +1,58 @@
-﻿/* Файл: RemoteControl1/wwwroot/css/profile.css */
-/* profile.css */
+/* Файл: RemoteControl1/wwwroot/css/profile.css */
+/* Profile page layout and account cards. */
 
-.profile-card {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
+#profilePage .profile-layout {
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+}
+
+#profilePage .profile-summary {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+#profilePage .profile-avatar-large {
+    width: 90px;
+    height: 90px;
+    margin: 0 auto 16px;
+    font-size: 34px;
+}
+
+#profilePage .profile-summary-name {
+    margin: 0 0 6px;
+    color: var(--foreground);
+}
+
+#profilePage .profile-summary-meta {
+    margin-bottom: 8px;
+    color: var(--gray);
+}
+
+#profilePage .profile-summary-meta.is-email {
+    margin-bottom: 0;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+#profilePage .profile-stats {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+#profilePage .profile-tabs {
+    flex-direction: column;
+}
+
+#profilePage .profile-save-card .modal-footer {
+    margin-top: 0;
+    justify-content: flex-end;
+}
+
+@media (max-width: 980px) {
+    #profilePage .profile-layout {
+        grid-template-columns: 1fr;
+    }
 }
