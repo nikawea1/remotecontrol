@@ -12,12 +12,12 @@ namespace RemoteControl1.Pages
     public class UsersModel : PageModel
     {
         private readonly AppDbContext _db;
-        private readonly TaskService _taskService;
+        private readonly DashboardService _dashboardService;
 
-        public UsersModel(AppDbContext db, TaskService taskService)
+        public UsersModel(AppDbContext db, DashboardService dashboardService)
         {
             _db = db;
-            _taskService = taskService;
+            _dashboardService = dashboardService;
         }
 
         public int CurrentUserId { get; set; }
@@ -50,7 +50,7 @@ namespace RemoteControl1.Pages
             if (!IsAdmin && !IsManager)
                 return RedirectToPage("/MainPage");
 
-            var data = await _taskService.GetPageDataAsync(user.Id);
+            var data = await _dashboardService.GetPageDataAsync(user.Id);
 
             UsersJson = JsonSerializer.Serialize(data.Users);
             TasksJson = JsonSerializer.Serialize(data.Tasks);

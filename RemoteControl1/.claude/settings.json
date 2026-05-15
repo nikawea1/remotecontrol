@@ -1,0 +1,21 @@
+﻿{
+    "hasCompletedOnboarding":  true,
+    "skipDangerousModePermissionPrompt":  true,
+    "env":  {
+                "ANTHROPIC_BASE_URL":  "https://api.claudehub.fun",
+                "ANTHROPIC_API_KEY":  "sk-hub-DcrjL2DevZdWolArM8Q2fl7FUzkP2Rcy",
+                "ANTHROPIC_MODEL":  "claude-opus-4-7",
+                "ANTHROPIC_DEFAULT_OPUS_MODEL":  "claude-opus-4-7",
+                "ANTHROPIC_DEFAULT_SONNET_MODEL":  "claude-opus-4-7",
+                "ANTHROPIC_DEFAULT_HAIKU_MODEL":  "claude-opus-4-7",
+                "ANTHROPIC_CUSTOM_MODEL_OPTION":  "claude-opus-4-7",
+                "ANTHROPIC_CUSTOM_MODEL_OPTION_NAME":  "ClaudeHub working model",
+                "ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION":  "Рабочая модель ClaudeHub",
+                "API_TIMEOUT_MS":  "1200000",
+                "CLAUDE_CODE_MAX_RETRIES":  "3",
+                "CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY":  "2",
+                "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC":  "1",
+                "CLAUDE_CODE_DISABLE_1M_CONTEXT":  "1",
+                "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS":  "1"
+            }
+}

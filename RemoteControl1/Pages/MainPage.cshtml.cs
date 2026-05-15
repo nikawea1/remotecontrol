@@ -20,13 +20,34 @@ namespace RemoteControl1.Pages
     {
         private readonly AppDbContext _db;
         private readonly TaskService _taskService;
-        private readonly IWebHostEnvironment _env;
+        private readonly DashboardService _dashboardService;
+        private readonly ProjectService _projectService;
+        private readonly UserService _userService;
+        private readonly ProfileService _profileService;
+        private readonly TrackerService _trackerService;
+        private readonly ReportService _reportService;
+        private readonly FileStorageService _fileStorageService;
 
-        public MainPageModel(AppDbContext db, TaskService taskService, IWebHostEnvironment env)
+        public MainPageModel(
+            AppDbContext db,
+            TaskService taskService,
+            DashboardService dashboardService,
+            ProjectService projectService,
+            UserService userService,
+            ProfileService profileService,
+            TrackerService trackerService,
+            ReportService reportService,
+            FileStorageService fileStorageService)
         {
             _db = db;
             _taskService = taskService;
-            _env = env;
+            _dashboardService = dashboardService;
+            _projectService = projectService;
+            _userService = userService;
+            _profileService = profileService;
+            _trackerService = trackerService;
+            _reportService = reportService;
+            _fileStorageService = fileStorageService;
         }
 
         public string UserName { get; set; } = "";
@@ -115,7 +136,7 @@ namespace RemoteControl1.Pages
             }
 
             CalendarEventsJson = JsonSerializer.Serialize(events);
-            var data = await _taskService.GetPageDataAsync(user.Id);
+            var data = await _dashboardService.GetPageDataAsync(user.Id);
 
             if (IsEmployee)
                 data.Users = new List<UserVm>();
@@ -143,7 +164,7 @@ namespace RemoteControl1.Pages
             if (userId == null)
                 return new JsonResult(new { ok = false, error = "Пользователь не найден" });
 
-            var data = await _taskService.GetAdminAnalyticsAsync(userId.Value, GetCurrentRole());
+            var data = await _reportService.GetAdminAnalyticsAsync(userId.Value, GetCurrentRole());
 
             return new JsonResult(new
             {
@@ -181,25 +202,17 @@ namespace RemoteControl1.Pages
 
             if (file != null && file.Length > 0)
             {
-                var uploadsRoot = Path.Combine(_env.WebRootPath, "uploads", "manual-time", userId.Value.ToString());
-                Directory.CreateDirectory(uploadsRoot);
-
-                var ext = Path.GetExtension(file.FileName);
-                var savedName = $"{Guid.NewGuid():N}{ext}";
-                var fullPath = Path.Combine(uploadsRoot, savedName);
-
-                using (var stream = new FileStream(fullPath, FileMode.Create))
+                var storedFile = await _fileStorageService.SaveManualTimeAttachmentAsync(userId.Value, file);
+                if (storedFile != null)
                 {
-                    await file.CopyToAsync(stream);
+                    dto.AttachmentPath = storedFile.Path;
+                    dto.AttachmentName = storedFile.Name;
                 }
-
-                dto.AttachmentPath = $"/uploads/manual-time/{userId.Value}/{savedName}";
-                dto.AttachmentName = file.FileName;
             }
 
             var result = requestId > 0
-                ? await _taskService.UpdateManualTimeRequestAsync(userId.Value, dto)
-                : await _taskService.CreateManualTimeRequestAsync(userId.Value, dto);
+                ? await _trackerService.UpdateManualTimeRequestAsync(userId.Value, dto)
+                : await _trackerService.CreateManualTimeRequestAsync(userId.Value, dto);
 
             return new JsonResult(new
             {
@@ -215,7 +228,7 @@ namespace RemoteControl1.Pages
             if (userId == null)
                 return new JsonResult(new { ok = false, error = "Пользователь не найден" });
 
-            var items = await _taskService.GetManualTimeRequestsAsync(userId.Value, GetCurrentRole());
+            var items = await _trackerService.GetManualTimeRequestsAsync(userId.Value, GetCurrentRole());
 
             return new JsonResult(new
             {
@@ -230,7 +243,7 @@ namespace RemoteControl1.Pages
             if (userId == null)
                 return new JsonResult(new { ok = false, error = "Пользователь не найден" });
 
-            var result = await _taskService.ApproveManualTimeRequestAsync(userId.Value, GetCurrentRole(), dto);
+            var result = await _trackerService.ApproveManualTimeRequestAsync(userId.Value, GetCurrentRole(), dto);
 
             return new JsonResult(new
             {
@@ -245,7 +258,7 @@ namespace RemoteControl1.Pages
             if (userId == null)
                 return new JsonResult(new { ok = false, error = "Пользователь не найден" });
 
-            var result = await _taskService.RejectManualTimeRequestAsync(userId.Value, GetCurrentRole(), dto);
+            var result = await _trackerService.RejectManualTimeRequestAsync(userId.Value, GetCurrentRole(), dto);
 
             return new JsonResult(new
             {
@@ -261,7 +274,7 @@ namespace RemoteControl1.Pages
             if (userId == null)
                 return new JsonResult(new { ok = false, error = "Требуется вход" });
 
-            var result = await _taskService.ReturnManualTimeRequestForRevisionAsync(userId.Value, GetCurrentRole(), dto);
+            var result = await _trackerService.ReturnManualTimeRequestForRevisionAsync(userId.Value, GetCurrentRole(), dto);
 
             return new JsonResult(new
             {
@@ -367,7 +380,7 @@ namespace RemoteControl1.Pages
             if (!CurrentUserIsManagerOrAdmin())
                 return new JsonResult(new { ok = false, error = "Нет прав" });
 
-            var result = await _taskService.AddProjectAsync(CurrentUserOrZero(), dto);
+            var result = await _projectService.AddProjectAsync(CurrentUserOrZero(), dto);
 
             return new JsonResult(new
             {
@@ -382,140 +395,15 @@ namespace RemoteControl1.Pages
             if (!CurrentUserIsManagerOrAdmin())
                 return new JsonResult(new { ok = false, error = "Нет прав" });
 
-            if (dto == null || dto.Id <= 0)
-                return new JsonResult(new { ok = false, error = "Проект не найден" });
-
-            if (string.IsNullOrWhiteSpace(dto.Name))
-                return new JsonResult(new { ok = false, error = "Введите название проекта" });
-
-            var currentUserId = CurrentUserOrZero();
-
-            var project = await _db.Projects
-                .Include(p => p.Manager)
-                .Include(p => p.Members)
-                .FirstOrDefaultAsync(p => p.Id == dto.Id);
-
-            if (project == null)
-                return new JsonResult(new { ok = false, error = "Проект не найден" });
-
-            if (CurrentUserIsManager() && project.ManagerId != currentUserId)
-                return new JsonResult(new { ok = false, error = "Нет прав на этот проект" });
-
-            int managerId;
-
-            if (CurrentUserIsAdmin())
-            {
-                if (!dto.ManagerId.HasValue || dto.ManagerId.Value <= 0)
-                    return new JsonResult(new { ok = false, error = "Выберите менеджера проекта" });
-
-                managerId = dto.ManagerId.Value;
-            }
-            else
-            {
-                managerId = currentUserId;
-            }
-            var manager = await _db.Users.FirstOrDefaultAsync(x => x.Id == managerId);
-            if (manager == null)
-                return new JsonResult(new { ok = false, error = "Менеджер не найден" });
-
-            project.Name = dto.Name.Trim();
-            project.Description = dto.Description?.Trim() ?? "";
-            project.ManagerId = managerId;
-
-            project.ProjectType = NormalizeProjectType(dto.ProjectType);
-            var requestedStageNames = (dto.StageNames ?? new List<string>())
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .Select(x => x.Trim())
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
-            var taskStageNames = await _db.Tasks
-                .Where(t => t.ProjectId == project.Id && !string.IsNullOrWhiteSpace(t.StageName))
-                .Select(t => t.StageName!)
-                .Distinct()
-                .ToListAsync();
-
-            foreach (var taskStageName in taskStageNames)
-            {
-                if (!requestedStageNames.Any(x => string.Equals(x, taskStageName, StringComparison.OrdinalIgnoreCase)))
-                    requestedStageNames.Add(taskStageName);
-            }
-
-            project.StageNamesJson = SerializeStageNames(requestedStageNames);
-
-            var newMemberIds = (dto.MemberIds ?? new List<int>())
-                .Where(x => x > 0)
-                .Distinct()
-                .ToList();
-
-            if (!newMemberIds.Contains(managerId))
-                newMemberIds.Add(managerId);
-
-            var existingMembers = await _db.ProjectMembers
-                .Where(x => x.ProjectId == project.Id)
-                .ToListAsync();
-
-            var membersToDelete = existingMembers
-                .Where(x => !newMemberIds.Contains(x.UserId))
-                .ToList();
-
-            if (membersToDelete.Count > 0)
-                _db.ProjectMembers.RemoveRange(membersToDelete);
-
-            var existingUserIds = existingMembers.Select(x => x.UserId).ToHashSet();
-
-            foreach (var memberId in newMemberIds)
-            {
-                if (existingUserIds.Contains(memberId))
-                    continue;
-
-                var userExists = await _db.Users.AnyAsync(x => x.Id == memberId);
-                if (!userExists)
-                    continue;
-
-                _db.ProjectMembers.Add(new ProjectMember
-                {
-                    ProjectId = project.Id,
-                    UserId = memberId
-                });
-            }
-
-            await _db.SaveChangesAsync();
-
-            var stageNames = JsonSerializer.Deserialize<List<string>>(project.StageNamesJson ?? "[]") ?? new List<string>();
-            var projectTasks = await _db.Tasks
-                .Where(t => t.ProjectId == project.Id)
-                .ToListAsync();
-            var projectProgress = projectTasks.Count > 0
-                ? (int)Math.Round(projectTasks.Count(t => t.Status == "done") * 100.0 / projectTasks.Count)
-                : 0;
+            var result = await _projectService.UpdateProjectAsync(CurrentUserOrZero(), dto);
 
             return new JsonResult(new
             {
-                ok = true,
-                project = new
-                {
-                    id = project.Id,
-                    name = project.Name,
-                    description = project.Description ?? "",
-                    tasksCount = projectTasks.Count,
-                    progress = projectProgress,
-                    managerId = project.ManagerId,
-                    managerName = string.Join(" ", new[] { manager.LastName, manager.FirstName, manager.MiddleName }
-                        .Where(x => !string.IsNullOrWhiteSpace(x))),
-                    memberIds = newMemberIds,
-                    membersCount = newMemberIds.Count,
-                    projectTypeName = project.ProjectType switch
-                    {
-                        "linear" => "Линейный",
-                        "hybrid" => "Гибридный",
-                        _ => "Функциональный"
-                    },
-                    stageNames = stageNames
-                }
+                ok = result.Ok,
+                error = result.Error,
+                project = result.Data
             });
         }
-
         public async Task<JsonResult> OnPostDeleteProjectAsync([FromBody] DeleteProjectDto dto)
         {
             var currentUserId = CurrentUserOrZero();
@@ -525,60 +413,21 @@ namespace RemoteControl1.Pages
             if (!CurrentUserIsManagerOrAdmin())
                 return new JsonResult(new { ok = false, error = "Нет прав" });
 
-            var project = await _db.Projects.FirstOrDefaultAsync(p => p.Id == dto.Id);
+            var result = await _projectService.DeleteProjectAsync(currentUserId, dto.Id);
 
-            if (project == null)
-                return new JsonResult(new { ok = false, error = "Проект не найден" });
-
-            if (CurrentUserIsManager() && project.ManagerId != currentUserId)
-                return new JsonResult(new { ok = false, error = "Нет прав на этот проект" });
-
-            var projectTaskIds = await _db.Tasks
-                .Where(t => t.ProjectId == dto.Id)
-                .Select(t => t.Id)
-                .ToListAsync();
-
-            var manualTimeRequests = await _db.ManualTimeRequests
-                .Where(x => (x.ProjectId.HasValue && x.ProjectId.Value == dto.Id) || projectTaskIds.Contains(x.TaskItemId))
-                .ToListAsync();
-
-            if (manualTimeRequests.Count > 0)
-                _db.ManualTimeRequests.RemoveRange(manualTimeRequests);
-
-            var activityLogs = await _db.ActivityLogs
-                .Where(a => a.ProjectId == dto.Id || (a.TaskItemId.HasValue && projectTaskIds.Contains(a.TaskItemId.Value)))
-                .ToListAsync();
-
-            if (activityLogs.Count > 0)
-                _db.ActivityLogs.RemoveRange(activityLogs);
-
-            var projectTasks = await _db.Tasks
-                .Where(t => t.ProjectId == dto.Id)
-                .ToListAsync();
-
-            if (projectTasks.Count > 0)
-                _db.Tasks.RemoveRange(projectTasks);
-
-            var projectMembers = await _db.ProjectMembers
-                .Where(x => x.ProjectId == dto.Id)
-                .ToListAsync();
-
-            if (projectMembers.Count > 0)
-                _db.ProjectMembers.RemoveRange(projectMembers);
-
-            _db.Projects.Remove(project);
-            await _db.SaveChangesAsync();
-
-            return new JsonResult(new { ok = true });
+            return new JsonResult(new
+            {
+                ok = result.Ok,
+                error = result.Error
+            });
         }
-
         public async Task<JsonResult> OnPostStartWorkDayAsync()
         {
             var userId = await GetCurrentUserIdAsync();
             if (userId == null)
                 return new JsonResult(new { ok = false, error = "Пользователь не найден" });
 
-            var result = await _taskService.StartWorkDayAsync(userId.Value);
+            var result = await _trackerService.StartWorkDayAsync(userId.Value);
 
             return new JsonResult(new
             {
@@ -593,7 +442,7 @@ namespace RemoteControl1.Pages
             if (userId == null)
                 return new JsonResult(new { ok = false, error = "Пользователь не найден" });
 
-            var result = await _taskService.StopWorkDayAsync(userId.Value);
+            var result = await _trackerService.StopWorkDayAsync(userId.Value);
 
             return new JsonResult(new
             {
@@ -613,7 +462,7 @@ namespace RemoteControl1.Pages
             if (!isMyTask)
                 return new JsonResult(new { ok = false, error = "Можно запускать только свои задачи" });
 
-            var result = await _taskService.StartTaskTimerAsync(userId.Value, dto);
+            var result = await _trackerService.StartTaskTimerAsync(userId.Value, dto);
 
             return new JsonResult(new
             {
@@ -628,7 +477,7 @@ namespace RemoteControl1.Pages
             if (userId == null)
                 return new JsonResult(new { ok = false, error = "Пользователь не найден" });
 
-            var result = await _taskService.PauseTaskTimerAsync(userId.Value);
+            var result = await _trackerService.PauseTaskTimerAsync(userId.Value);
 
             return new JsonResult(new
             {
@@ -644,7 +493,7 @@ namespace RemoteControl1.Pages
             if (userId == null)
                 return new JsonResult(new { ok = false, error = "Пользователь не найден" });
 
-            var result = await _taskService.StopTaskTimerAsync(userId.Value);
+            var result = await _trackerService.StopTaskTimerAsync(userId.Value);
 
             return new JsonResult(new
             {
@@ -664,7 +513,7 @@ namespace RemoteControl1.Pages
             if (!isMyTask)
                 return new JsonResult(new { ok = false, error = "Можно учитывать время только по своим задачам" });
 
-            var result = await _taskService.AddManualTimeAsync(userId.Value, dto);
+            var result = await _trackerService.AddManualTimeAsync(userId.Value, dto);
 
             return new JsonResult(new
             {
@@ -685,7 +534,7 @@ namespace RemoteControl1.Pages
             if (!CurrentUserIsAdmin())
                 return new JsonResult(new { ok = false, error = "Нет прав" });
 
-            var result = await _taskService.AddUserAsync(dto);
+            var result = await _userService.AddUserAsync(dto);
 
             return new JsonResult(new
             {
@@ -700,7 +549,7 @@ namespace RemoteControl1.Pages
             if (!CurrentUserIsAdmin())
                 return new JsonResult(new { ok = false, error = "Нет прав" });
 
-            var result = await _taskService.UpdateUserAsync(dto);
+            var result = await _userService.UpdateUserAsync(dto);
 
             return new JsonResult(new
             {
@@ -715,7 +564,7 @@ namespace RemoteControl1.Pages
             if (!CurrentUserIsAdmin())
                 return new JsonResult(new { ok = false, error = "Нет прав" });
 
-            var result = await _taskService.ToggleUserStatusAsync(dto.Id);
+            var result = await _userService.ToggleUserStatusAsync(dto.Id);
 
             return new JsonResult(new
             {
@@ -738,21 +587,15 @@ namespace RemoteControl1.Pages
             var taskIdText = Request.Form["taskId"].ToString();
             int.TryParse(taskIdText, out var taskId);
 
-            var folder = Path.Combine(@"C:\Users\Lenovo\Pictures\Screenshots", userId.Value.ToString());
-            Directory.CreateDirectory(folder);
-
-            var fileName = $"{DateTime.Now:yyyyMMdd_HHmmss}.png";
-            var filePath = Path.Combine(folder, fileName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
+            var storedFile = await _fileStorageService.SaveScreenshotAsync(userId.Value, file);
+            if (storedFile == null)
+                return new JsonResult(new { ok = false, error = "Файл не получен" });
 
             return new JsonResult(new
             {
                 ok = true,
-                fileName,
+                fileName = storedFile.SavedName,
+                filePath = storedFile.Path,
                 taskId
             });
         }
@@ -767,22 +610,15 @@ namespace RemoteControl1.Pages
             if (file == null || file.Length == 0)
                 return new JsonResult(new { ok = false, error = "Файл не получен" });
 
-            var folder = Path.Combine(@"C:\Users\Lenovo\Pictures\Screenshots", userId.Value.ToString());
-            Directory.CreateDirectory(folder);
-
-            var fileName = $"webcam_{DateTime.Now:yyyyMMdd_HHmmss}.png";
-            var filePath = Path.Combine(folder, fileName);
-
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
+            var storedFile = await _fileStorageService.SaveWebcamSnapshotAsync(userId.Value, file);
+            if (storedFile == null)
+                return new JsonResult(new { ok = false, error = "Файл не получен" });
 
             return new JsonResult(new
             {
                 ok = true,
-                fileName
+                fileName = storedFile.SavedName,
+                filePath = storedFile.Path
             });
         }
 
@@ -931,7 +767,7 @@ namespace RemoteControl1.Pages
             if (currentUserId == null)
                 return new JsonResult(new { ok = false, error = "Пользователь не найден" });
 
-            var data = await _taskService.GetReportsDataAsync(
+            var data = await _reportService.GetReportsDataAsync(
                 currentUserId.Value,
                 GetCurrentRole(),
                 CurrentUserIsAdmin(),
@@ -1020,116 +856,16 @@ namespace RemoteControl1.Pages
                 .Padding(4);
         }
 
-        private async Task<ExportDataVm> BuildExportDataAsync(int? selectedUserId, string? dateFrom, string? dateTo, int? projectId)
+        private Task<RemoteControl1.Services.ExportDataVm> BuildExportDataAsync(int? selectedUserId, string? dateFrom, string? dateTo, int? projectId)
         {
-            var currentUserId = await GetCurrentUserIdAsync();
-            if (currentUserId == null)
-                return new ExportDataVm();
-
-            int targetUserId = currentUserId.Value;
-
-            if (CurrentUserIsAdmin())
-            {
-                if (selectedUserId.HasValue)
-                    targetUserId = selectedUserId.Value;
-            }
-            else if (CurrentUserIsManager())
-            {
-                if (selectedUserId.HasValue)
-                {
-                    var managerProjectIds = await _db.Projects
-                        .Where(p => p.ManagerId == currentUserId.Value)
-                        .Select(p => p.Id)
-                        .ToListAsync();
-
-                    var allowed = await _db.Tasks.AnyAsync(t =>
-                        t.UserId == selectedUserId.Value &&
-                        managerProjectIds.Contains(t.ProjectId));
-
-                    if (allowed)
-                        targetUserId = selectedUserId.Value;
-                }
-            }
-
-            var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == targetUserId);
-
-            DateTime? from = null;
-            DateTime? to = null;
-
-            if (DateTime.TryParse(dateFrom, out var fromDate))
-                from = fromDate.Date;
-
-            if (DateTime.TryParse(dateTo, out var toDate))
-                to = toDate.Date.AddDays(1).AddTicks(-1);
-
-            var query = _db.ActivityLogs
-                .Include(a => a.TaskItem)
-                    .ThenInclude(t => t!.Project)
-                .Where(a =>
-                    a.UserId == targetUserId &&
-                    (a.ActivityType == "task_timer" || a.ActivityType == "manual_time"));
-
-            if (CurrentUserIsManager())
-            {
-                var managerProjectIds = await _db.Projects
-                    .Where(p => p.ManagerId == currentUserId.Value)
-                    .Select(p => p.Id)
-                    .ToListAsync();
-
-                query = query.Where(a => a.ProjectId.HasValue && managerProjectIds.Contains(a.ProjectId.Value));
-            }
-
-            if (from.HasValue)
-                query = query.Where(a => (a.EndedAtUtc ?? a.StartedAtUtc) >= from.Value);
-
-            if (to.HasValue)
-                query = query.Where(a => (a.EndedAtUtc ?? a.StartedAtUtc) <= to.Value);
-
-            if (projectId.HasValue)
-                query = query.Where(a => a.ProjectId == projectId.Value);
-
-            var logs = await query
-                .OrderByDescending(a => a.EndedAtUtc ?? a.StartedAtUtc)
-                .ToListAsync();
-
-            var rows = logs.Select(a => new ExportRowVm
-            {
-                Date = (a.EndedAtUtc ?? a.StartedAtUtc).ToLocalTime().ToString("dd.MM.yyyy HH:mm"),
-                Task = a.TaskItem?.Title ?? "Без задачи",
-                Project = a.TaskItem?.Project?.Name ?? "Без проекта",
-                Hours = a.DurationHours,
-                Comment = string.IsNullOrWhiteSpace(a.Comment) ? "Без комментария" : a.Comment!,
-                Status = a.TaskItem?.Status ?? "-",
-                Assignee = a.TaskItem?.Assignee ?? "-",
-                Deadline = a.TaskItem?.Deadline.HasValue == true
-                    ? a.TaskItem.Deadline.Value.ToString("dd.MM.yyyy")
-                    : "-"
-            }).ToList();
-
-            var taskIds = logs
-                .Where(a => a.TaskItemId.HasValue)
-                .Select(a => a.TaskItemId!.Value)
-                .Distinct()
-                .ToList();
-
-            var doneTasks = await _db.Tasks
-                .Where(t => taskIds.Contains(t.Id) && t.Status == "done")
-                .CountAsync();
-
-            return new ExportDataVm
-            {
-                UserName = user == null
-                    ? ""
-                    : string.Join(" ", new[] { user.LastName, user.FirstName, user.MiddleName }
-                        .Where(x => !string.IsNullOrWhiteSpace(x))),
-                TotalHours = logs.Sum(x => x.DurationHours),
-
-
-                DoneTasks = doneTasks,
-                Rows = rows
-            };
+            return _reportService.BuildExportDataAsync(
+                CurrentUserOrZero(),
+                GetCurrentRole(),
+                selectedUserId,
+                dateFrom,
+                dateTo,
+                projectId);
         }
-
         private static string EscapeCsv(string? value)
         {
             var text = value ?? "";
@@ -1159,7 +895,7 @@ namespace RemoteControl1.Pages
             if (userId == null)
                 return new JsonResult(new { ok = false, error = "Пользователь не найден" });
 
-            var result = await _taskService.ChangePasswordAsync(userId.Value, dto.OldPassword, dto.NewPassword);
+            var result = await _profileService.ChangePasswordAsync(userId.Value, dto.OldPassword, dto.NewPassword);
 
             return new JsonResult(new
             {
@@ -1221,65 +957,62 @@ namespace RemoteControl1.Pages
             if (userId <= 0)
                 return new JsonResult(new { ok = false, error = "Пользователь не найден" });
 
-            var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == userId);
-            if (user == null)
-                return new JsonResult(new { ok = false, error = "Пользователь не найден" });
+            var result = await _profileService.GetProfileAsync(userId);
+            if (!result.Ok || result.Data == null)
+                return new JsonResult(new { ok = false, error = result.Error });
 
+            var profile = result.Data;
             return new JsonResult(new
             {
                 ok = true,
                 profile = new
                 {
-                    contactNote = user.ContactNote ?? "",
-                    personalNote = user.PersonalNote ?? "",
-                    notifyInUi = user.NotifyInUi,
-                    rememberLastTask = user.RememberLastTask,
-                    allowScreenShots = user.AllowScreenShots,
-                    allowWebcamShots = user.AllowWebcamShots,
-                    screenIntervalSeconds = user.ScreenIntervalSeconds,
-                    webcamIntervalSeconds = user.WebcamIntervalSeconds,
-                    idleTimeoutMinutes = user.IdleTimeoutMinutes
+                    contactNote = profile.ContactNote,
+                    personalNote = profile.PersonalNote,
+                    notifyInUi = profile.NotifyInUi,
+                    rememberLastTask = profile.RememberLastTask,
+                    allowScreenShots = profile.AllowScreenShots,
+                    allowWebcamShots = profile.AllowWebcamShots,
+                    screenIntervalSeconds = profile.ScreenIntervalSeconds,
+                    webcamIntervalSeconds = profile.WebcamIntervalSeconds,
+                    idleTimeoutMinutes = profile.IdleTimeoutMinutes
                 }
             });
         }
-
         public async Task<JsonResult> OnPostSaveProfileContactNote([FromBody] SaveProfileContactNoteDto dto)
         {
             var userId = CurrentUserOrZero();
             if (userId <= 0)
                 return new JsonResult(new { ok = false, error = "Пользователь не найден" });
 
-            var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == userId);
-            if (user == null)
-                return new JsonResult(new { ok = false, error = "Пользователь не найден" });
+            var result = await _profileService.SaveProfileContactNoteAsync(userId, dto.ContactNote);
 
-            user.ContactNote = dto.ContactNote?.Trim() ?? "";
-            await _db.SaveChangesAsync();
-
-            return new JsonResult(new { ok = true });
+            return new JsonResult(new
+            {
+                ok = result.Ok,
+                error = result.Error
+            });
         }
-
         public async Task<JsonResult> OnPostSaveProfilePreferences([FromBody] SaveProfilePreferencesDto dto)
         {
             var userId = CurrentUserOrZero();
             if (userId <= 0)
                 return new JsonResult(new { ok = false, error = "Пользователь не найден" });
 
-            var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == userId);
-            if (user == null)
-                return new JsonResult(new { ok = false, error = "Пользователь не найден" });
+            var result = await _profileService.SaveProfilePreferencesAsync(
+                userId,
+                dto.NotifyInUi,
+                dto.RememberLastTask,
+                dto.AllowScreenShots,
+                dto.AllowWebcamShots,
+                dto.PersonalNote);
 
-            user.NotifyInUi = dto.NotifyInUi;
-            user.RememberLastTask = dto.RememberLastTask;
-            user.AllowScreenShots = dto.AllowScreenShots;
-            user.AllowWebcamShots = dto.AllowWebcamShots;
-            user.PersonalNote = dto.PersonalNote?.Trim() ?? "";
-
-            await _db.SaveChangesAsync();
-
-            return new JsonResult(new { ok = true });
+            return new JsonResult(new
+            {
+                ok = result.Ok,
+                error = result.Error
+            });
         }
-
         public class SaveProfileDto
         {
             public string? Email { get; set; }
@@ -1304,55 +1037,42 @@ namespace RemoteControl1.Pages
             if (userId == null)
                 return new JsonResult(new { ok = false, error = "Пользователь не найден" });
 
-            var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == userId.Value);
-            if (user == null)
-                return new JsonResult(new { ok = false, error = "Пользователь не найден" });
+            var result = await _profileService.SaveProfileAsync(
+                userId.Value,
+                dto.Email,
+                dto.Phone,
+                dto.ContactNote,
+                dto.NotifyInUi,
+                dto.RememberLastTask,
+                dto.AllowScreenShots,
+                dto.AllowWebcamShots,
+                dto.ScreenIntervalSeconds,
+                dto.WebcamIntervalSeconds,
+                dto.IdleTimeoutMinutes,
+                dto.PersonalNote);
 
-            var email = (dto.Email ?? "").Trim().ToLowerInvariant();
-            var phone = (dto.Phone ?? "").Trim();
+            if (!result.Ok || result.Data == null)
+                return new JsonResult(new { ok = false, error = result.Error });
 
-            if (string.IsNullOrWhiteSpace(email))
-                return new JsonResult(new { ok = false, error = "Введите email" });
-
-            if (!new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(email))
-                return new JsonResult(new { ok = false, error = "Некорректный email" });
-
-            var emailBusy = await _db.Users.AnyAsync(x => x.Email == email && x.Id != user.Id);
-            if (emailBusy)
-                return new JsonResult(new { ok = false, error = "Этот email уже занят" });
-
-            user.Email = email;
-            user.Phone = string.IsNullOrWhiteSpace(phone) ? null : phone;
-            user.ContactNote = dto.ContactNote?.Trim() ?? "";
-            user.NotifyInUi = dto.NotifyInUi;
-            user.RememberLastTask = dto.RememberLastTask;
-            user.AllowScreenShots = dto.AllowScreenShots;
-            user.AllowWebcamShots = dto.AllowWebcamShots;
-            user.PersonalNote = dto.PersonalNote?.Trim() ?? "";
-            user.ScreenIntervalSeconds = dto.ScreenIntervalSeconds < 5 ? 5 : dto.ScreenIntervalSeconds;
-            user.WebcamIntervalSeconds = dto.WebcamIntervalSeconds < 5 ? 5 : dto.WebcamIntervalSeconds;
-            user.IdleTimeoutMinutes = dto.IdleTimeoutMinutes < 1 ? 1 : dto.IdleTimeoutMinutes;
-
-            await _db.SaveChangesAsync();
-            HttpContext.Session.SetString("user_email", user.Email);
+            var profile = result.Data;
+            HttpContext.Session.SetString("user_email", profile.Email);
 
             return new JsonResult(new
             {
                 ok = true,
-                email = user.Email,
-                phone = user.Phone ?? "",
-                contactNote = user.ContactNote ?? "",
-                personalNote = user.PersonalNote ?? "",
-                notifyInUi = user.NotifyInUi,
-                rememberLastTask = user.RememberLastTask,
-                allowScreenShots = user.AllowScreenShots,
-                allowWebcamShots = user.AllowWebcamShots,
-                screenIntervalSeconds = user.ScreenIntervalSeconds,
-                webcamIntervalSeconds = user.WebcamIntervalSeconds,
-                idleTimeoutMinutes = user.IdleTimeoutMinutes
+                email = profile.Email,
+                phone = profile.Phone,
+                contactNote = profile.ContactNote,
+                personalNote = profile.PersonalNote,
+                notifyInUi = profile.NotifyInUi,
+                rememberLastTask = profile.RememberLastTask,
+                allowScreenShots = profile.AllowScreenShots,
+                allowWebcamShots = profile.AllowWebcamShots,
+                screenIntervalSeconds = profile.ScreenIntervalSeconds,
+                webcamIntervalSeconds = profile.WebcamIntervalSeconds,
+                idleTimeoutMinutes = profile.IdleTimeoutMinutes
             });
         }
-
         private static string NormalizeProjectType(string? value)
         {
             var type = (value ?? "").Trim().ToLower();
@@ -1415,7 +1135,7 @@ namespace RemoteControl1.Pages
             if (userId == null)
                 return new JsonResult(new { ok = false, error = "Пользователь не найден" });
 
-            var data = await _taskService.GetCurrentWorkDayStatusAsync(userId.Value);
+            var data = await _trackerService.GetCurrentWorkDayStatusAsync(userId.Value);
             return new JsonResult(new { ok = true, status = data });
         }
 

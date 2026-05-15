@@ -12,12 +12,12 @@ namespace RemoteControl1.Pages
     public class TrackerModel : PageModel
     {
         private readonly AppDbContext _db;
-        private readonly TaskService _taskService;
+        private readonly DashboardService _dashboardService;
 
-        public TrackerModel(AppDbContext db, TaskService taskService)
+        public TrackerModel(AppDbContext db, DashboardService dashboardService)
         {
             _db = db;
-            _taskService = taskService;
+            _dashboardService = dashboardService;
         }
 
         public int CurrentUserId { get; set; }
@@ -45,7 +45,7 @@ namespace RemoteControl1.Pages
             IsManager = !IsAdmin && CurrentUserRole == "manager";
             IsEmployee = !IsAdmin && !IsManager;
 
-            var data = await _taskService.GetPageDataAsync(user.Id);
+            var data = await _dashboardService.GetPageDataAsync(user.Id);
 
             TasksJson = JsonSerializer.Serialize(data.Tasks);
             WorkDaysJson = JsonSerializer.Serialize(data.WorkDays);

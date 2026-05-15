@@ -25,6 +25,15 @@ builder.Services.AddSession(options =>
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<DashboardService>();
+builder.Services.AddScoped<ProjectService>();
+builder.Services.AddScoped<TrackerService>();
+builder.Services.AddScoped<ReportService>();
+builder.Services.AddScoped<CalendarService>();
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<ProfileService>();
+builder.Services.AddScoped<SettingsService>();
+builder.Services.AddScoped<FileStorageService>();
 builder.Services.AddScoped<TaskService>();
 
 var app = builder.Build();

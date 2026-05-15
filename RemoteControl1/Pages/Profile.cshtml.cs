@@ -12,12 +12,12 @@ namespace RemoteControl1.Pages
     public class ProfileModel : PageModel
     {
         private readonly AppDbContext _db;
-        private readonly TaskService _taskService;
+        private readonly DashboardService _dashboardService;
 
-        public ProfileModel(AppDbContext db, TaskService taskService)
+        public ProfileModel(AppDbContext db, DashboardService dashboardService)
         {
             _db = db;
-            _taskService = taskService;
+            _dashboardService = dashboardService;
         }
 
         public int CurrentUserId { get; set; }
@@ -62,7 +62,7 @@ namespace RemoteControl1.Pages
             CurrentUserRate = user.HourlyRate;
             CurrentUserIsActive = user.IsActive;
 
-            var data = await _taskService.GetPageDataAsync(user.Id);
+            var data = await _dashboardService.GetPageDataAsync(user.Id);
 
             TasksJson = JsonSerializer.Serialize(data.Tasks);
             ProjectsJson = JsonSerializer.Serialize(data.Projects);
