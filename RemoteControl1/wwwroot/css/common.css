@@ -38,63 +38,64 @@ html {
 :root {
     --font-size: 16px;
     --font-timer: var(--font-head);
-    --font-main: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    --font-head: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    --font-data: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    --font-main: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    --font-head: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    --font-data: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
 
     /* Figma Make / Remote Control palette */
     --ramp-white-1000: #ffffff;
     --ramp-black-1000: #000000;
-    --ramp-grey-50: #f9fafb;
-    --ramp-grey-100: #f3f4f6;
-    --ramp-grey-200: #e5e7eb;
-    --ramp-grey-300: #d1d5db;
-    --ramp-grey-400: #9ca3af;
-    --ramp-grey-500: #6b7280;
-    --ramp-grey-600: #4b5563;
-    --ramp-grey-700: #374151;
-    --ramp-grey-800: #1f2937;
-    --ramp-grey-900: #111827;
-    --ramp-blue-50: #f5f9ff;
-    --ramp-blue-100: #eaf2ff;
-    --ramp-blue-200: #d8e8ff;
-    --ramp-blue-300: #bad6ff;
-    --ramp-blue-400: #7fb2f2;
-    --ramp-blue-500: #4f8ee8;
-    --ramp-blue-600: #2f6fd6;
-    --ramp-blue-700: #245cb8;
-    --ramp-blue-800: #1f4f9f;
-    --ramp-blue-900: #153a78;
-    --ramp-pale-blue-500: #d8e8ff;
-    --ramp-pale-blue-600: #e2efff;
-    --ramp-pale-blue-700: #eaf2ff;
-    --ramp-pale-blue-800: #f5f9ff;
-    --ramp-violet-400: #7fb2f2;
-    --ramp-violet-500: #4f8ee8;
-    --ramp-violet-600: #2f6fd6;
-    --ramp-violet-700: #245cb8;
-    --ramp-violet-800: #1f4f9f;
-    --ramp-violet-900: #153a78;
-    --ramp-pale-violet-500: #d8e8ff;
-    --ramp-pale-violet-600: #e2efff;
-    --ramp-pale-violet-700: #eaf2ff;
-    --ramp-pale-violet-800: #f5f9ff;
-    --ramp-purple-500: #4f8ee8;
-    --ramp-purple-600: #2f6fd6;
-    --ramp-purple-700: #245cb8;
-    --ramp-pink-500: #ec4899;
-    --ramp-pink-600: #db2777;
-    --ramp-pink-700: #be185d;
-    --ramp-red-500: #ef4444;
-    --ramp-red-600: #dc2626;
-    --ramp-red-700: #b91c1c;
-    --ramp-green-500: #22c55e;
-    --ramp-green-600: #16a34a;
-    --ramp-yellow-500: #f59e0b;
-    --ramp-yellow-600: #d97706;
-    --color-bg: #f5f8fd;
-    --color-bg-secondary: #eef4fb;
-    --color-bg-tertiary: #fbfdff;
+    --ramp-grey-50: #fffafd;
+    --ramp-grey-100: #fff3f8;
+    --ramp-grey-200: #fce7ef;
+    --ramp-grey-300: #f7d7e3;
+    --ramp-grey-400: #d6a8b8;
+    --ramp-grey-500: #98707f;
+    --ramp-grey-600: #735866;
+    --ramp-grey-700: #5f4d56;
+    --ramp-grey-800: #3a2f35;
+    --ramp-grey-900: #2a2127;
+    /* Розовая палитра Remote Control: sakura → blush → berry → plum */
+    --ramp-blue-50: #fff7fa;
+    --ramp-blue-100: #ffeaf3;
+    --ramp-blue-200: #ffddea;
+    --ramp-blue-300: #f7d7e3;
+    --ramp-blue-400: #ec9bb5;
+    --ramp-blue-500: #d36c8d;
+    --ramp-blue-600: #b14a72;
+    --ramp-blue-700: #973c5f;
+    --ramp-blue-800: #7d2948;
+    --ramp-blue-900: #5e1d35;
+    --ramp-pale-blue-500: #ffddea;
+    --ramp-pale-blue-600: #ffeaf3;
+    --ramp-pale-blue-700: #fff0f6;
+    --ramp-pale-blue-800: #fffafd;
+    --ramp-violet-400: #ec9bb5;
+    --ramp-violet-500: #d36c8d;
+    --ramp-violet-600: #b14a72;
+    --ramp-violet-700: #973c5f;
+    --ramp-violet-800: #7d2948;
+    --ramp-violet-900: #5e1d35;
+    --ramp-pale-violet-500: #ffddea;
+    --ramp-pale-violet-600: #ffeaf3;
+    --ramp-pale-violet-700: #fff0f6;
+    --ramp-pale-violet-800: #fffafd;
+    --ramp-purple-500: #d36c8d;
+    --ramp-purple-600: #b14a72;
+    --ramp-purple-700: #973c5f;
+    --ramp-pink-500: #d36c8d;
+    --ramp-pink-600: #b14a72;
+    --ramp-pink-700: #7d2948;
+    --ramp-red-500: #d05a7c;
+    --ramp-red-600: #b94264;
+    --ramp-red-700: #8a2546;
+    --ramp-green-500: #3d8b56;
+    --ramp-green-600: #2f7a48;
+    --ramp-yellow-500: #b58329;
+    --ramp-yellow-600: #9a6a1f;
+    --color-bg: #fffafd;
+    --color-bg-secondary: #fff4f8;
+    --color-bg-tertiary: #fff7fa;
     --color-bg-brand: var(--ramp-blue-600);
     --color-bg-brand-hover: var(--ramp-blue-700);
     --color-bg-brand-pressed: var(--ramp-blue-800);
@@ -145,15 +146,15 @@ html {
     --color-icon-brand-pressed: var(--ramp-blue-800);
     --color-icon-brand-secondary: var(--ramp-blue-600);
     --color-icon-brand-tertiary: var(--ramp-pale-blue-800);
-    --color-text: #171725;
-    --color-text-secondary: #4d5064;
-    --color-text-tertiary: #717182;
+    --color-text: #3a2f35;
+    --color-text-secondary: #725865;
+    --color-text-tertiary: #8c6c78;
     --color-text-brand: var(--ramp-blue-700);
     --color-text-onbrand: #ffffff;
 
-    --primary-rgb: 47, 111, 214;
-    --brand-hover-rgb: 36, 92, 184;
-    --brand-pressed-rgb: 31, 79, 159;
+    --primary-rgb: 177, 74, 114;
+    --brand-hover-rgb: 151, 60, 95;
+    --brand-pressed-rgb: 125, 41, 72;
     --primary-dark: var(--color-bg-brand-pressed);
     --primary: var(--color-bg-brand);
     --primary-light: var(--color-bg-brand-hover);
@@ -163,22 +164,22 @@ html {
     --secondary: var(--ramp-grey-100);
     --secondary-foreground: #111827;
     --success: var(--ramp-green-600);
-    --success-soft: #dcfce7;
+    --success-soft: #e8f6ed;
     --warning: var(--ramp-yellow-600);
-    --warning-soft: #fef3c7;
+    --warning-soft: #fff6db;
     --danger: var(--ramp-red-600);
-    --destructive: #d4183d;
-    --danger-soft: #fee2e2;
-    --info: var(--ramp-blue-600);
-    --info-soft: var(--ramp-pale-blue-800);
+    --destructive: #a83255;
+    --danger-soft: #ffe8ee;
+    --info: #4f5f99;
+    --info-soft: #eef1ff;
     --light: var(--ramp-grey-50);
     --white: #ffffff;
     --dark: var(--color-text);
     --gray: var(--color-text-secondary);
     --gray-dark: rgba(0, 0, 0, 0.72);
     --gray-light: var(--ramp-grey-100);
-    --border: #e5e7eb;
-    --border-dark: #d1d5db;
+    --border: #f7d7e3;
+    --border-dark: #ec9bb5;
     --ring: var(--color-bg-brand);
     --background: var(--color-bg);
     --foreground: var(--color-text);
@@ -384,14 +385,14 @@ td,
     }
 
 .btn-danger {
-    background: #c25668;
-    border-color: #c25668;
+    background: #a83255;
+    border-color: #a83255;
     color: #fff;
 }
 
     .btn-danger:hover {
-        background: #ad4b5d;
-        border-color: #ad4b5d;
+        background: #8a2546;
+        border-color: #8a2546;
     }
 
 .btn-outline {
@@ -455,10 +456,9 @@ td,
     gap: 18px;
     padding: 24px;
     background: #fff;
-    border: 1px solid #e8edf5;
+    border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow);
-    border-left: 4px solid var(--primary);
 }
 
 .stat-icon {
@@ -501,7 +501,7 @@ td,
     width: 100%;
     max-width: 100%;
     overflow-x: hidden;
-    border: 1px solid #e8edf5;
+    border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     background: #fff;
 }
@@ -518,17 +518,17 @@ td,
         padding: 16px 14px;
         text-align: left;
         vertical-align: middle;
-        background: #f7f9fc;
+        background: var(--ramp-pale-blue-700);
         color: var(--primary-dark);
         font-size: 13px;
         font-weight: 800;
-        border-bottom: 1px solid #e8edf5;
+        border-bottom: 1px solid var(--border);
     }
 
     .table td {
         padding: 14px;
         vertical-align: middle;
-        border-bottom: 1px solid #eef2f7;
+        border-bottom: 1px solid var(--ramp-pale-blue-700);
         color: var(--dark);
         font-size: 14px;
     }
@@ -538,7 +538,7 @@ td,
     }
 
     .table tbody tr:hover {
-        background: #fafcff;
+        background: var(--ramp-pale-blue-800);
     }
 
     .table td:last-child {
@@ -647,6 +647,70 @@ textarea.form-control {
     height: 16px;
 }
 
+/* =========================================================
+   SWITCH — оваловая дорожка + круглый бегунок.
+   Применяется к .form-switch > input[type=checkbox]
+   ========================================================= */
+.form-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.form-switch input[type="checkbox"],
+.form-check.form-switch input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 40px;
+    height: 22px;
+    min-width: 40px;
+    padding: 0;
+    margin: 0;
+    border-radius: 999px;
+    background: #f0c8d5;
+    border: 1px solid #e6b6c7;
+    position: relative;
+    cursor: pointer;
+    transition: background-color .18s ease, border-color .18s ease;
+    flex-shrink: 0;
+}
+
+.form-switch input[type="checkbox"]::after,
+.form-check.form-switch input[type="checkbox"]::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(58, 47, 53, .25);
+    transition: left .18s ease, transform .18s ease;
+}
+
+.form-switch input[type="checkbox"]:checked,
+.form-check.form-switch input[type="checkbox"]:checked {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.form-switch input[type="checkbox"]:checked::after,
+.form-check.form-switch input[type="checkbox"]:checked::after {
+    left: 20px;
+}
+
+.form-switch input[type="checkbox"]:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(177, 74, 114, 0.18);
+}
+
+.form-switch input[type="checkbox"]:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
 .form-check-label {
     font-size: 14px;
     color: var(--dark);
@@ -664,7 +728,7 @@ textarea.form-control {
     margin-bottom: 20px;
     padding: 16px 18px;
     background: #fff;
-    border: 1px solid #e8edf5;
+    border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
 }
@@ -888,13 +952,13 @@ textarea.form-control {
 }
 
 .btn-danger {
-    background: #e53935;
-    border-color: #e53935;
+    background: #a83255;
+    border-color: #a83255;
 }
 
 .btn-danger:hover {
-    background: #d32f2f;
-    border-color: #d32f2f;
+    background: #8a2546;
+    border-color: #8a2546;
 }
 
 body.ui-contrast-strong {
@@ -977,6 +1041,96 @@ body.ui-density-compact .table td {
     align-items: center;
     justify-content: flex-end;
     gap: 8px;
+    flex-wrap: nowrap;
+}
+
+/* =========================================================
+   ICON ACTION BUTTONS — единые кнопки view/edit/delete
+   ========================================================= */
+.icon-btn,
+.action-buttons .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: #ffffff;
+    color: var(--gray);
+    cursor: pointer;
+    transition: background-color .16s ease, border-color .16s ease, color .16s ease;
+}
+
+.icon-btn .rc-icon-svg,
+.icon-btn svg,
+.icon-btn i {
+    width: 16px;
+    height: 16px;
+}
+
+.icon-btn:hover {
+    background: var(--color-bg-brand-tertiary);
+    border-color: var(--color-border-brand);
+    color: var(--color-text-brand);
+}
+
+.icon-btn-view:hover {
+    color: var(--color-text-brand);
+}
+
+.icon-btn-edit:hover {
+    color: var(--primary);
+}
+
+.icon-btn-delete:hover {
+    background: var(--danger-soft);
+    border-color: rgba(184, 66, 100, .35);
+    color: var(--danger);
+}
+
+.icon-btn:disabled,
+.icon-btn[disabled] {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+.icon-btn-start {
+    color: var(--success);
+}
+
+.icon-btn-start:hover {
+    background: var(--success-soft);
+    border-color: rgba(47, 122, 72, .35);
+    color: var(--success);
+}
+
+.icon-btn-save {
+    color: var(--primary);
+}
+
+.icon-btn-save:hover {
+    background: var(--color-bg-brand-tertiary);
+    border-color: var(--color-border-brand);
+    color: var(--color-text-brand);
+}
+
+.icon-btn-muted {
+    color: var(--gray);
+}
+
+.icon-btn-muted:hover {
+    background: var(--surface-soft);
+    border-color: var(--border-dark);
+    color: var(--color-text);
+}
+
+.action-buttons {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     flex-wrap: nowrap;
 }
 
@@ -1427,14 +1581,268 @@ body.ui-density-compact .table td {
 
 .table-actions .btn-sm.btn-danger,
 .btn.btn-danger {
-    background: #e53935;
-    border-color: #e53935;
+    background: #a83255;
+    border-color: #a83255;
     color: #ffffff;
 }
 
 .table-actions .btn-sm.btn-danger:hover,
 .btn.btn-danger:hover {
-    background: #d32f2f;
-    border-color: #d32f2f;
+    background: #8a2546;
+    border-color: #8a2546;
     color: #ffffff;
 }
+
+/* =========================================================
+   DISABLED STATES — единый вид для всех кнопок
+   ========================================================= */
+.btn:disabled,
+.btn[disabled],
+.btn[aria-disabled="true"],
+.btn.disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
+    box-shadow: none;
+    filter: grayscale(0.15);
+}
+
+.btn:disabled:hover,
+.btn[disabled]:hover,
+.btn[aria-disabled="true"]:hover,
+.btn.disabled:hover {
+    transform: none;
+    background: inherit;
+    border-color: inherit;
+    color: inherit;
+}
+
+button:disabled,
+button[disabled] {
+    cursor: not-allowed;
+}
+
+/* =========================================================
+   PAGE HEADER — единый вид, без подзаголовков
+   ========================================================= */
+.page-heading > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.page-title {
+    margin: 0;
+    line-height: 1.2;
+}
+
+/* =========================================================
+   LUCIDE-STYLE ICON SYSTEM — единый размер и stroke
+   ========================================================= */
+.icon,
+.rc-icon-svg,
+.rc-icon-fa {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    min-height: 20px;
+    flex: 0 0 20px;
+    flex-shrink: 0;
+    color: currentColor;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vertical-align: middle;
+    line-height: 1;
+}
+
+.icon-sm,
+.btn .rc-icon-svg,
+.btn .rc-icon-fa,
+.btn .icon,
+.profile-dropdown-item .rc-icon-svg,
+.profile-dropdown-item .rc-icon-fa,
+.profile-dropdown-item .icon {
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    min-height: 16px;
+    flex-basis: 16px;
+}
+
+.icon-md {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    min-height: 22px;
+    flex-basis: 22px;
+}
+
+/* FontAwesome нормализация — те же габариты, никаких "сплющиваний" */
+.rc-icon-fa,
+.btn i.fas,
+.btn i.far,
+.btn i.fab,
+.filter-group i,
+.settings-nav-link i,
+.profile-dropdown-item i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    line-height: 1;
+    font-size: 14px;
+    flex-shrink: 0;
+    stroke: none;
+    fill: currentColor;
+}
+
+.nav-icon,
+.sidebar-link .rc-icon-svg,
+.action-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+/* =========================================================
+   DARK THEME — заготовка через переменные.
+   Включается через html.theme-dark или body.theme-dark.
+   ========================================================= */
+html.theme-dark,
+body.theme-dark {
+    --color-bg: #12091f;
+    --color-bg-secondary: #1a102b;
+    --color-bg-tertiary: #211634;
+    --color-text: #f0e8f4;
+    --color-text-secondary: #b8a9c8;
+    --color-text-tertiary: #9989ab;
+    --border: #2e2342;
+    --border-dark: #3a2c4f;
+    --surface: #1a102b;
+    --surface-soft: #211634;
+    --surface-strong: #2a1c40;
+    --card: #1a102b;
+    --card-foreground: #f0e8f4;
+    --popover: #211634;
+    --popover-foreground: #f0e8f4;
+    --background: #12091f;
+    --foreground: #f0e8f4;
+    --muted: #211634;
+    --muted-foreground: #b8a9c8;
+    --primary: #d685a5;
+    --primary-dark: #c2729a;
+    --primary-light: #e5a3bf;
+    --primary-soft: #2a1c40;
+    --primary-foreground: #12091f;
+    --primary-rgb: 214, 133, 165;
+    --sidebar: #1a102b;
+    --sidebar-foreground: #f0e8f4;
+    --sidebar-border: rgba(255, 255, 255, 0.06);
+    --sidebar-accent: #211634;
+    --sidebar-accent-foreground: #f0e8f4;
+    --color-text-brand: #e5a3bf;
+    --color-text-onbrand: #12091f;
+    --color-bg-brand: #d685a5;
+    --color-bg-brand-hover: #c2729a;
+    --color-bg-brand-pressed: #ad6088;
+    --color-bg-brand-tertiary: #2a1c40;
+    --color-border-brand: #4a3560;
+    --success-soft: #1a2e23;
+    --warning-soft: #2e2517;
+    --danger-soft: #2e1a24;
+    --info-soft: #1a1f33;
+    --input-background: #211634;
+    --switch-background: #3a2c4f;
+    --light: #1a102b;
+    --gray-light: #211634;
+}
+
+html.theme-dark .card,
+body.theme-dark .card,
+html.theme-dark .stat-card,
+body.theme-dark .stat-card,
+html.theme-dark .table-container,
+body.theme-dark .table-container,
+html.theme-dark .table,
+body.theme-dark .table,
+html.theme-dark .modal-content,
+body.theme-dark .modal-content,
+html.theme-dark .header-user-block,
+body.theme-dark .header-user-block,
+html.theme-dark .nav-utility-btn,
+body.theme-dark .nav-utility-btn,
+html.theme-dark .icon-btn,
+body.theme-dark .icon-btn,
+html.theme-dark .topbar-menu-btn,
+body.theme-dark .topbar-menu-btn,
+html.theme-dark .sidebar-collapse-btn,
+body.theme-dark .sidebar-collapse-btn {
+    background: var(--card);
+    color: var(--foreground);
+}
+
+html.theme-dark .table th,
+body.theme-dark .table th {
+    background: var(--surface-soft);
+    color: var(--color-text-brand);
+}
+
+html.theme-dark .table tbody tr:hover,
+body.theme-dark .table tbody tr:hover {
+    background: var(--surface-strong);
+}
+
+html.theme-dark .form-control,
+body.theme-dark .form-control,
+html.theme-dark input.form-control,
+body.theme-dark input.form-control,
+html.theme-dark select.form-control,
+body.theme-dark select.form-control,
+html.theme-dark textarea.form-control,
+body.theme-dark textarea.form-control {
+    background: var(--input-background);
+    color: var(--foreground);
+    border-color: var(--border);
+}
+
+html.theme-dark .btn-outline,
+body.theme-dark .btn-outline {
+    background: transparent;
+    color: var(--color-text-brand);
+    border-color: var(--border-dark);
+}
+
+html.theme-dark .btn-outline:hover,
+body.theme-dark .btn-outline:hover {
+    background: var(--surface-strong);
+    color: var(--foreground);
+}
+
+html.theme-dark .notifications-dropdown,
+body.theme-dark .notifications-dropdown,
+html.theme-dark .profile-dropdown,
+body.theme-dark .profile-dropdown,
+html.theme-dark .status-menu,
+body.theme-dark .status-menu {
+    background: var(--popover);
+    color: var(--popover-foreground);
+    border-color: var(--border);
+}
+
+/* Theme toggle glyphs */
+.nav-theme-glyph {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.nav-theme-glyph.is-light { display: none; }
+.nav-theme-glyph.is-dark { display: inline-flex; }
+html.theme-dark .nav-theme-glyph.is-dark,
+body.theme-dark .nav-theme-glyph.is-dark { display: none; }
+html.theme-dark .nav-theme-glyph.is-light,
+body.theme-dark .nav-theme-glyph.is-light { display: inline-flex; }

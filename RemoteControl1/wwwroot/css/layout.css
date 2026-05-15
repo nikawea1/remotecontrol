@@ -2,8 +2,8 @@
 /* App shell, sidebar navigation, topbar and profile menu. */
 
 body {
-    --sidebar-width: 288px;
-    --sidebar-collapsed-width: 76px;
+    --sidebar-width: 260px;
+    --sidebar-collapsed-width: 72px;
 }
 
 html.rc-sidebar-collapsed body,
@@ -149,9 +149,21 @@ body {
 }
 
 .sidebar-link.active {
-    color: var(--color-text-onbrand);
+    color: var(--color-text-brand);
+    background: var(--color-bg-brand-tertiary);
+    border-color: var(--color-border-brand);
+    font-weight: 800;
+}
+
+.sidebar-link.active::before {
+    content: "";
+    position: absolute;
+    left: -2px;
+    top: 10px;
+    bottom: 10px;
+    width: 3px;
+    border-radius: 999px;
     background: var(--primary);
-    border-color: var(--primary);
 }
 
 .sidebar-link span {
@@ -491,9 +503,9 @@ html.rc-sidebar-collapsed body .sidebar-collapse-btn,
 body.sidebar-collapsed .sidebar-collapse-btn {
     left: 50%;
     right: auto;
-    border-color: var(--primary);
-    background: var(--primary);
-    color: #ffffff;
+    border-color: var(--color-border-brand);
+    background: var(--color-bg-brand-tertiary);
+    color: var(--color-text-brand);
     transform: translateX(-50%);
 }
 

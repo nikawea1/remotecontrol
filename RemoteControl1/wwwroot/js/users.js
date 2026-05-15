@@ -946,17 +946,21 @@ function renderUsersTable() {
                 <td>${Number(u.trackedHours || 0).toFixed(1)}</td>
                 <td>${getUserStatusBadge(u.status)}</td>
                 <td>
-                    <div class="table-actions">
-                        <button class="btn btn-sm btn-outline" type="button" onclick="showUserDetails(${u.id})" title="Карточка">
-                            <i class="fas fa-id-card"></i>
+                    <div class="action-buttons">
+                        <button class="icon-btn icon-btn-view" type="button" onclick="showUserDetails(${u.id})" title="Карточка">
+                            <svg class="rc-icon-svg" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
                         </button>
 
                         ${isAdminUser ? `
-                            <button class="btn btn-sm btn-outline" type="button" onclick="editUser(${u.id})" title="Редактировать">
-                                <i class="fas fa-pen-to-square"></i>
+                            <button class="icon-btn icon-btn-edit" type="button" onclick="editUser(${u.id})" title="Редактировать">
+                                <svg class="rc-icon-svg" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
                             </button>
-                            <button class="btn btn-sm ${u.status === "active" ? "btn-danger" : "btn-success"}" type="button" onclick="toggleUserStatus(${u.id})" title="Статус">
-                                <i class="fas ${u.status === "active" ? "fa-user-lock" : "fa-user-check"}"></i>
+                            <button class="icon-btn ${u.status === "active" ? "icon-btn-delete" : ""}" type="button" onclick="toggleUserStatus(${u.id})" title="${u.status === "active" ? "Деактивировать" : "Активировать"}">
+                                <svg class="rc-icon-svg" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+                                    ${u.status === "active"
+                                        ? '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>'
+                                        : '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/>'}
+                                </svg>
                             </button>
                         ` : ``}
                         ${renderRowExpandButton("employees", u.id, isExpanded)}
@@ -2515,20 +2519,20 @@ function renderManualTimeRequests() {
         const canShowActions = canReview && status === "pending";
         const isExpanded = Number(expandedManualRequestId) === Number(x.id);
         const actionsMarkup = `
-            <div class="table-actions manual-request-actions">
+            <div class="action-buttons manual-request-actions">
                 ${canShowActions ? `
-                    <button class="btn btn-sm btn-success" type="button" onclick="approveManualTimeRequest(${x.id})" title="Одобрить">
-                        <i class="fas fa-check"></i>
+                    <button class="icon-btn icon-btn-start" type="button" onclick="approveManualTimeRequest(${x.id})" title="Одобрить" aria-label="Одобрить">
+                        <svg class="rc-icon-svg" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5"/></svg>
                     </button>
-                    <button class="btn btn-sm btn-outline" type="button" onclick="sendManualTimeRequestToRevision(${x.id})" title="Вернуть на доработку">
-                        <i class="fas fa-rotate-left"></i>
+                    <button class="icon-btn icon-btn-muted" type="button" onclick="sendManualTimeRequestToRevision(${x.id})" title="Вернуть на доработку" aria-label="Вернуть на доработку">
+                        <svg class="rc-icon-svg" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
                     </button>
-                    <button class="btn btn-sm btn-danger" type="button" onclick="rejectManualTimeRequest(${x.id})" title="Отклонить">
-                        <i class="fas fa-xmark"></i>
+                    <button class="icon-btn icon-btn-delete" type="button" onclick="rejectManualTimeRequest(${x.id})" title="Отклонить" aria-label="Отклонить">
+                        <svg class="rc-icon-svg" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                     </button>
                 ` : `
-                    <button class="btn btn-sm btn-outline" type="button" onclick="showManualRequestDetails(${x.id})" title="Подробнее">
-                        <i class="fas fa-arrow-up-right-from-square"></i>
+                    <button class="icon-btn icon-btn-view" type="button" onclick="showManualRequestDetails(${x.id})" title="Подробнее" aria-label="Подробнее">
+                        <svg class="rc-icon-svg" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
                     </button>
                 `}
                 ${renderManualRowExpandButton(x.id, isExpanded)}

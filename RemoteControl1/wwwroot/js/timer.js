@@ -790,8 +790,23 @@ function renderWorkDayStatus(status) {
         ? Number(status.remainingToPlannedEndHours || 0).toFixed(1)
         : Number(status.remainingByTrackedHours || 0).toFixed(1);
 
+    const required = Number(status.requiredDailyHours || 0);
+    const current = Number(status.currentHours || 0);
+    const rawPct = required > 0 ? (current / required) * 100 : 0;
+    const progressPct = Math.max(0, Math.min(100, rawPct));
+    const progressLabel = `${current.toFixed(1)} / ${required.toFixed(1)} ч (${Math.round(progressPct)}%)`;
+
     box.innerHTML = `
         <div class="workday-status-grid">
+            <div class="workday-progress">
+                <div class="workday-progress-head">
+                    <span class="workday-label">Прогресс рабочего дня</span>
+                    <span class="workday-progress-value">${progressLabel}</span>
+                </div>
+                <div class="workday-progress-track">
+                    <div class="workday-progress-fill" style="width:${progressPct}%"></div>
+                </div>
+            </div>
             <div class="workday-main-line">
                 <div class="workday-schedule-block">
                     <div class="workday-label">Расписание</div>

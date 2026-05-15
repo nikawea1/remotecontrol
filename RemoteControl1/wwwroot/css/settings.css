@@ -175,7 +175,13 @@
     }
 
     .settings-row .btn,
-    .settings-row .settings-status-pill {
+    .settings-row .settings-status-pill,
+    .settings-row .settings-row-switch {
         justify-self: start;
     }
+}
+
+.settings-row-switch {
+    margin: 0;
+    padding-left: 0;
 }

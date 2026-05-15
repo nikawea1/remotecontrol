@@ -18,13 +18,15 @@
                 </span>
                 <div>
                     <h1 class="page-title">Сотрудники</h1>
-                    <p class="page-subtitle">Команда, нагрузка, производительность и заявки в одном разделе.</p>
                 </div>
             </div>
 
-            <button class="btn btn-primary" onclick="openUserModal()" id="usersPageAddBtn">
-                <i class="fas fa-user-plus"></i> Добавить сотрудника
-            </button>
+            @if (Model.IsAdmin)
+            {
+                <button class="btn btn-primary" onclick="openUserModal()" id="usersPageAddBtn">
+                    <i class="fas fa-user-plus"></i> Добавить сотрудника
+                </button>
+            }
         </div>
 
         <div class="card" style="padding-bottom: 14px;">
@@ -727,7 +729,7 @@
         currentUserLogin: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(sessionUserLogin)),
         isAdmin: @Model.IsAdmin.ToString().ToLower(),
         isManager: @Model.IsManager.ToString().ToLower(),
-        isEmployee: false,
+        isEmployee: @Model.IsEmployee.ToString().ToLower(),
         users: @Html.Raw(Model.UsersJson ?? "[]"),
         tasks: @Html.Raw(Model.TasksJson ?? "[]"),
         projects: @Html.Raw(Model.ProjectsJson ?? "[]"),

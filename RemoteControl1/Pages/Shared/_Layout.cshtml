@@ -35,6 +35,10 @@
                 if (window.localStorage.getItem("rc_sidebar_collapsed") === "1") {
                     document.documentElement.classList.add("rc-sidebar-collapsed");
                 }
+                var t = window.localStorage.getItem("rc_theme");
+                if (t === "dark") {
+                    document.documentElement.classList.add("theme-dark");
+                }
             } catch { }
         })();
     </script>
@@ -148,8 +152,9 @@
 
                 <div class="nav-right">
                 <div class="nav-utilities">
-                    <button class="nav-utility-btn nav-theme-btn" type="button" onclick="toggleThemePlaceholder()" title="Тёмная тема" aria-label="Тёмная тема">
-                        @await Html.PartialAsync("_RcIcon", "theme-dark")
+                    <button class="nav-utility-btn nav-theme-btn" type="button" onclick="toggleAppTheme()" title="Переключить тему" aria-label="Переключить тему">
+                        <span class="nav-theme-glyph is-dark">@await Html.PartialAsync("_RcIcon", "theme-dark")</span>
+                        <span class="nav-theme-glyph is-light">@await Html.PartialAsync("_RcIcon", "theme-light")</span>
                     </button>
 
                     <div class="nav-notifications" id="navNotifications">

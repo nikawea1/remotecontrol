@@ -19,19 +19,19 @@
     <div class="settings-layout">
         <aside class="settings-nav" aria-label="Разделы настроек">
             <a href="#settingsInterface" class="settings-nav-link">
-                <i class="fas fa-palette"></i>
+                @await Html.PartialAsync("_RcIcon", "settings")
                 <span>Интерфейс</span>
             </a>
             <a href="#settingsNotifications" class="settings-nav-link">
-                <i class="far fa-bell"></i>
+                @await Html.PartialAsync("_RcIcon", "notifications")
                 <span>Уведомления</span>
             </a>
             <a href="#settingsWorkflow" class="settings-nav-link">
-                <i class="fas fa-list-check"></i>
+                @await Html.PartialAsync("_RcIcon", "tasks")
                 <span>Рабочий процесс</span>
             </a>
             <a href="#settingsAccess" class="settings-nav-link">
-                <i class="far fa-user"></i>
+                @await Html.PartialAsync("_RcIcon", "profile")
                 <span>Профиль и доступ</span>
             </a>
         </aside>
@@ -52,10 +52,9 @@
                             <div class="settings-row-title">Повышенный контраст</div>
                             <div class="settings-row-text">Более заметные границы карточек, таблиц и полей.</div>
                         </div>
-                        <button class="btn btn-outline" type="button" id="settingsContrastToggle" onclick="toggleHighContrastMode()">
-                            <i class="fas fa-circle-half-stroke"></i>
-                            Включить
-                        </button>
+                        <label class="form-check form-switch settings-row-switch">
+                            <input type="checkbox" class="form-check-input" id="settingsContrastToggle" onchange="toggleHighContrastMode()">
+                        </label>
                     </div>
 
                     <div class="settings-row">
@@ -63,10 +62,9 @@
                             <div class="settings-row-title">Компактная плотность</div>
                             <div class="settings-row-text">Меньше пустого места в карточках, таблицах и списках.</div>
                         </div>
-                        <button class="btn btn-outline" type="button" id="settingsCompactToggle" onclick="toggleCompactDensity()">
-                            <i class="fas fa-compress"></i>
-                            Включить
-                        </button>
+                        <label class="form-check form-switch settings-row-switch">
+                            <input type="checkbox" class="form-check-input" id="settingsCompactToggle" onchange="toggleCompactDensity()">
+                        </label>
                     </div>
                 </div>
             </section>

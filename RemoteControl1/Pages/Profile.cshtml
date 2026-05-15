@@ -14,7 +14,6 @@
                 </span>
                 <div>
                     <h1 class="page-title">Мой профиль</h1>
-                    <p class="page-subtitle">Личные данные, контактная информация и рабочие параметры сотрудника.</p>
                 </div>
             </div>
         </div>
@@ -50,19 +49,19 @@
 
                 <div class="admin-tabs profile-tabs">
                     <button class="admin-tab-btn active" type="button" onclick="showProfileTab('profileInfo', this)">
-                        <i class="fas fa-id-card"></i> Основное
+                        @await Html.PartialAsync("_RcIcon", "profile") Основное
                     </button>
                     <button class="admin-tab-btn" type="button" onclick="showProfileTab('profileContacts', this)">
-                        <i class="fas fa-address-book"></i> Контакты
+                        @await Html.PartialAsync("_RcIcon", "users") Контакты
                     </button>
                     <button class="admin-tab-btn" type="button" onclick="showProfileTab('profileWork', this)">
-                        <i class="fas fa-briefcase"></i> Работа
+                        @await Html.PartialAsync("_RcIcon", "briefcase") Работа
                     </button>
                     <button class="admin-tab-btn" type="button" onclick="showProfileTab('profileSecurity', this)">
-                        <i class="fas fa-shield-alt"></i> Безопасность
+                        @await Html.PartialAsync("_RcIcon", "shield") Безопасность
                     </button>
                     <button class="admin-tab-btn" type="button" onclick="showProfileTab('profilePrefs', this)">
-                        <i class="fas fa-sliders-h"></i> Настройки
+                        @await Html.PartialAsync("_RcIcon", "settings") Настройки
                     </button>
                 </div>
             </div>
@@ -244,7 +243,7 @@
                         <div class="settings-grid">
                             <div class="setting-item">
                                 <label class="form-label">Уведомления в интерфейсе</label>
-                                <div class="form-check">
+                                <div class="form-check form-switch">
                                     <input type="checkbox" class="form-check-input" id="profileNotifyUi">
                                     <label class="form-check-label" for="profileNotifyUi">Показывать уведомления</label>
                                 </div>
@@ -252,7 +251,7 @@
 
                             <div class="setting-item">
                                 <label class="form-label">Автовыбор последней задачи</label>
-                                <div class="form-check">
+                                <div class="form-check form-switch">
                                     <input type="checkbox" class="form-check-input" id="profileRememberTask">
                                     <label class="form-check-label" for="profileRememberTask">Запоминать последнюю задачу</label>
                                 </div>
@@ -260,7 +259,7 @@
 
                             <div class="setting-item">
                                 <label class="form-label">Снимки экрана</label>
-                                <div class="form-check">
+                                <div class="form-check form-switch">
                                     <input type="checkbox" class="form-check-input" id="profileUseScreens">
                                     <label class="form-check-label" for="profileUseScreens">Разрешить снимки экрана</label>
                                 </div>
@@ -268,7 +267,7 @@
 
                             <div class="setting-item">
                                 <label class="form-label">Снимки веб-камеры</label>
-                                <div class="form-check">
+                                <div class="form-check form-switch">
                                     <input type="checkbox" class="form-check-input" id="profileUseWebcam">
                                     <label class="form-check-label" for="profileUseWebcam">Разрешить снимки веб-камеры</label>
                                 </div>

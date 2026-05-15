@@ -14,11 +14,10 @@
 
 .task-card {
     background: #fff;
-    border: 1px solid #e8edf5;
+    border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     padding: 20px;
     box-shadow: var(--shadow);
-    border-left: 5px solid var(--secondary);
     transition: var(--transition);
 }
 
@@ -27,16 +26,10 @@
         box-shadow: var(--shadow-lg);
     }
 
-    .task-card.high {
-        border-left-color: var(--danger);
-    }
-
-    .task-card.medium {
-        border-left-color: var(--warning);
-    }
-
+    .task-card.high,
+    .task-card.medium,
     .task-card.low {
-        border-left-color: var(--success);
+        border-color: var(--border);
     }
 
 .task-title {
@@ -1899,4 +1892,89 @@
 #tasksPage .task-detail-actions .btn.btn-danger:hover {
     border-color: #d32f2f !important;
     background: #d32f2f !important;
+}
+
+/* =========================================================
+   SAKURA OVERRIDE — нейтрализуем slate/grey остатки.
+   ========================================================= */
+#tasksPage .tasks-deadline-panel,
+#tasksPage .tasks-deadline-card,
+#tasksPage .tasks-period-group,
+#tasksPage .task-list-item,
+#tasksPage .task-detail-section,
+#tasksPage .task-detail-note,
+#tasksPage .task-detail-state {
+    border-color: var(--border) !important;
+    background: var(--surface) !important;
+}
+
+#tasksPage .tasks-deadline-card {
+    background: var(--surface-soft) !important;
+    border-color: var(--border) !important;
+}
+
+#tasksPage .tasks-deadline-card-icon {
+    background: var(--surface) !important;
+    border-color: var(--border) !important;
+    color: var(--primary) !important;
+}
+
+#tasksPage .tasks-deadline-title span,
+#tasksPage .tasks-deadline-card-value {
+    color: var(--foreground) !important;
+}
+
+#tasksPage .tasks-deadline-caption,
+#tasksPage .tasks-deadline-card-title,
+#tasksPage .tasks-deadline-card-note {
+    color: var(--muted-foreground) !important;
+}
+
+#tasksPage .task-list-actions .btn-sm.btn-danger,
+#tasksPage .task-detail-actions .btn.btn-danger {
+    background: var(--danger) !important;
+    border-color: var(--danger) !important;
+    color: #ffffff !important;
+}
+
+#tasksPage .task-list-actions .btn-sm.btn-danger:hover,
+#tasksPage .task-detail-actions .btn.btn-danger:hover {
+    background: var(--ramp-red-700) !important;
+    border-color: var(--ramp-red-700) !important;
+}
+
+#tasksPage .task-priority-chip.priority-high,
+#tasksPage .task-priority-chip.badge-high,
+#tasksPage .task-priority-chip.badge-danger {
+    background: var(--danger-soft) !important;
+    border-color: rgba(185, 66, 100, .25) !important;
+    color: var(--danger) !important;
+}
+
+#tasksPage .task-priority-chip.priority-medium,
+#tasksPage .task-priority-chip.badge-medium,
+#tasksPage .task-priority-chip.badge-warning {
+    background: var(--warning-soft) !important;
+    border-color: rgba(154, 106, 31, .25) !important;
+    color: var(--warning) !important;
+}
+
+#tasksPage .task-priority-chip.priority-low,
+#tasksPage .task-priority-chip.badge-low,
+#tasksPage .task-priority-chip.badge-success {
+    background: var(--success-soft) !important;
+    border-color: rgba(47, 122, 72, .25) !important;
+    color: var(--success) !important;
+}
+
+/* Remove any harsh left stripes on task cards */
+.task-card,
+.task-card.high,
+.task-card.medium,
+.task-card.low,
+.task-list-item,
+.task-list-item.high,
+.task-list-item.medium,
+.task-list-item.low {
+    border-left: 1px solid var(--border) !important;
 }

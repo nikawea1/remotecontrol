@@ -11,20 +11,20 @@
     display: flex;
     flex-direction: column;
     background: #fff;
-    border: 1px solid #dfe7f1;
-    border-radius: 24px;
-    padding: 22px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
     cursor: pointer;
     transition: var(--transition);
-    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+    box-shadow: none;
     overflow: hidden;
     min-height: 100%;
 }
 
     .project-card:hover {
-        transform: translateY(-2px);
-        border-color: #cad6ea;
-        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+        transform: translateY(-1px);
+        border-color: var(--border-dark);
+        box-shadow: 0 4px 12px rgba(155, 63, 98, 0.08);
     }
 
 .project-top {
@@ -1216,8 +1216,8 @@
 }
 
 #projectsPage .project-card {
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 8px !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-lg) !important;
     padding: 16px !important;
     background: #ffffff !important;
     box-shadow: none !important;
@@ -1225,8 +1225,8 @@
 
 #projectsPage .project-card:hover {
     transform: none !important;
-    border-color: #94a3b8 !important;
-    background: #f8fafc !important;
+    border-color: var(--border-dark) !important;
+    background: var(--ramp-pale-blue-800) !important;
     box-shadow: none !important;
 }
 
@@ -1687,11 +1687,10 @@
 
 #projectViewModal .stage-section-inner {
     padding: 0 18px 18px;
-    border: 1px solid #cfd8e3;
-    border-left: 4px solid var(--primary);
-    border-radius: 18px;
-    background: #f8fafc;
-    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.045);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface-soft);
+    box-shadow: none;
 }
 
 #projectViewModal .stage-section-header {
@@ -1744,10 +1743,9 @@
 }
 
 #projectViewModal .task-row {
-    border: 1px solid #d5deea;
-    border-left: 4px solid var(--primary);
+    border: 1px solid var(--border);
     background: #ffffff;
-    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.04);
+    box-shadow: none;
     padding: 10px 12px;
     transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
 }

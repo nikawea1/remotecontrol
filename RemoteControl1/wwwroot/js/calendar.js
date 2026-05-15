@@ -221,7 +221,55 @@ function toggleMiniCalendar() {
     const popup = document.getElementById("miniCalendarPopup");
     if (!popup) return;
 
+    const willOpen = popup.classList.contains("hidden");
     popup.classList.toggle("hidden");
+
+    if (willOpen) {
+        setTimeout(() => attachMiniCalendarDismissHandlers(), 0);
+    } else {
+        detachMiniCalendarDismissHandlers();
+    }
+}
+
+function closeMiniCalendar() {
+    const popup = document.getElementById("miniCalendarPopup");
+    if (popup && !popup.classList.contains("hidden")) {
+        popup.classList.add("hidden");
+    }
+    detachMiniCalendarDismissHandlers();
+}
+
+function attachMiniCalendarDismissHandlers() {
+    if (window._miniCalendarDismissAttached) return;
+    window._miniCalendarDismissAttached = true;
+    document.addEventListener("keydown", miniCalendarKeydownHandler);
+    document.addEventListener("mousedown", miniCalendarOutsideClickHandler);
+}
+
+function detachMiniCalendarDismissHandlers() {
+    if (!window._miniCalendarDismissAttached) return;
+    window._miniCalendarDismissAttached = false;
+    document.removeEventListener("keydown", miniCalendarKeydownHandler);
+    document.removeEventListener("mousedown", miniCalendarOutsideClickHandler);
+}
+
+function miniCalendarKeydownHandler(event) {
+    if (event.key === "Escape") {
+        closeMiniCalendar();
+    }
+}
+
+function miniCalendarOutsideClickHandler(event) {
+    const popup = document.getElementById("miniCalendarPopup");
+    if (!popup) {
+        detachMiniCalendarDismissHandlers();
+        return;
+    }
+    const trigger = event.target.closest("[onclick*='toggleMiniCalendar']");
+    if (trigger) return;
+    if (!popup.contains(event.target)) {
+        closeMiniCalendar();
+    }
 }
 
 function changeMiniCalendarYear(step) {

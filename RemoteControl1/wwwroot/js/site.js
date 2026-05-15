@@ -263,7 +263,7 @@ function getRequestVerificationToken() {
     return input ? input.value : "";
 }
 
-function showNotification(message) {
+function showNotification(message, type) {
     const notification = document.getElementById("notification");
     const messageEl = document.getElementById("notificationMessage");
 
@@ -272,10 +272,25 @@ function showNotification(message) {
     }
 
     if (notification) {
+        const validType = (type === "success" || type === "error" || type === "info") ? type : "info";
+        notification.classList.remove("notification--success", "notification--error", "notification--info");
+        notification.classList.add("notification--" + validType);
+
+        const iconEl = notification.querySelector(".notification-content i");
+        if (iconEl) {
+            iconEl.className =
+                validType === "success" ? "fas fa-circle-check" :
+                validType === "error" ? "fas fa-circle-exclamation" :
+                "fas fa-circle-info";
+        }
+
         notification.classList.remove("hidden");
-        setTimeout(() => {
+        if (notification._hideTimer) {
+            clearTimeout(notification._hideTimer);
+        }
+        notification._hideTimer = setTimeout(() => {
             notification.classList.add("hidden");
-        }, 2000);
+        }, validType === "error" ? 4000 : 2400);
     } else {
         console.log(message);
     }
@@ -622,13 +637,21 @@ function updateSettingsControls(highContrast = getStoredUiPreference("rcUiHighCo
     const navThemeBtn = document.querySelector(".nav-theme-btn");
 
     if (contrastBtn) {
-        contrastBtn.innerHTML = `<i class="fas fa-circle-half-stroke"></i> ${highContrast ? "Выключить" : "Включить"}`;
-        contrastBtn.classList.toggle("is-active", highContrast);
+        if (contrastBtn.tagName === "INPUT" && contrastBtn.type === "checkbox") {
+            contrastBtn.checked = highContrast;
+        } else {
+            contrastBtn.innerHTML = `<i class="fas fa-circle-half-stroke"></i> ${highContrast ? "Выключить" : "Включить"}`;
+            contrastBtn.classList.toggle("is-active", highContrast);
+        }
     }
 
     if (compactBtn) {
-        compactBtn.innerHTML = `<i class="fas fa-compress"></i> ${compactDensity ? "Выключить" : "Включить"}`;
-        compactBtn.classList.toggle("is-active", compactDensity);
+        if (compactBtn.tagName === "INPUT" && compactBtn.type === "checkbox") {
+            compactBtn.checked = compactDensity;
+        } else {
+            compactBtn.innerHTML = `<i class="fas fa-compress"></i> ${compactDensity ? "Выключить" : "Включить"}`;
+            compactBtn.classList.toggle("is-active", compactDensity);
+        }
     }
 
     navThemeBtn?.classList.toggle("is-active", highContrast);
@@ -649,8 +672,33 @@ function toggleCompactDensity() {
 }
 
 function toggleThemePlaceholder() {
-    toggleHighContrastMode();
+    toggleAppTheme();
 }
+
+function applyAppTheme() {
+    var isDark = false;
+    try { isDark = window.localStorage.getItem("rc_theme") === "dark"; } catch { }
+    document.documentElement.classList.toggle("theme-dark", isDark);
+    document.body.classList.toggle("theme-dark", isDark);
+    var btn = document.querySelector(".nav-theme-btn");
+    if (btn) {
+        btn.classList.toggle("is-dark-active", isDark);
+        btn.setAttribute("aria-pressed", isDark ? "true" : "false");
+    }
+}
+
+function toggleAppTheme() {
+    var isDark = false;
+    try { isDark = window.localStorage.getItem("rc_theme") === "dark"; } catch { }
+    var next = !isDark;
+    try { window.localStorage.setItem("rc_theme", next ? "dark" : "light"); } catch { }
+    applyAppTheme();
+    if (typeof showNotification === "function") {
+        showNotification(next ? "Тёмная тема включена" : "Светлая тема включена");
+    }
+}
+
+document.addEventListener("DOMContentLoaded", applyAppTheme);
 
 function initSettingsPage() {
     applyUiPreferences();
