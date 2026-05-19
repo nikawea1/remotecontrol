@@ -86,54 +86,53 @@
 }
 
 .calendar-page-title {
-    font-size: 44px;
+    font-size: 22px;
     font-weight: 800;
-    color: #0f172a;
-    margin: 0 0 8px 0;
-    line-height: 1.1;
+    color: var(--foreground);
+    margin: 0;
+    line-height: 1.2;
+    font-family: var(--font-main);
 }
 
 .calendar-page-subtitle {
-    margin: 0;
-    font-size: 16px;
-    color: #64748b;
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--muted-foreground);
 }
 
 .calendar-create-btn {
-    min-width: 220px;
-    height: 48px;
-    border-radius: 16px;
-    font-size: 16px;
-    font-weight: 600;
+    min-width: auto;
+    height: 40px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
 }
 
 .calendar-layout-modern {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 400px;
-    gap: 28px;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 20px;
     align-items: start;
 }
 
 .calendar-board,
 .calendar-sidebar-modern {
-    border-radius: 24px;
-    padding: 28px;
+    border-radius: 16px;
+    padding: 20px;
     background: #fff;
-    border: 1px solid #e9eef5;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
 }
 
 .calendar-board-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 26px;
+    margin-bottom: 18px;
     position: relative;
 }
 
-.calendar-title-wrap {
-    position: relative;
-}
+.calendar-title-wrap { position: relative; }
 
 .calendar-title-btn {
     border: none;
@@ -141,31 +140,32 @@
     padding: 0;
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    font-size: 26px;
+    gap: 8px;
+    font-family: var(--font-main);
+    font-size: 18px;
     font-weight: 800;
-    color: #0f172a;
+    color: var(--foreground);
     cursor: pointer;
 }
 
 .calendar-title-caret {
-    font-size: 13px;
-    color: #64748b;
+    font-size: 12px;
+    color: var(--muted-foreground);
 }
 
 .calendar-board-nav {
     display: flex;
-    gap: 10px;
+    gap: 8px;
 }
 
 .calendar-nav-btn,
 .mini-calendar-nav-btn {
-    width: 38px;
-    height: 38px;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
     background: #fff;
-    color: #475569;
+    color: var(--color-text-secondary);
     display: flex;
     align-items: center;
     justify-content: center;

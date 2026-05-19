@@ -1747,43 +1747,40 @@
     background: #ffffff;
     box-shadow: none;
     padding: 10px 12px;
-    transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+    transition: border-color 0.16s ease, background 0.16s ease;
 }
 
 #projectViewModal .task-row:hover {
-    border-color: #b7c3d4;
-    background: #ffffff;
-    box-shadow: 0 7px 16px rgba(15, 23, 42, 0.075);
+    border-color: var(--border-dark);
+    background: var(--surface-soft);
 }
 
-#projectViewModal .task-row.task-status-done {
-    border-left-color: #43a047;
-}
-
-#projectViewModal .task-row.task-status-progress {
-    border-left-color: var(--ramp-blue-500);
-}
-
-#projectViewModal .task-row.task-status-review {
-    border-left-color: #7e57c2;
-}
-
+#projectViewModal .task-row.task-status-done,
+#projectViewModal .task-row.task-status-progress,
+#projectViewModal .task-row.task-status-review,
 #projectViewModal .task-row.task-status-new {
-    border-left-color: #78909c;
+    border-left-color: var(--border);
 }
 
 #projectViewModal .task-row-title {
-    color: #17202b;
+    color: var(--foreground);
+    font-family: var(--font-main);
 }
 
 #projectViewModal .task-row-sub {
-    color: #64748b;
+    color: var(--muted-foreground);
+    font-family: var(--font-main);
 }
 
 #projectViewModal .task-row .mini-tag {
-    background: #f8fafc;
-    border-color: #d5deea;
-    color: #223044;
+    background: var(--surface-soft);
+    border-color: var(--border);
+    color: var(--color-text-secondary);
+    font-family: var(--font-main);
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 2px 8px;
 }
 
 #projectViewModal .task-row .btn.btn-sm {
@@ -1795,34 +1792,102 @@
 }
 
 #projectViewModal .task-row .btn.btn-success {
-    background: #2f9e44;
-    border-color: #2f9e44;
-    color: #ffffff;
+    background: #ffffff;
+    border-color: var(--border);
+    color: var(--success);
+}
+
+#projectViewModal .task-row .btn.btn-success:hover {
+    background: #eef7f1;
+    border-color: #d3ead8;
+    color: var(--success);
 }
 
 #projectViewModal .task-row .btn.btn-danger {
-    background: #e53935;
-    border-color: #e53935;
-    color: #ffffff;
+    background: #ffffff;
+    border-color: var(--border);
+    color: var(--danger);
+}
+
+#projectViewModal .task-row .btn.btn-danger:hover {
+    background: #fdecf0;
+    border-color: #f6cdd5;
+    color: var(--danger);
 }
 
 #projectViewModal .task-row .btn.btn-outline {
     background: #ffffff;
-    border-color: #b7c3d4;
-    color: #223044;
+    border-color: var(--border);
+    color: var(--color-text-secondary);
+}
+
+/* ===== ЕДИНЫЕ статусы и приоритеты внутри модалки проекта ===== */
+#projectViewModal .status-badge,
+#projectViewModal .task-status,
+#projectViewModal .project-task-priority,
+#projectViewModal .priority-badge,
+#projectViewModal .mini-tag,
+#projectViewModal .badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    max-width: 100% !important;
+    height: 22px !important;
+    min-height: 22px !important;
+    padding: 0 10px !important;
+    border-radius: 999px !important;
+    border: 1px solid var(--border) !important;
+    background: var(--surface-soft) !important;
+    color: var(--color-text-secondary) !important;
+    font-family: var(--font-main) !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.02em !important;
+    line-height: 1 !important;
+    text-transform: none !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    box-shadow: none !important;
+}
+
+#projectViewModal .status-badge.status-progress,
+#projectViewModal .task-status.status-progress {
+    background: var(--color-bg-brand-tertiary) !important;
+    color: var(--color-text-brand) !important;
+    border-color: var(--color-border-brand) !important;
+}
+#projectViewModal .status-badge.status-done,
+#projectViewModal .task-status.status-done {
+    background: #eef7f1 !important;
+    color: var(--success) !important;
+    border-color: #d3ead8 !important;
+}
+#projectViewModal .priority-badge.priority-high,
+#projectViewModal .project-task-priority.priority-high {
+    background: #fdecf0 !important;
+    color: var(--danger) !important;
+    border-color: #f6cdd5 !important;
+}
+#projectViewModal .priority-badge.priority-low,
+#projectViewModal .project-task-priority.priority-low {
+    background: #eef7f1 !important;
+    color: var(--success) !important;
+    border-color: #d3ead8 !important;
 }
 
 #projectViewModal .stage-section .btn.btn-outline {
-    color: #17202b;
+    color: var(--color-text-secondary);
     background: #ffffff;
-    border-color: var(--border-dark);
+    border-color: var(--border);
     box-shadow: none;
 }
 
 #projectViewModal .stage-section .btn.btn-outline:hover {
-    color: var(--primary-dark);
-    background: #eef2ff;
-    border-color: var(--primary);
+    color: var(--color-text-brand);
+    background: var(--color-bg-brand-tertiary);
+    border-color: var(--color-border-brand);
 }
 
 #projectViewModal .stage-tools {

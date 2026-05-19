@@ -120,11 +120,25 @@ body {
 
 .sidebar-nav {
     display: grid;
-    gap: 6px;
-    padding: 18px 0;
+    gap: 4px;
+    padding: 16px 0;
     overflow-y: auto;
-    overflow-x: visible;
+    overflow-x: hidden;
     scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 999px;
 }
 
 .sidebar-link {
@@ -132,35 +146,33 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    min-height: 44px;
+    min-height: 42px;
     padding: 0 12px;
-    border: 1px solid transparent;
     border-radius: 10px;
-    color: var(--sidebar-foreground);
+    color: var(--color-text-secondary);
     text-decoration: none;
-    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+    font-weight: 600;
+    transition: background-color 140ms ease, color 140ms ease;
 }
 
 .sidebar-link:hover {
-    color: var(--color-text-brand);
+    color: var(--primary);
     text-decoration: none;
     background: var(--color-bg-brand-tertiary);
-    border-color: var(--color-border-brand);
 }
 
 .sidebar-link.active {
-    color: var(--color-text-brand);
+    color: var(--primary-dark);
     background: var(--color-bg-brand-tertiary);
-    border-color: var(--color-border-brand);
-    font-weight: 800;
+    font-weight: 700;
 }
 
 .sidebar-link.active::before {
     content: "";
     position: absolute;
-    left: -2px;
-    top: 10px;
-    bottom: 10px;
+    left: 0;
+    top: 9px;
+    bottom: 9px;
     width: 3px;
     border-radius: 999px;
     background: var(--primary);

@@ -1,60 +1,75 @@
 /* Файл: RemoteControl1/wwwroot/css/settings.css */
-/* Settings page and shared settings controls. */
+/* Sakura settings page — единый светлый стиль. */
 
 .settings-layout {
     display: grid;
-    grid-template-columns: minmax(210px, 248px) minmax(0, 1fr);
+    grid-template-columns: minmax(210px, 240px) minmax(0, 1fr);
     gap: 20px;
     align-items: start;
 }
 
 .settings-nav {
     position: sticky;
-    top: 96px;
+    top: 92px;
     display: grid;
-    gap: 6px;
+    gap: 4px;
     padding: 10px;
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    background: #ffffff;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: var(--shadow-sm);
 }
 
 .settings-nav-link {
     display: flex;
     align-items: center;
     gap: 10px;
-    min-height: 42px;
+    min-height: 40px;
     padding: 0 12px;
-    border-radius: var(--radius);
-    color: var(--foreground);
+    border-radius: 10px;
+    color: var(--color-text-secondary);
+    font-family: var(--font-main);
+    font-size: 13px;
     font-weight: 700;
     text-decoration: none;
+    transition: background-color .15s ease, color .15s ease;
+}
+
+.settings-nav-link .rc-icon-svg {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
 }
 
 .settings-nav-link:hover,
 .settings-nav-link:focus-visible {
     background: var(--color-bg-brand-tertiary);
-    color: var(--color-text-brand);
+    color: var(--primary);
     text-decoration: none;
 }
 
 .settings-sections {
     display: grid;
-    gap: 18px;
+    gap: 16px;
     min-width: 0;
 }
 
 .settings-card {
     display: grid;
-    gap: 18px;
+    gap: 16px;
     margin: 0;
+    padding: 22px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: var(--shadow-sm);
 }
 
 .settings-section-head {
     display: flex;
     align-items: flex-start;
-    gap: 14px;
-    padding-bottom: 16px;
+    gap: 12px;
+    padding-bottom: 14px;
     border-bottom: 1px solid var(--border);
 }
 
@@ -62,26 +77,34 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 42px;
-    height: 42px;
-    flex: 0 0 42px;
-    border-radius: 12px;
-    background: var(--primary);
-    color: #ffffff;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    border-radius: 11px;
+    background: var(--color-bg-brand-tertiary);
+    border: 1px solid var(--color-border-brand);
+    color: var(--primary);
+}
+
+.settings-section-icon .rc-icon-svg {
+    width: 18px;
+    height: 18px;
 }
 
 .settings-section-head h2 {
     margin: 0;
     color: var(--foreground);
-    font-size: 18px;
+    font-family: var(--font-main);
+    font-size: 16px;
+    font-weight: 800;
     line-height: 1.25;
 }
 
 .settings-section-head p {
-    margin: 5px 0 0;
+    margin: 4px 0 0;
     color: var(--muted-foreground);
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: 13px;
+    line-height: 1.45;
 }
 
 .settings-list {
@@ -94,21 +117,17 @@
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 16px;
     align-items: center;
-    padding: 16px 0;
+    padding: 14px 0;
     border-bottom: 1px solid var(--border);
 }
 
-.settings-row:first-child {
-    padding-top: 0;
-}
-
-.settings-row:last-child {
-    padding-bottom: 0;
-    border-bottom: 0;
-}
+.settings-row:first-child { padding-top: 0; }
+.settings-row:last-child { padding-bottom: 0; border-bottom: 0; }
 
 .settings-row-title {
     color: var(--foreground);
+    font-family: var(--font-main);
+    font-size: 14px;
     font-weight: 800;
     line-height: 1.35;
 }
@@ -116,7 +135,7 @@
 .settings-row-text {
     margin-top: 4px;
     color: var(--muted-foreground);
-    font-size: 14px;
+    font-size: 13px;
     line-height: 1.5;
 }
 
@@ -124,47 +143,75 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 34px;
+    min-height: 28px;
     padding: 0 12px;
     border: 1px solid var(--border);
     border-radius: 999px;
     background: var(--surface-soft);
     color: var(--muted-foreground);
+    font-family: var(--font-main);
     font-size: 12px;
-    font-weight: 800;
+    font-weight: 700;
     white-space: nowrap;
 }
 
 .settings-status-pill.is-active {
     border-color: var(--color-border-brand);
     background: var(--color-bg-brand-tertiary);
-    color: var(--color-text-brand);
+    color: var(--primary-dark);
 }
 
-.settings-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px;
+/* ---- Sakura switch ---- */
+.settings-row-switch {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
 }
 
-.setting-item {
-    display: grid;
-    gap: 10px;
-    min-width: 0;
-    padding: 16px;
+.settings-row-switch .form-check-input {
+    -webkit-appearance: none;
+    appearance: none;
+    position: relative;
+    flex: 0 0 40px;
+    width: 40px;
+    height: 22px;
+    margin: 0;
     border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border-radius: 999px;
     background: var(--surface-soft);
+    cursor: pointer;
+    transition: background-color .2s ease, border-color .2s ease;
 }
+
+.settings-row-switch .form-check-input::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(58, 47, 53, 0.18);
+    transform: translateY(-50%);
+    transition: left .2s ease;
+}
+
+.settings-row-switch .form-check-input:checked {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.settings-row-switch .form-check-input:checked::before { left: 20px; }
 
 @media (max-width: 920px) {
-    .settings-layout {
-        grid-template-columns: 1fr;
-    }
-
+    .settings-layout { grid-template-columns: 1fr; }
     .settings-nav {
         position: static;
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(140px, 1fr);
+        overflow-x: auto;
     }
 }
 
@@ -173,15 +220,10 @@
         grid-template-columns: 1fr;
         align-items: start;
     }
-
     .settings-row .btn,
     .settings-row .settings-status-pill,
     .settings-row .settings-row-switch {
         justify-self: start;
     }
-}
-
-.settings-row-switch {
-    margin: 0;
-    padding-left: 0;
+    .settings-card { padding: 18px; }
 }
